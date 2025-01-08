@@ -1,0 +1,180 @@
+Cycle Simulation Per Systolic Tensor Configuration
+
+[Target Layer]
+	Layer Name: swin_b_stage4_final_linear_projection
+	M: 50, N: 1024, K: 1024
+	Streaming Dimension Size: 1024
+
+[DRAM]
+	DRAM Bandwidth: 384
+
+[Input SRAM A]
+	SRAM A Single Buffer Limit (KB): 512 KB
+	SRAM A Single Buffer Limit (bit): 4194304 bit
+	SRAM A Total SRAM Size (KB): 1024
+	SRAM A Total SRAM Size (bit): 8388608
+
+[Input SRAM B]
+	SRAM B Single Buffer Limit (KB): 512 KB
+	SRAM B Single Buffer Limit (bit): 4194304 bit
+	SRAM B Total SRAM Size (KB): 1024
+	SRAM B Total SRAM Size (bit): 8388608
+
+[Output SRAM C]
+	SRAM B Single Buffer Limit (KB): 512 KB
+	SRAM B Single Buffer Limit (bit): 4194304 bit
+	SRAM B Total SRAM Size (KB): 1024
+	SRAM B Total SRAM Size (bit): 8388608
+
+[Systolic Tensor Array]
+	[Systolic Tensor Array Dimension]
+		Dataflow: Input Stationary
+		Group PE Row: 32
+		Group PE Block: 32
+		Vector PE Row: 1
+		Vector PE Block: 1
+		Multipliers Per PE: 1
+
+	[Port Bit Width info]
+		Port A Bit Width: 8
+		Port B Bit Width: 8
+		Port C Bit Width: 21
+
+[Tile Size info]
+[SRAM Energy info]
+Capacity: 32 (KB), Bandwidth: 8 (Byte), Read Energy: 55.924 (pJ), Write energy: 55.609 (pJ), Leakage Power 387.872 (mW)
+Capacity: 32 (KB), Bandwidth: 16 (Byte), Read Energy: 88.713 (pJ), Write energy: 88.081 (pJ), Leakage Power 387.872 (mW)
+Capacity: 32 (KB), Bandwidth: 32 (Byte), Read Energy: 154.866 (pJ), Write energy: 153.603 (pJ), Leakage Power 387.872 (mW)
+Capacity: 32 (KB), Bandwidth: 64 (Byte), Read Energy: 308.64 (pJ), Write energy: 306.113 (pJ), Leakage Power 387.872 (mW)
+Capacity: 32 (KB), Bandwidth: 128 (Byte), Read Energy: 608.726 (pJ), Write energy: 603.672 (pJ), Leakage Power 387.872 (mW)
+Capacity: 32 (KB), Bandwidth: 256 (Byte), Read Energy: 1196.0 (pJ), Write energy: 1186.0 (pJ), Leakage Power 387.872 (mW)
+Capacity: 32 (KB), Bandwidth: 512 (Byte), Read Energy: 2349.0 (pJ), Write energy: 2329.0 (pJ), Leakage Power 387.872 (mW)
+Capacity: 32 (KB), Bandwidth: 1024 (Byte), Read Energy: 4618.0 (pJ), Write energy: 4578.0 (pJ), Leakage Power 387.872 (mW)
+Capacity: 32 (KB), Bandwidth: 2048 (Byte), Read Energy: 9095.0 (pJ), Write energy: 9014.0 (pJ), Leakage Power 387.872 (mW)
+Capacity: 32 (KB), Bandwidth: 4096 (Byte), Read Energy: 17952.0 (pJ), Write energy: 17600.0 (pJ), Leakage Power 387.872 (mW)
+Capacity: 64 (KB), Bandwidth: 8 (Byte), Read Energy: 66.948 (pJ), Write energy: 66.64 (pJ), Leakage Power 550.349 (mW)
+Capacity: 64 (KB), Bandwidth: 16 (Byte), Read Energy: 108.463 (pJ), Write energy: 107.847 (pJ), Leakage Power 550.349 (mW)
+Capacity: 64 (KB), Bandwidth: 32 (Byte), Read Energy: 190.999 (pJ), Write energy: 189.767 (pJ), Leakage Power 550.349 (mW)
+Capacity: 64 (KB), Bandwidth: 64 (Byte), Read Energy: 356.801 (pJ), Write energy: 354.338 (pJ), Leakage Power 550.349 (mW)
+Capacity: 64 (KB), Bandwidth: 128 (Byte), Read Energy: 711.827 (pJ), Write energy: 706.899 (pJ), Leakage Power 550.349 (mW)
+Capacity: 64 (KB), Bandwidth: 256 (Byte), Read Energy: 1414.0 (pJ), Write energy: 1404.0 (pJ), Leakage Power 550.349 (mW)
+Capacity: 64 (KB), Bandwidth: 512 (Byte), Read Energy: 2804.0 (pJ), Write energy: 2784.0 (pJ), Leakage Power 550.349 (mW)
+Capacity: 64 (KB), Bandwidth: 1024 (Byte), Read Energy: 5561.0 (pJ), Write energy: 5522.0 (pJ), Leakage Power 550.349 (mW)
+Capacity: 64 (KB), Bandwidth: 2048 (Byte), Read Energy: 11035.0 (pJ), Write energy: 10956.0 (pJ), Leakage Power 550.349 (mW)
+Capacity: 64 (KB), Bandwidth: 4096 (Byte), Read Energy: 21917.0 (pJ), Write energy: 21759.0 (pJ), Leakage Power 550.349 (mW)
+Capacity: 128 (KB), Bandwidth: 8 (Byte), Read Energy: 69.157 (pJ), Write energy: 68.849 (pJ), Leakage Power 783.827 (mW)
+Capacity: 128 (KB), Bandwidth: 16 (Byte), Read Energy: 112.48 (pJ), Write energy: 111.864 (pJ), Leakage Power 783.827 (mW)
+Capacity: 128 (KB), Bandwidth: 32 (Byte), Read Energy: 198.649 (pJ), Write energy: 197.147 (pJ), Leakage Power 783.827 (mW)
+Capacity: 128 (KB), Bandwidth: 64 (Byte), Read Energy: 359.199 (pJ), Write energy: 392.736 (pJ), Leakage Power 783.827 (mW)
+Capacity: 128 (KB), Bandwidth: 128 (Byte), Read Energy: 786.525 (pJ), Write energy: 781.597 (pJ), Leakage Power 783.827 (mW)
+Capacity: 128 (KB), Bandwidth: 256 (Byte), Read Energy: 1552.0 (pJ), Write energy: 1542.0 (pJ), Leakage Power 783.827 (mW)
+Capacity: 128 (KB), Bandwidth: 512 (Byte), Read Energy: 3053.0 (pJ), Write energy: 3033.0 (pJ), Leakage Power 783.827 (mW)
+Capacity: 128 (KB), Bandwidth: 1024 (Byte), Read Energy: 6002.0 (pJ), Write energy: 5962.0 (pJ), Leakage Power 783.827 (mW)
+Capacity: 128 (KB), Bandwidth: 2048 (Byte), Read Energy: 11810.0 (pJ), Write energy: 11731.0 (pJ), Leakage Power 783.827 (mW)
+Capacity: 128 (KB), Bandwidth: 4096 (Byte), Read Energy: 23270.0 (pJ), Write energy: 23113.0 (pJ), Leakage Power 783.827 (mW)
+Capacity: 256 (KB), Bandwidth: 8 (Byte), Read Energy: 89.409 (pJ), Write energy: 89.106 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 256 (KB), Bandwidth: 16 (Byte), Read Energy: 149.721 (pJ), Write energy: 149.114 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 256 (KB), Bandwidth: 32 (Byte), Read Energy: 268.748 (pJ), Write energy: 267.534 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 256 (KB), Bandwidth: 64 (Byte), Read Energy: 506.506 (pJ), Write energy: 504.079 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 256 (KB), Bandwidth: 128 (Byte), Read Energy: 1009.0 (pJ), Write energy: 1004.0 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 256 (KB), Bandwidth: 256 (Byte), Read Energy: 2012.0 (pJ), Write energy: 2002.0 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 256 (KB), Bandwidth: 512 (Byte), Read Energy: 3998.0 (pJ), Write energy: 3979.0 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 256 (KB), Bandwidth: 1024 (Byte), Read Energy: 7939.0 (pJ), Write energy: 7900.0 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 256 (KB), Bandwidth: 2048 (Byte), Read Energy: 15763.0 (pJ), Write energy: 15685.0 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 256 (KB), Bandwidth: 4096 (Byte), Read Energy: 31313.0 (pJ), Write energy: 31157.0 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 512 (KB), Bandwidth: 8 (Byte), Read Energy: 119.895 (pJ), Write energy: 119.591 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 512 (KB), Bandwidth: 16 (Byte), Read Energy: 201.39 (pJ), Write energy: 200.784 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 512 (KB), Bandwidth: 32 (Byte), Read Energy: 359.162 (pJ), Write energy: 357.949 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 512 (KB), Bandwidth: 64 (Byte), Read Energy: 671.657 (pJ), Write energy: 669.23 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 512 (KB), Bandwidth: 128 (Byte), Read Energy: 1296.0 (pJ), Write energy: 1291.0 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 512 (KB), Bandwidth: 256 (Byte), Read Energy: 2588.0 (pJ), Write energy: 2578.0 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 512 (KB), Bandwidth: 512 (Byte), Read Energy: 5169.0 (pJ), Write energy: 5149.0 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 512 (KB), Bandwidth: 1024 (Byte), Read Energy: 10299.0 (pJ), Write energy: 10261.0 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 512 (KB), Bandwidth: 2048 (Byte), Read Energy: 20506.0 (pJ), Write energy: 20429.0 (pJ), Leakage Power 1104.0 (mW)
+Capacity: 512 (KB), Bandwidth: 4096 (Byte), Read Energy: 40825.0 (pJ), Write energy: 40670.0 (pJ), Leakage Power 1104.0 (mW)
+	Streaming Dimension Size: 1024
+
+[Simulation Results]
+[Workload Metrics]
+
+	Total Operation Number: 64
+	Tile Size A: 8192
+	Tile Size B: 262144
+	Tile Size C: 688128
+	Tile A Trim Count: 0
+	Tile B Trim Count: 0
+
+[Performance Metrics]
+
+	Total Cycle: 160835
+
+	Array Active Count: 68541
+	Array Stall Cycle: 4353
+	Dram Hold Cycle: 0
+
+	DRAM Read Access Count: 45056
+	DRAM Write Access Count: 114688
+	SRAM A Read Access Count: 2048
+	SRAM A Write Access Count: 1408
+	SRAM B Read Access Count: 65536
+	SRAM B Write Access Count: 43712
+
+	DRAM Hit Ratio: 0.12 %
+	DRAM Miss Ratio: 0.88 %
+
+	SRAM A Hit Ratio: 0.09 %
+	SRAM B Hit Ratio: 0.48 %
+	SRAM A Miss Ratio: 0.91 %
+	SRAM B Miss Ratio: 0.52 %
+	SRAM Hit Ratio: 0.43 %
+	SRAM Miss Ratio: 0.57 %
+
+[Memory Utilization]
+
+	SRAM A Buffer Toggle Count: 19
+	SRAM B Buffer Toggle Count: 19
+	SRAM C Buffer Toggle Count: 8360
+
+	SRAM A Average Memory Usage: 8.09 KB
+	SRAM A Average Memory Utilization: 0.79 %
+	SRAM B Average Memory Usage: 323.41 KB
+	SRAM B Average Memory Utilization: 31.58 %
+	SRAM C Average Memory Usage: 208.86 KB
+	SRAM C Average Memory Utilization: 20.40 %
+
+[Area Analysis (mm^2)]
+
+	SRAM A Area: 5354000.00 mm^2
+	SRAM B Area: 5354000.00 mm^2
+	SRAM C Area: 5354000.00 mm^2
+	DRAM Area: 75.00 mm^2
+	Array Area: 67.00 mm^2
+	Total Area: 16062142.00 mm^2
+
+[Energy Analysis (pJ)]
+
+	SRAM A Read Energy: 245544.96 pJ
+	SRAM A Write Energy: 168384.13 pJ
+	SRAM A Leakage Energy: 355123680.00 pJ
+	SRAM A Total Energy: 355537609.09 pJ
+
+	SRAM B Read Energy: 5227561.79 pJ
+	SRAM B Write Energy: 5227561.79 pJ
+	SRAM B Leakage Energy: 355123680.00 pJ
+	SRAM B Total Energy: 368208680.51 pJ
+
+	SRAM C Read Energy: 13750517.76 pJ
+	SRAM C Write Energy: 7837515.78 pJ
+	SRAM C Leakage Energy: 355123680.00 pJ
+	SRAM C Total Energy: 376711713.54 pJ
+
+	DRAM Read Energy: 45056.00 pJ
+	DRAM Write Energy: 114688.00 pJ
+	DRAM Leakage Energy: 321670.00 pJ
+	DRAM Total Energy: 481414.00 pJ
+
+	Array Dynamic Energy: 4592247.00 pJ
+	Array Leakage Energy: 21551890.00 pJ
+	Array Total Energy: 26144137.00 pJ
+
+	Total Energy: 1127083554.14 pJ
