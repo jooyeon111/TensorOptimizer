@@ -8,7 +8,7 @@ class GroupProcessingElement[T <: Data](
   groupPeColIndex: Int,
   vectorPeRow: Int,
   vectorPeCol: Int,
-  numPeMultiplier: Int,
+  numMultiplier: Int,
   withOutputA: Boolean,
   withOutputB: Boolean,
   withInputC: Boolean,
@@ -17,8 +17,8 @@ class GroupProcessingElement[T <: Data](
 
   override val desiredName:String = camelToSnake(this.getClass.getSimpleName)
 
-  val numInputA: Int = numPeMultiplier * vectorPeRow
-  val numInputB: Int = numPeMultiplier * vectorPeCol
+  val numInputA: Int = numMultiplier * vectorPeRow
+  val numInputB: Int = numMultiplier * vectorPeCol
   val numOutput: Int = vectorPeRow
 
   val outputTypeC = if (portConfig.enableUserBitWidth)
@@ -40,7 +40,7 @@ class GroupProcessingElement[T <: Data](
       groupPeColIndex = groupPeColIndex,
       vectorPeColIndex = vectorPeColIndex,
       vectorPeCol = vectorPeCol,
-      numPeMultiplier = numPeMultiplier,
+      numMultiplier = numMultiplier,
       withOutputA = peWithOutputA,
       withInputC = peWithInputC,
       withOutputB = false,
@@ -67,25 +67,25 @@ class GroupProcessingElement[T <: Data](
 
   //Wiring Input A
   for ( a <- 0 until vectorPeRow )
-    for( p <- 0 until numPeMultiplier )
-      vectorProcessingElementVector(a)(0).io.inputA(p) := io.inputA(a * numPeMultiplier + p)
+    for( p <- 0 until numMultiplier )
+      vectorProcessingElementVector(a)(0).io.inputA(p) := io.inputA(a * numMultiplier + p)
 
   //Wiring Output A
   for (a <- 0 until vectorPeRow)
     for (b <- 1 until vectorPeCol)
-      for(p <- 0 until numPeMultiplier)
+      for(p <- 0 until numMultiplier)
         vectorProcessingElementVector(a)(b).io.inputA(p) := vectorProcessingElementVector(a)(b - 1).io.outputA.get(p)
 
   if(withOutputA)
     for (a <- 0 until vectorPeRow)
-      for( p <- 0 until numPeMultiplier)
-        io.outputA.get(a * numPeMultiplier + p) := vectorProcessingElementVector(a)(vectorPeCol - 1).io.outputA.get(p)
+      for( p <- 0 until numMultiplier)
+        io.outputA.get(a * numMultiplier + p) := vectorProcessingElementVector(a)(vectorPeCol - 1).io.outputA.get(p)
 
   //Wiring Input B
   for (a <- 0 until vectorPeRow)
     for (b <- 0 until vectorPeCol)
-      for (p <- 0 until numPeMultiplier)
-        vectorProcessingElementVector(a)(b).io.inputB(p) := io.inputB(b * numPeMultiplier + p)
+      for (p <- 0 until numMultiplier)
+        vectorProcessingElementVector(a)(b).io.inputB(p) := io.inputB(b * numMultiplier + p)
 
   if(withOutputB)
     io.outputB.get := RegNext(io.inputB, VecInit.fill(numInputB)(ev.zero(portConfig.inputTypeB.getWidth)))

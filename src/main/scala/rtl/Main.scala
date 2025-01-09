@@ -2,11 +2,11 @@ package rtl
 
 import chisel3._
 import _root_.circt.stage.ChiselStage
-import rtl.commonRtl.{Arithmetic, PortConfig, SystolicTensorArrayConfig}
+import rtl.commonRtl.{Arithmetic, PortConfig}
 import rtl.commonRtl.Arithmetic._
 
 import scala.util.{Failure, Success}
-import common.{Dataflow, FilePaths}
+import common.{Dataflow, FilePaths, ArrayDimension}
 
 
 object Main extends App with ConfigurationParser {
@@ -25,7 +25,7 @@ object Main extends App with ConfigurationParser {
 
   def generateRtlForType[T <: Data](
      splitVerilogOutput: Boolean,
-     arrayConfig: SystolicTensorArrayConfig,
+     arrayConfig: ArrayDimension,
      portBitWidthInfo: PortBitWidthInfo,
      dataflow: Dataflow.Value,
      typeConstructor: Int => T
@@ -47,7 +47,7 @@ object Main extends App with ConfigurationParser {
     )
 
     val dataflowString = dataflow.toString.toLowerCase
-    val generatedFileName = s"${dataflowString}_sta_${arrayConfig.arrayConfigString}"
+    val generatedFileName = s"${dataflowString}_sta_${arrayConfig.arrayDimensionString}"
 
     lazy val rtlGenerator =  dataflow match {
       case Dataflow.Is =>

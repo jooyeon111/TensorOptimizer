@@ -666,7 +666,7 @@ object AnalyzerMain extends App with Logger with StreamingDimensionCalculator wi
   private def showSigmaBandwidth(arrayConfigs: Vector[ArrayConfig], isStagConfigGenerationOn: Boolean): Unit = {
 
     log("\n[Configuration Candidates]")
-    arrayConfigs.foreach(arrayConfig =>log(s"\t[${arrayConfig.name}] " +
+    arrayConfigs.foreach(arrayConfig =>log(s"\t[${arrayConfig.arrayConfigString}] " +
       s"\tInput Bandwidth A: ${arrayConfig.bandwidthOfInputA} " +
       s"\tInput Bandwidth B: ${arrayConfig.bandwidthOfInputB} " +
       s"\tOutput Bandwidth C: ${arrayConfig.outputBandwidth}"
@@ -708,7 +708,7 @@ object AnalyzerMain extends App with Logger with StreamingDimensionCalculator wi
     writeConfigurationFile(arrayConfigSigma2)
     generateMakefile(arrayConfigSigma2)
 
-    arrayConfigSigma2.foreach(arrayConfig => log(s"\t[${arrayConfig.name}] " +
+    arrayConfigSigma2.foreach(arrayConfig => log(s"\t[${arrayConfig.arrayConfigString}] " +
       s"\tInput Bandwidth A: ${arrayConfig.bandwidthOfInputA} " +
       s"\tInput Bandwidth B: ${arrayConfig.bandwidthOfInputB} " +
       s"\tOutput Bandwidth C: ${arrayConfig.outputBandwidth}"

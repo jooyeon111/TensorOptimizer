@@ -1,12 +1,11 @@
 package rtl
 
-import common.Dataflow
-import rtl.commonRtl.SystolicTensorArrayConfig
+import common.{Dataflow, ArrayDimension}
 
 case class AppConfig (
   splitVerilogOutput: Boolean,
   dataflow: Dataflow.Value,
-  arrayConfig: SystolicTensorArrayConfig,
+  arrayDimension: ArrayDimension,
   integerType: IntegerType.Value,
   portBitWidthInfo: PortBitWidthInfo
 )

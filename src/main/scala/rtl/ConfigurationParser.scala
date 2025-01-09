@@ -1,8 +1,7 @@
 package rtl
 
 import chisel3.util.log2Ceil
-import common.Dataflow
-import rtl.commonRtl.SystolicTensorArrayConfig
+import common.{Dataflow, ArrayDimension}
 
 import scala.util.Try
 
@@ -27,7 +26,7 @@ trait ConfigurationParser {
       case _ => throw new IllegalArgumentException("Invalid dataflow")
     }
 
-    val arrayConfig = SystolicTensorArrayConfig(
+    val arrayDimension = new ArrayDimension(
       config.getInt("R").get,
       config.getInt("C").get,
       config.getInt("A").get,
@@ -46,7 +45,7 @@ trait ConfigurationParser {
     val bitWidthPortA = config.getInt("Port A").get
     val bitWidthPortB = config.getInt("Port B").get
     val bitWidthMultiplierOutput = bitWidthPortA + bitWidthPortB
-    val bitWidthAdderTreeOutput = bitWidthMultiplierOutput + log2Ceil(arrayConfig.numPeMultiplier)
+    val bitWidthAdderTreeOutput = bitWidthMultiplierOutput + log2Ceil(arrayDimension.numMultiplier)
     var enableUserBitWidth = true
 
     val bitWidthPortC = config.getInt("Port C").getOrElse{
@@ -55,13 +54,13 @@ trait ConfigurationParser {
 
       dataflow match {
         case Dataflow.Is =>
-          bitWidthAdderTreeOutput + log2Ceil(arrayConfig.groupPeCol * arrayConfig.vectorPeCol)
+          bitWidthAdderTreeOutput + log2Ceil(arrayDimension.groupPeCol * arrayDimension.vectorPeCol)
 
         case Dataflow.Os =>
           throw new IllegalArgumentException("Output stationary needs output bit width as a parameter")
 
         case Dataflow.Ws =>
-          bitWidthAdderTreeOutput + log2Ceil(arrayConfig.groupPeRow * arrayConfig.vectorPeRow)
+          bitWidthAdderTreeOutput + log2Ceil(arrayDimension.groupPeRow * arrayDimension.vectorPeRow)
       }
 
     }
@@ -79,7 +78,7 @@ trait ConfigurationParser {
     AppConfig(
       splitVerilogOutput = splitVerilogOutput,
       dataflow = dataflow,
-      arrayConfig = arrayConfig,
+      arrayDimension = arrayDimension,
       integerType = integerType,
       portBitWidthInfo = portBitWidthInfo
     )

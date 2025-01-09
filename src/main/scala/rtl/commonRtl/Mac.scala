@@ -3,7 +3,7 @@ package rtl.commonRtl
 import chisel3._
 
 class Mac[T <: Data](
-  numPeMultiplier: Int,
+  numMultiplier: Int,
   inputTypeA: T,
   inputTypeB: T,
   multiplierOutputType: T,
@@ -12,16 +12,16 @@ class Mac[T <: Data](
 
   override val desiredName:String = camelToSnake(this.getClass.getSimpleName)
 
-  require(numPeMultiplier >= 2, " At least 2 number of multipliers are needed for multiply and accumulation logic")
+  require(numMultiplier >= 2, " At least 2 number of multipliers are needed for multiply and accumulation logic")
 
   val io = IO (new Bundle {
-    val inputA = Input(Vec(numPeMultiplier, inputTypeA))
-    val inputB = Input(Vec(numPeMultiplier, inputTypeB))
+    val inputA = Input(Vec(numMultiplier, inputTypeA))
+    val inputB = Input(Vec(numMultiplier, inputTypeB))
     val output = Output(adderTreeOutputType)
   })
 
-  val multiplier = Module(new ParallelMultiplier(numPeMultiplier, inputTypeA, inputTypeB, multiplierOutputType))
-  val adderTree = Module(new AdderTree(numPeMultiplier, multiplierOutputType, adderTreeOutputType))
+  val multiplier = Module(new ParallelMultiplier(numMultiplier, inputTypeA, inputTypeB, multiplierOutputType))
+  val adderTree = Module(new AdderTree(numMultiplier, multiplierOutputType, adderTreeOutputType))
 
   multiplier.io.inputA := io.inputA
   multiplier.io.inputB := io.inputB

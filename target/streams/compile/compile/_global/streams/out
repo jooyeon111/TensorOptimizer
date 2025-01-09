@@ -1,7 +1,4 @@
-[0m[[0m[0minfo[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/DesignExplorerMain.scala:1:1: [0m
-[0m[[0m[0minfo[0m] [0m[0mFound names but no class, trait or object is defined in the compilation unit.[0m
-[0m[[0m[0minfo[0m] [0m[0mThe incremental compiler cannot record the dependency information in such case.[0m
-[0m[[0m[0minfo[0m] [0m[0mSome errors like unused import referring to a non-existent class might not be reported.[0m
-[0m[[0m[0minfo[0m] [0m[0m    [0m
-[0m[[0m[0minfo[0m] [0m[0mpackage simulation[0m
-[0m[[0m[0minfo[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/rtl/ConfigurationParser.scala:29:23: not found: value ArrayDimension[0m
+[0m[[0m[31merror[0m] [0m[0m    val arrayConfig = ArrayDimension([0m
+[0m[[0m[31merror[0m] [0m[0m                      ^[0m
+[0m[[0m[31merror[0m] [0m[0mone error found[0m

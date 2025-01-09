@@ -1,7 +1,6 @@
 package simulation
 
 import common.Dataflow
-
 import scala.collection.mutable
 
 //Remember modeling not only modeling the systolic tensor array itself, modeling pre- and post-processor too

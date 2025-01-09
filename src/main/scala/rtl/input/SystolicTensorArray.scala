@@ -1,32 +1,33 @@
 package rtl.input
 
 import chisel3._
-import rtl.commonRtl.{Arithmetic, PortConfig, SystolicTensorArrayConfig, VerilogNaming}
+import common.ArrayDimension
+import rtl.commonRtl.{Arithmetic, PortConfig, VerilogNaming}
 
 class SystolicTensorArray[T <: Data](
   groupPeRow: Int,
   groupPeCol : Int,
   vectorPeRow : Int,
   vectorPeCol : Int,
-  numPeMultiplier : Int,
+  numMultiplier : Int,
   portConfig: PortConfig[T],
 //  generateRtl: Boolean
 )( implicit ev: Arithmetic[T] ) extends Module with VerilogNaming{
 
   override val desiredName:String = camelToSnake(this.getClass.getSimpleName)
 
-  def this(arrayConfig: SystolicTensorArrayConfig, portConfig: PortConfig[T])(implicit ev: Arithmetic[T]) =
+  def this(arrayDimension: ArrayDimension, portConfig: PortConfig[T])(implicit ev: Arithmetic[T]) =
     this(
-      arrayConfig.groupPeRow,
-      arrayConfig.groupPeCol,
-      arrayConfig.vectorPeRow,
-      arrayConfig.vectorPeCol,
-      arrayConfig.numPeMultiplier,
+      arrayDimension.groupPeRow,
+      arrayDimension.groupPeCol,
+      arrayDimension.vectorPeRow,
+      arrayDimension.vectorPeCol,
+      arrayDimension.numMultiplier,
       portConfig,
     )
 
-  val numInputA: Int = groupPeRow * vectorPeRow * numPeMultiplier
-  val numInputB: Int = groupPeCol * vectorPeCol * numPeMultiplier
+  val numInputA: Int = groupPeRow * vectorPeRow * numMultiplier
+  val numInputB: Int = groupPeCol * vectorPeCol * numMultiplier
   val numPropagateA: Int = groupPeCol * vectorPeCol
   val numOutput : Int = groupPeRow * vectorPeRow
   val outputTypeC: T = portConfig.getStaOutputTypeC
@@ -48,7 +49,7 @@ class SystolicTensorArray[T <: Data](
         groupPeColIndex = 0,
         vectorPeColIndex = colIndex,
         vectorPeCol = 0,
-        numPeMultiplier = numPeMultiplier,
+        numMultiplier = numMultiplier,
         withOutputA = withOutputA,
         withOutputB = withOutputB,
         withInputC = withInputC,
@@ -61,7 +62,7 @@ class SystolicTensorArray[T <: Data](
         groupPeColIndex = colIndex,
         vectorPeRow = vectorPeRow,
         vectorPeCol = vectorPeCol,
-        numPeMultiplier = numPeMultiplier,
+        numMultiplier = numMultiplier,
         withOutputA = withOutputA,
         withOutputB = withOutputB,
         withInputC = withInputC,
@@ -85,17 +86,17 @@ class SystolicTensorArray[T <: Data](
   //Wiring Input A
   for( r <- 0 until groupPeRow)
     for( a <- 0 until vectorPeRow)
-      for( p <- 0 until numPeMultiplier) {
-        val multiplierIndex = a * numPeMultiplier + p
-        processingElementVector(r)(0).io.inputA(multiplierIndex) := io.inputA(multiplierIndex + (r * vectorPeRow * numPeMultiplier))
+      for( p <- 0 until numMultiplier) {
+        val multiplierIndex = a * numMultiplier + p
+        processingElementVector(r)(0).io.inputA(multiplierIndex) := io.inputA(multiplierIndex + (r * vectorPeRow * numMultiplier))
       }
 
   //Wiring Input B
   for( c <- 0 until groupPeCol)
     for( b <- 0 until vectorPeCol)
-      for( p <- 0 until numPeMultiplier) {
-        val multiplierIndex = b * numPeMultiplier + p
-        processingElementVector(0)(c).io.inputB(multiplierIndex) := io.inputB( multiplierIndex + (c * vectorPeCol * numPeMultiplier ))
+      for( p <- 0 until numMultiplier) {
+        val multiplierIndex = b * numMultiplier + p
+        processingElementVector(0)(c).io.inputB(multiplierIndex) := io.inputB( multiplierIndex + (c * vectorPeCol * numMultiplier ))
       }
 
   for( r <- 0 until groupPeRow )
@@ -118,8 +119,8 @@ class SystolicTensorArray[T <: Data](
   for( r <- 0 until groupPeRow)
     for( c <- 1 until groupPeCol)
       for( a <- 0 until vectorPeRow)
-        for( p <- 0 until numPeMultiplier) {
-          val multiplierIndex = a * numPeMultiplier + p
+        for( p <- 0 until numMultiplier) {
+          val multiplierIndex = a * numMultiplier + p
           processingElementVector(r)(c).io.inputA(multiplierIndex) := processingElementVector(r)(c - 1).io.outputA.get(multiplierIndex)
         }
 
@@ -127,8 +128,8 @@ class SystolicTensorArray[T <: Data](
   for( r <- 1 until groupPeRow )
     for( c <- 0 until groupPeCol )
       for( b <- 0 until vectorPeCol )
-        for( p <- 0 until numPeMultiplier ) {
-          val multiplierIndex = b * numPeMultiplier + p
+        for( p <- 0 until numMultiplier ) {
+          val multiplierIndex = b * numMultiplier + p
           processingElementVector(r)(c).io.inputB(multiplierIndex) := processingElementVector(r-1)(c).io.outputB.get(multiplierIndex)
         }
 

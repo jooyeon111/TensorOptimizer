@@ -1,40 +1,41 @@
 package rtl.weight
 
 import chisel3._
-import rtl.commonRtl.{Arithmetic, PortConfig, PreProcessor, PreProcessorType, SystolicTensorArrayConfig}
+import common.ArrayDimension
+import rtl.commonRtl.{Arithmetic, PortConfig, PreProcessor, PreProcessorType}
 
 class DimensionAlignedSystolicTensorArray[T <: Data](
   groupPeRow: Int,
   groupPeCol : Int,
   vectorPeRow : Int,
   vectorPeCol : Int,
-  numPeMultiplier : Int,
+  numMultiplier : Int,
   dedicatedName: String,
   portConfig: PortConfig[T]
 )(implicit ev: Arithmetic[T]) extends Module {
 
-  def this(arrayConfig: SystolicTensorArrayConfig, dedicatedName: String, portConfig: PortConfig[T])(implicit ev: Arithmetic[T]) =
+  def this(arrayDimension: ArrayDimension, dedicatedName: String, portConfig: PortConfig[T])(implicit ev: Arithmetic[T]) =
     this(
-      arrayConfig.groupPeRow,
-      arrayConfig.groupPeCol,
-      arrayConfig.vectorPeRow,
-      arrayConfig.vectorPeCol,
-      arrayConfig.numPeMultiplier,
+      arrayDimension.groupPeRow,
+      arrayDimension.groupPeCol,
+      arrayDimension.vectorPeRow,
+      arrayDimension.vectorPeCol,
+      arrayDimension.numMultiplier,
       dedicatedName,
       portConfig
     )
 
   override def desiredName: String = dedicatedName
 
-  val numInputA: Int = groupPeRow * vectorPeRow * numPeMultiplier
-  val numInputB: Int = groupPeCol * vectorPeCol * numPeMultiplier
+  val numInputA: Int = groupPeRow * vectorPeRow * numMultiplier
+  val numInputB: Int = groupPeCol * vectorPeCol * numMultiplier
   val numPropagateB: Int = groupPeRow * vectorPeRow
   val numOutput : Int = groupPeCol * vectorPeCol
 
   val preProcessorInputA = Module (new PreProcessor(
     groupPeRow,
     vectorPeRow,
-    numPeMultiplier,
+    numMultiplier,
     skewFlag = true,
     PreProcessorType.A,
     portConfig.inputTypeA,
@@ -42,7 +43,7 @@ class DimensionAlignedSystolicTensorArray[T <: Data](
   val preProcessorInputB = Module (new PreProcessor(
     groupPeCol,
     vectorPeCol,
-    numPeMultiplier,
+    numMultiplier,
     skewFlag = false,
     PreProcessorType.B,
     portConfig.inputTypeB
@@ -52,7 +53,7 @@ class DimensionAlignedSystolicTensorArray[T <: Data](
     groupPeCol,
     vectorPeRow,
     vectorPeCol,
-    numPeMultiplier,
+    numMultiplier,
     portConfig,
     generateRtl = false
   ))

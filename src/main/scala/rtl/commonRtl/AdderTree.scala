@@ -3,7 +3,7 @@ package rtl.commonRtl
 import chisel3._
 
 class AdderTree[T <: Data](
-  numPeMultiplier: Int,
+  numMultiplier: Int,
   inputType: T,
   outputType: T
 )(implicit ev: Arithmetic[T]) extends Module with VerilogNaming{
@@ -11,7 +11,7 @@ class AdderTree[T <: Data](
   override val desiredName:String = camelToSnake(this.getClass.getSimpleName)
 
   val io = IO(new Bundle {
-    val input = Input(Vec(numPeMultiplier, inputType))
+    val input = Input(Vec(numMultiplier, inputType))
     val output = Output(outputType)
   })
 

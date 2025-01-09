@@ -6,7 +6,7 @@ import rtl.commonRtl.{Arithmetic, PortConfig, VerilogNaming}
 class GroupProcessingElement[T <: Data](
   vectorPeRow: Int,
   vectorPeCol: Int,
-  numPeMultiplier: Int,
+  numMultiplier: Int,
   withOutputA: Boolean,
   withOutputB: Boolean,
   withInputC: Boolean,
@@ -16,13 +16,13 @@ class GroupProcessingElement[T <: Data](
   override val desiredName:String = camelToSnake(this.getClass.getSimpleName)
 
 
-  val numInputA: Int = numPeMultiplier * vectorPeRow
-  val numInputB: Int = numPeMultiplier * vectorPeCol
+  val numInputA: Int = numMultiplier * vectorPeRow
+  val numInputB: Int = numMultiplier * vectorPeCol
   val numProcessingElement: Int = vectorPeRow * vectorPeCol
 
   val vectorProcessingElementVector = Vector.fill(vectorPeRow, vectorPeCol)(
     Module( new VectorProcessingElement(
-      numPeMultiplier,
+      numMultiplier,
       false,
       false,
       false,
@@ -59,16 +59,16 @@ class GroupProcessingElement[T <: Data](
   //Wiring Input A
   for( a <- 0 until vectorPeRow )
     for( b <- 0 until vectorPeCol )
-      for( p <-0 until numPeMultiplier )
-        vectorProcessingElementVector(a)(b).io.inputA(p) := io.inputA(a * numPeMultiplier + p)
+      for( p <-0 until numMultiplier )
+        vectorProcessingElementVector(a)(b).io.inputA(p) := io.inputA(a * numMultiplier + p)
 
   registerOutputA := io.inputA
 
   //Wiring Input B
   for( a <- 0 until vectorPeRow )
     for( b <- 0 until vectorPeCol )
-      for( p <- 0 until numPeMultiplier )
-        vectorProcessingElementVector(a)(b).io.inputB(p) := io.inputB(b * numPeMultiplier + p)
+      for( p <- 0 until numMultiplier )
+        vectorProcessingElementVector(a)(b).io.inputB(p) := io.inputB(b * numMultiplier + p)
 
   registerOutputB := io.inputB
 

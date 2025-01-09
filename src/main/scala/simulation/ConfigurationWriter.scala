@@ -3,8 +3,10 @@ package simulation
 import java.io.File
 import common.{Dataflow, FilePaths}
 
+//TODO use Logger Trait
 trait ConfigurationWriter { self: Logger with BandWidthFilter =>
 
+  //TODO i do not need more use this function just generate it !
   def writeConfigurationFile(arrayConfigs: Vector[ArrayConfig]): Unit = {
     // Filter configurations with two sigma
     val filteredConfigs = filterConfigsWithTwoSigma(arrayConfigs)

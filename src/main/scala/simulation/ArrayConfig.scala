@@ -1,27 +1,29 @@
 package simulation
 
-import common.Dataflow
-
+import common.{Dataflow, ArrayDimension}
 import scala.math.{ceil, log10}
 
 //Remember modeling not only modeling the systolic tensor array itself, modeling pre- and post-processor too
 case class ArrayConfig(
-  groupPeRow: Int,
-  groupPeCol: Int,
-  vectorPeRow: Int,
-  vectorPeCol: Int,
-  numMultiplier: Int,
+  override val groupPeRow: Int,
+  override val groupPeCol: Int,
+  override val vectorPeRow: Int,
+  override val vectorPeCol: Int,
+  override val numMultiplier: Int,
   dataflow: Dataflow.Value,
   portBitWidth: PortBitWidth,
-) extends Logger {
-  require(groupPeRow >= 1, "[error] Array row must be at least 1")
-  require(groupPeCol >= 1, "[error] Array col must be at least 1")
-  require(vectorPeRow >= 1, "[error] Block row must be at least 1")
-  require(vectorPeCol >= 1, "[error] Block col must be at least 1")
-  require(numMultiplier >= 1,  "[error] Number of multiplier inside of processing elements must be at least 1")
+) extends ArrayDimension(
+  groupPeRow,
+  groupPeCol,
+  vectorPeRow,
+  vectorPeCol,
+  numMultiplier
+) with Logger {
+
   require(dataflow == Dataflow.Is || dataflow == Dataflow.Os || dataflow == Dataflow.Ws,
     "[error] Currently only 3 dataflow are supported input, weight and output")
 
+  val arrayConfigString: String = s"${dataflow.toString.toLowerCase}_$arrayDimensionString"
   val totalNumberOfMultipliers: Int = groupPeRow * groupPeCol * vectorPeRow * vectorPeCol * numMultiplier
 
   val dimensionOfInputA: Int = groupPeRow * vectorPeRow * numMultiplier
@@ -59,6 +61,6 @@ case class ArrayConfig(
         sys.exit(1)
     }
 
-  val name: String = s"${dataflow} {${groupPeRow}x$groupPeCol}x{${vectorPeRow}x$vectorPeCol}x$numMultiplier"
+
 
 }

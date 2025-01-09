@@ -6,7 +6,7 @@ import chisel3.util.ShiftRegister
 class PreProcessor[T <: Data](
   arrayConfig: Int,
   blockConfig: Int,
-  numPeMultiplier: Int,
+  numMultiplier: Int,
   skewFlag: Boolean,
   preProcessorType: PreProcessorType.Value,
   portType: T
@@ -22,7 +22,7 @@ class PreProcessor[T <: Data](
     }
   )
 
-  val numPort: Int = arrayConfig * blockConfig * numPeMultiplier
+  val numPort: Int = arrayConfig * blockConfig * numMultiplier
 
   val io = IO(new Bundle {
     val input= Input(Vec(numPort, portType))
@@ -32,8 +32,8 @@ class PreProcessor[T <: Data](
   if(skewFlag){
 
     for (i <- 0 until arrayConfig)
-      for (j <- 0 until blockConfig * numPeMultiplier) {
-        val index = i * blockConfig * numPeMultiplier + j
+      for (j <- 0 until blockConfig * numMultiplier) {
+        val index = i * blockConfig * numMultiplier + j
         val depth = i + 1
         io.output(index) := ShiftRegister(io.input(index), depth, ev.zero(portType.getWidth), true.B)
       }

@@ -4,14 +4,14 @@ import chisel3._
 import rtl.commonRtl.{Mac, PortConfig, Arithmetic, ParallelMultiplier, VerilogNaming}
 
 class VectorProcessingElement[T <: Data](
-  numPeMultiplier: Int,
+  numMultiplier: Int,
   withOutputA: Boolean,
   withOutputB: Boolean,
   withInputC: Boolean,
   portConfig: PortConfig[T],
 )( implicit ev: Arithmetic[T] ) extends Module with VerilogNaming with ProcessingElementIo[T] {
 
-  override def desiredName: String = camelToSnake( if(numPeMultiplier == 1) "ProcessingElement" else "VectorProcessingElement")
+  override def desiredName: String = camelToSnake( if(numMultiplier == 1) "ProcessingElement" else "VectorProcessingElement")
 
   val outputTypeC = portConfig.getStaOutputTypeC
   val partialSumRegister = RegInit(ev.zero(outputTypeC.getWidth))
@@ -19,34 +19,34 @@ class VectorProcessingElement[T <: Data](
   override type OutputType = T
 
   override val io = IO(new Bundle {
-    val inputA = Input(Vec(numPeMultiplier, portConfig.inputTypeA))
-    val inputB = Input(Vec(numPeMultiplier, portConfig.inputTypeB))
+    val inputA = Input(Vec(numMultiplier, portConfig.inputTypeA))
+    val inputB = Input(Vec(numMultiplier, portConfig.inputTypeB))
     val inputC = if(withInputC) Some(Input(outputTypeC)) else None
 
     val partialSumReset = Input(Bool())
     val propagateOutput = if(withInputC) Some(Input(Bool())) else None
 
-    val outputA = if(withOutputA) Some(Output(Vec(numPeMultiplier, portConfig.inputTypeA))) else None
-    val outputB = if(withOutputB) Some(Output(Vec(numPeMultiplier, portConfig.inputTypeB))) else None
+    val outputA = if(withOutputA) Some(Output(Vec(numMultiplier, portConfig.inputTypeA))) else None
+    val outputB = if(withOutputB) Some(Output(Vec(numMultiplier, portConfig.inputTypeB))) else None
     val outputC = Output(outputTypeC)
   })
 
   if(withOutputA){
-    val registerA = RegInit(VecInit.fill(numPeMultiplier)(ev.zero(portConfig.inputTypeA.getWidth)))
+    val registerA = RegInit(VecInit.fill(numMultiplier)(ev.zero(portConfig.inputTypeA.getWidth)))
     registerA := io.inputA
     io.outputA.get := registerA
   }
 
   if(withOutputB){
-    val registerB = RegInit(VecInit.fill(numPeMultiplier)(ev.zero(portConfig.inputTypeB.getWidth)))
+    val registerB = RegInit(VecInit.fill(numMultiplier)(ev.zero(portConfig.inputTypeB.getWidth)))
     registerB := io.inputB
     io.outputB.get := registerB
   }
 
-  val multiplyResult = if (numPeMultiplier == 1){
+  val multiplyResult = if (numMultiplier == 1){
 
     val multiplier = Module(new ParallelMultiplier(
-      numPeMultiplier = numPeMultiplier,
+      numMultiplier = numMultiplier,
       portConfig.inputTypeA,
       portConfig.inputTypeB,
       portConfig.multiplierOutputType
@@ -59,7 +59,7 @@ class VectorProcessingElement[T <: Data](
   } else {
 
     val mac = Module(new Mac(
-      numPeMultiplier = numPeMultiplier,
+      numMultiplier = numMultiplier,
       portConfig.inputTypeA,
       portConfig.inputTypeB,
       portConfig.multiplierOutputType,
