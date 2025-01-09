@@ -2,6 +2,7 @@ package simulation
 
 import java.io.File
 import scala.util.{Failure, Success, Try}
+import common.{Dataflow, FilePaths}
 
 object AnalyzerMain extends App with Logger with StreamingDimensionCalculator with OutputPortCalculator with BandWidthFilter with ConfigurationWriter {
 
@@ -117,7 +118,6 @@ object AnalyzerMain extends App with Logger with StreamingDimensionCalculator wi
       throw ParseError("Generate STAG Config not found")
     )
 
-    val outputDirectory = "output/"
     val dataflows = Vector(Dataflow.Is, Dataflow.Os, Dataflow.Ws)
     dataflows.foreach { dataflow =>
       val arrayConfigs = ArrayConfigGenerator.generateArrayConfig(
@@ -130,8 +130,8 @@ object AnalyzerMain extends App with Logger with StreamingDimensionCalculator wi
 
       // Create separate log file for each dataflow
       val dataflowName = dataflow.toString.toLowerCase
-      val logFileName = s"bandwidth_analyzer_${dataflowName}_multiplier_$totalNumberOfMultiplier.txt"
-      val logFile = new File(outputDirectory + logFileName)
+      val logFileName = s"/bandwidth_analyzer_${dataflowName}_multiplier_$totalNumberOfMultiplier.txt"
+      val logFile = new File( FilePaths.resourcesOutputSimulation + logFileName)
       val loggerOption = LoggerOption(OutputMode.File, Option(logFile))
 
       setMode(loggerOption)
@@ -429,7 +429,7 @@ object AnalyzerMain extends App with Logger with StreamingDimensionCalculator wi
   private def initializeComponents(simConfig: SimulationConfig) = {
 
     val outputMode = OutputMode.File
-    val outputDirectory = "output/simulation/"
+    val outputDirectory = FilePaths.resourcesOutputSimulation
     val logFileName = generateLogFileName(simConfig) + ".txt"
 
     val logFile = new File(outputDirectory + logFileName)
@@ -495,13 +495,9 @@ object AnalyzerMain extends App with Logger with StreamingDimensionCalculator wi
 
   private def generateLogFileName(config: SimulationConfig): String = {
 
-    val dataflowShortName = config.dataflow match {
-      case Dataflow.Is => "is"
-      case Dataflow.Os => "os"
-      case Dataflow.Ws => "ws"
-    }
+    val dataflowShortName = config.dataflow.toString.toLowerCase
 
-    s"debug_${config.layerName}_${dataflowShortName}_" +
+    s"/debug_${config.layerName}_${dataflowShortName}_" +
     s"{${config.groupPeRow}x${config.groupPeCol}}x" +
     s"{${config.vectorPeRow}x${config.vectorPeCol}}" +
     s"x${config.numMultiplier}}" +
@@ -709,7 +705,8 @@ object AnalyzerMain extends App with Logger with StreamingDimensionCalculator wi
 
     val arrayConfigSigma2 = filterConfigsWithTwoSigma(arrayConfigs)
 
-    writeConfigurationFile(arrayConfigSigma2, "output/configs")
+    writeConfigurationFile(arrayConfigSigma2)
+    generateMakefile(arrayConfigSigma2)
 
     arrayConfigSigma2.foreach(arrayConfig => log(s"\t[${arrayConfig.name}] " +
       s"\tInput Bandwidth A: ${arrayConfig.bandwidthOfInputA} " +

@@ -1,7 +1,7 @@
 package rtl.input
 
 import chisel3._
-import rtl.common.{Arithmetic, PortConfig, SystolicTensorArrayConfig, VerilogNaming}
+import rtl.commonRtl.{Arithmetic, PortConfig, SystolicTensorArrayConfig, VerilogNaming}
 
 class SystolicTensorArray[T <: Data](
   groupPeRow: Int,

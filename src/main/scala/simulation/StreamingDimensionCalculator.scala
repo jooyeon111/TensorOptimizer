@@ -1,5 +1,7 @@
 package simulation
 
+import common.Dataflow
+
 trait StreamingDimensionCalculator {
   def getMaximumStreamingDimension(gemmDimension : GemmDimension, dataflow: Dataflow.Value) : Int = {
 

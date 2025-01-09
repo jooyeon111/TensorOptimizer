@@ -1,6 +1,7 @@
 package rtl
 
-import rtl.common.SystolicTensorArrayConfig
+import common.Dataflow
+import rtl.commonRtl.SystolicTensorArrayConfig
 
 case class AppConfig (
   splitVerilogOutput: Boolean,

@@ -1,7 +1,7 @@
 package rtl.output
 
 import chisel3._
-import rtl.common.{Arithmetic, PortConfig, PreProcessor, PreProcessorType, SystolicTensorArrayConfig, VerilogNaming}
+import rtl.commonRtl.{Arithmetic, PortConfig, PreProcessor, PreProcessorType, SystolicTensorArrayConfig, VerilogNaming}
 
 //Pod = Pre Processing Unit +  Systolic Tensor Array + Post Processing Unit
 class DimensionAlignedSystolicTensorArray[T <: Data](

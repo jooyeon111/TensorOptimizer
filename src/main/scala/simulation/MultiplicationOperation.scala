@@ -1,5 +1,7 @@
 package simulation
 
+import common.Dataflow
+
 class MultiplicationOperation(
   val layerName: String,
   val operationId: (Int, Int, Int),

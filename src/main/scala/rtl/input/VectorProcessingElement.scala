@@ -2,7 +2,7 @@ package rtl.input
 
 import chisel3._
 import chisel3.util.log2Ceil
-import rtl.common.{Arithmetic, Mac, ParallelMultiplier, PortConfig, VerilogNaming}
+import rtl.commonRtl.{Arithmetic, Mac, ParallelMultiplier, PortConfig, VerilogNaming}
 
 class VectorProcessingElement[T <: Data](
   groupPeColIndex: Int,
@@ -60,6 +60,7 @@ class VectorProcessingElement[T <: Data](
   //Port B
   if(withOutputB){
     val registerB = RegInit(VecInit.fill(numPeMultiplier)(ev.zero(portConfig.inputTypeB.getWidth)))
+    registerB := io.inputB
     io.outputB.get := registerB
   }
 

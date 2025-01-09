@@ -3,13 +3,13 @@
 ########################################################################################################################
 
 # Layer info
-LAYER := simulation/layer/swin/swin_b_stage4_final_linear_projection.cfg
+LAYER := input/simulation/layer/swin/swin_b_stage4_final_linear_projection.cfg
 
-TEST_OPTION_SRAM_REF := simulation/hardware_reference/nvsim/sram.cfg
-TEST_OPTION_DRAM_REF := simulation/hardware_reference/cacti/ddr4_dram.cfg
-TEST_OPTION_RTL_RESULT_REF := simulation/hardware_reference/design_compiler/array.cfg
+TEST_OPTION_SRAM_REF := input/simulation/hardware_reference/nvsim/sram.cfg
+TEST_OPTION_DRAM_REF := input/simulation/hardware_reference/cacti/ddr4_dram.cfg
+TEST_OPTION_RTL_RESULT_REF := input/simulation/hardware_reference/design_compiler/array.cfg
 
-BASE_CONFIG_PATH := simulation/configs/analyzer
+BASE_CONFIG_PATH := input/simulation/configs/analyzer
 
 TEST_OPTION_IS_SD_32 = $(BASE_CONFIG_PATH)/oneLayer/is_{32x32}x{1x1}x1_sd_32.cfg
 TEST_OPTION_IS_SD_64 = $(BASE_CONFIG_PATH)/oneLayer/is_{32x32}x{1x1}x1_sd_64.cfg
@@ -84,8 +84,8 @@ sram:
 .PHONY: bandwidth
 bandwidth:
 	sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024}"
-	sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_2048}"
-	sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_4096}"
-	sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_8192}"
-	sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_16384}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_2048}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_4096}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_8192}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_16384}"
 

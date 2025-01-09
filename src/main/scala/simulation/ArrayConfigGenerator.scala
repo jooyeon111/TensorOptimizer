@@ -1,5 +1,7 @@
 package simulation
 
+import common.Dataflow
+
 object ArrayConfigGenerator extends OutputPortCalculator {
 
   case class DimensionConfig(r: Int, c: Int, a: Int, b: Int, p: Int) {

@@ -1,7 +1,7 @@
 package rtl.output
 
 import chisel3._
-import rtl.common.{Arithmetic, VerilogNaming}
+import rtl.commonRtl.{Arithmetic, VerilogNaming}
 import scala.math.{ceil, log10}
 
 class PostProcessor[ T <: Data](

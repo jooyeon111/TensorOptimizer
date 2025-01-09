@@ -2,7 +2,7 @@ package rtl.weight
 
 import chisel3._
 import chisel3.util.ShiftRegister
-import rtl.common.{Arithmetic, VerilogNaming}
+import rtl.commonRtl.{Arithmetic, VerilogNaming}
 
 class PostProcessor[T <: Data](
   groupPeCol: Int,

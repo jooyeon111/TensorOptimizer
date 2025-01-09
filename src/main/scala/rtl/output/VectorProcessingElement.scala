@@ -1,7 +1,7 @@
 package rtl.output
 
 import chisel3._
-import rtl.common.{Mac, PortConfig, Arithmetic, ParallelMultiplier, VerilogNaming}
+import rtl.commonRtl.{Mac, PortConfig, Arithmetic, ParallelMultiplier, VerilogNaming}
 
 class VectorProcessingElement[T <: Data](
   numPeMultiplier: Int,
@@ -33,11 +33,13 @@ class VectorProcessingElement[T <: Data](
 
   if(withOutputA){
     val registerA = RegInit(VecInit.fill(numPeMultiplier)(ev.zero(portConfig.inputTypeA.getWidth)))
+    registerA := io.inputA
     io.outputA.get := registerA
   }
 
   if(withOutputB){
     val registerB = RegInit(VecInit.fill(numPeMultiplier)(ev.zero(portConfig.inputTypeB.getWidth)))
+    registerB := io.inputB
     io.outputB.get := registerB
   }
 

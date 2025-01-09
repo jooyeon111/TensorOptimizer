@@ -2,7 +2,7 @@ package rtl.output
 
 import chisel3._
 import chisel3.util.{MuxCase, log2Ceil}
-import rtl.common.{Arithmetic, VerilogNaming}
+import rtl.commonRtl.{Arithmetic, VerilogNaming}
 
 import scala.math.{ceil, log10}
 

@@ -2,7 +2,7 @@ package rtl.weight
 
 import chisel3._
 import chisel3.util.log2Ceil
-import rtl.common.{PortConfig, Arithmetic, VerilogNaming}
+import rtl.commonRtl.{PortConfig, Arithmetic, VerilogNaming}
 
 class GroupProcessingElement[T <: Data](
   groupPeRowIndex: Int,

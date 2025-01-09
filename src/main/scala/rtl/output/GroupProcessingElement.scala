@@ -1,7 +1,7 @@
 package rtl.output
 
 import chisel3._
-import rtl.common.{Arithmetic, PortConfig, VerilogNaming}
+import rtl.commonRtl.{Arithmetic, PortConfig, VerilogNaming}
 
 class GroupProcessingElement[T <: Data](
   vectorPeRow: Int,

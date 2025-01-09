@@ -1,4 +1,5 @@
 rtl_gen:
-	sbt "runMain rtl.Main rtl/is_{256x4}x{1x1}x1.cfg"
+	sbt "runMain rtl.Main input/rtl/weight_stationary.cfg"
+	sbt "runMain rtl.Main input/rtl/output_stationary.cfg"
 
 

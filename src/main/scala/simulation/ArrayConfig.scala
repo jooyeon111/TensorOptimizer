@@ -1,5 +1,7 @@
 package simulation
 
+import common.Dataflow
+
 import scala.math.{ceil, log10}
 
 //Remember modeling not only modeling the systolic tensor array itself, modeling pre- and post-processor too

@@ -1,5 +1,7 @@
 package simulation
 
+import common.Dataflow
+
 import scala.collection.mutable
 
 final class Dram(

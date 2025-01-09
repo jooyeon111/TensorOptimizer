@@ -1,6 +1,7 @@
 package simulation
 
-import simulation.Dataflow.Dataflow
+import common.Dataflow
+import common.Dataflow.Dataflow
 
 import scala.math.{ceil, log10}
 

@@ -1,5 +1,7 @@
 package simulation
 
+import common.Dataflow
+
 import scala.math.{ceil, log}
 
 trait OutputPortCalculator {

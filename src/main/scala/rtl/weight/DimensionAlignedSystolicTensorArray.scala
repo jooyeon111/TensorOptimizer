@@ -1,7 +1,7 @@
 package rtl.weight
 
 import chisel3._
-import rtl.common.{Arithmetic, PortConfig, PreProcessor, PreProcessorType, SystolicTensorArrayConfig}
+import rtl.commonRtl.{Arithmetic, PortConfig, PreProcessor, PreProcessorType, SystolicTensorArrayConfig}
 
 class DimensionAlignedSystolicTensorArray[T <: Data](
   groupPeRow: Int,

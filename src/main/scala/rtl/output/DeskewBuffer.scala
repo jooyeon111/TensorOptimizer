@@ -2,7 +2,7 @@ package rtl.output
 
 import chisel3._
 import chisel3.util.ShiftRegister
-import rtl.common.{Arithmetic, VerilogNaming}
+import rtl.commonRtl.{Arithmetic, VerilogNaming}
 
 class DeskewBuffer[T <: Data](
   groupPeRow: Int,

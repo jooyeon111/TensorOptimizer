@@ -1,7 +1,8 @@
 package rtl
 
 import chisel3.util.log2Ceil
-import rtl.common.SystolicTensorArrayConfig
+import common.Dataflow
+import rtl.commonRtl.SystolicTensorArrayConfig
 
 import scala.util.Try
 

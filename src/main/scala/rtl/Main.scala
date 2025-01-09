@@ -2,9 +2,12 @@ package rtl
 
 import chisel3._
 import _root_.circt.stage.ChiselStage
-import rtl.common.{Arithmetic, PortConfig, SystolicTensorArrayConfig}
-import rtl.common.Arithmetic._
+import rtl.commonRtl.{Arithmetic, PortConfig, SystolicTensorArrayConfig}
+import rtl.commonRtl.Arithmetic._
+
 import scala.util.{Failure, Success}
+import common.{Dataflow, FilePaths}
+
 
 object Main extends App with ConfigurationParser {
 
@@ -58,12 +61,12 @@ object Main extends App with ConfigurationParser {
     if(splitVerilogOutput){
       ChiselStage.emitSystemVerilogFile(
         rtlGenerator,
-        firtoolOpts = Array("-disable-all-randomization", "-strip-debug-info", s"-o=output/rtl/$generatedFileName/", "-split-verilog")
+        firtoolOpts = Array("-disable-all-randomization", "-strip-debug-info", s"-o=${FilePaths.resourcesOutputRtl}/$generatedFileName/", "-split-verilog")
       )
     } else {
       ChiselStage.emitSystemVerilogFile(
         rtlGenerator,
-        firtoolOpts = Array("-disable-all-randomization", "-strip-debug-info", s"-o=./output/rtl/$generatedFileName.sv")
+        firtoolOpts = Array("-disable-all-randomization", "-strip-debug-info", s"-o=${FilePaths.resourcesOutputRtl}/$generatedFileName.sv")
       )
     }
 

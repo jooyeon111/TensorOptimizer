@@ -2,7 +2,7 @@ package rtl.input
 
 import chisel3._
 import chisel3.util.log2Ceil
-import rtl.common.{Arithmetic, PortConfig, VerilogNaming}
+import rtl.commonRtl.{Arithmetic, PortConfig, VerilogNaming}
 
 class GroupProcessingElement[T <: Data](
   groupPeColIndex: Int,

@@ -1,13 +1,14 @@
 package simulation
 
 import java.io.File
+import common.{Dataflow, FilePaths}
 
 trait ConfigurationWriter { self: Logger with BandWidthFilter =>
 
-  def writeConfigurationFile(arrayConfigs: Vector[ArrayConfig], outputPath: String): Unit = {
+  def writeConfigurationFile(arrayConfigs: Vector[ArrayConfig]): Unit = {
     // Filter configurations with two sigma
     val filteredConfigs = filterConfigsWithTwoSigma(arrayConfigs)
-
+//    val outputPath = "src/main/resources/rtl"
     // Generate configuration content for each filtered config
     filteredConfigs.foreach { config =>
 
@@ -15,15 +16,16 @@ trait ConfigurationWriter { self: Logger with BandWidthFilter =>
 
       val fileName = config.dataflow match {
         case Dataflow.Is =>
-          s"${outputPath}/is_$arrayConfigString.cfg"
+          s"${FilePaths.resourcesInputRtl}/is_$arrayConfigString.cfg"
         case Dataflow.Os =>
-          s"${outputPath}/os_$arrayConfigString.cfg"
+          s"${FilePaths.resourcesInputRtl}/os_$arrayConfigString.cfg"
         case Dataflow.Ws =>
-          s"${outputPath}/ws_$arrayConfigString.cfg"
+          s"${FilePaths.resourcesInputRtl}/ws_$arrayConfigString.cfg"
       }
       val content = generateConfigContent(config)
 
       writeToFile(fileName, content)
+
     }
   }
 
@@ -72,11 +74,60 @@ trait ConfigurationWriter { self: Logger with BandWidthFilter =>
     sb.toString
   }
 
+  def generateMakefile(arrayConfigs: Vector[ArrayConfig]): Unit = {
+    val sb = new StringBuilder
+
+    // Add header and default target
+    sb.append("# Makefile for RTL Generation\n\n")
+    sb.append(".PHONY: all clean rtl_gen\n\n")
+    sb.append("all: rtl_gen\n\n")
+
+    // Generate individual RTL generation targets
+    arrayConfigs.foreach { config =>
+      val arrayConfigString = s"${config.groupPeRow}x${config.groupPeCol}x${config.vectorPeRow}x${config.vectorPeCol}x${config.numMultiplier}"
+      val configName = config.dataflow match {
+        case Dataflow.Is => s"is_$arrayConfigString"
+        case Dataflow.Os => s"os_$arrayConfigString"
+        case Dataflow.Ws => s"ws_$arrayConfigString"
+      }
+
+      sb.append(s"rtl_gen_$configName:\n")
+      //TODO how to unify directory
+      sb.append(s"\tsbt \"runMain rtl.Main input/rtl/$configName.cfg\"\n\n")
+    }
+
+    // Add main rtl_gen target that depends on all individual targets
+    sb.append("rtl_gen: ")
+    sb.append(arrayConfigs.map { config =>
+      val arrayConfigString = s"${config.groupPeRow}x${config.groupPeCol}x${config.vectorPeRow}x${config.vectorPeCol}x${config.numMultiplier}"
+      val configName = config.dataflow match {
+        case Dataflow.Is => s"is_$arrayConfigString"
+        case Dataflow.Os => s"os_$arrayConfigString"
+        case Dataflow.Ws => s"ws_$arrayConfigString"
+      }
+      s"rtl_gen_$configName"
+    }.mkString(" "))
+    sb.append("\n\n")
+
+    // Add clean target
+    sb.append("clean:\n")
+    sb.append("\trm -rf rtl/*.v\n")
+
+    // Write Makefile
+    writeToFile("Makefile.automatic_rtl", sb.toString)
+  }
+
+
   private def writeToFile(filePath: String, content: String): Unit = {
     try {
       val file = new File(filePath)
-      // Create parent directories if they don't exist
-      file.getParentFile.mkdirs()
+
+      val parentFile = file.getParentFile
+      if(parentFile != null){
+        parentFile.mkdirs()
+      }
+
+//      file.getParentFile.mkdirs()
 
       val writer = new java.io.PrintWriter(file)
       try {
