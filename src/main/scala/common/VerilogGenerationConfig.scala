@@ -1,8 +1,6 @@
-package rtl
+package common
 
-import common.{Dataflow, ArrayDimension}
-
-case class AppConfig (
+case class VerilogGenerationConfig (
   splitVerilogOutput: Boolean,
   dataflow: Dataflow.Value,
   arrayDimension: ArrayDimension,

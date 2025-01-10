@@ -1,11 +1,11 @@
 package rtl
 
 import chisel3.util.log2Ceil
-import common.{Dataflow, ArrayDimension}
+import common.{ArrayDimension, Dataflow, IntegerType, OutputPortCalculator, PortBitWidthInfo, VerilogGenerationConfig}
 
 import scala.util.Try
 
-trait ConfigurationParser {
+trait ConfigurationParser extends OutputPortCalculator {
 
   def parseArgs(args: Array[String]): Either[String, String] = {
     args match {
@@ -15,7 +15,7 @@ trait ConfigurationParser {
     }
   }
 
-  def parseConfig(config: ConfigParser.Config): Try[AppConfig] = Try {
+  def parseConfig(config: ConfigParser.Config): Try[VerilogGenerationConfig] = Try {
 
     val splitVerilogOutput = config.getBoolean("Split Verilog Output").get
 
@@ -44,38 +44,21 @@ trait ConfigurationParser {
 
     val bitWidthPortA = config.getInt("Port A").get
     val bitWidthPortB = config.getInt("Port B").get
-    val bitWidthMultiplierOutput = bitWidthPortA + bitWidthPortB
-    val bitWidthAdderTreeOutput = bitWidthMultiplierOutput + log2Ceil(arrayDimension.numMultiplier)
-    var enableUserBitWidth = true
+    val bitWidthPortC = config.getInt("Port C")
 
-    val bitWidthPortC = config.getInt("Port C").getOrElse{
-
-      enableUserBitWidth = false
-
-      dataflow match {
-        case Dataflow.Is =>
-          bitWidthAdderTreeOutput + log2Ceil(arrayDimension.groupPeCol * arrayDimension.vectorPeCol)
-
-        case Dataflow.Os =>
-          throw new IllegalArgumentException("Output stationary needs output bit width as a parameter")
-
-        case Dataflow.Ws =>
-          bitWidthAdderTreeOutput + log2Ceil(arrayDimension.groupPeRow * arrayDimension.vectorPeRow)
-      }
-
-    }
-
-    val portBitWidthInfo = PortBitWidthInfo(
-      bitWidthPortA,
-      bitWidthPortB,
-      bitWidthMultiplierOutput,
-      bitWidthAdderTreeOutput,
-      enableUserBitWidth,
-      bitWidthPortC
+    val portBitWidthInfo = calculatePortBitWidthInfo(
+      dataflow = dataflow,
+      groupPeRow = arrayDimension.groupPeRow,
+      groupPeCol = arrayDimension.groupPeCol,
+      vectorPeRow = arrayDimension.vectorPeRow,
+      vectorPeCol = arrayDimension.vectorPeCol,
+      numMultiplier = arrayDimension.numMultiplier,
+      bitWidthPortA = bitWidthPortA,
+      bitWidthPortB = bitWidthPortB,
+      configPortC = bitWidthPortC,
     )
 
-
-    AppConfig(
+    VerilogGenerationConfig(
       splitVerilogOutput = splitVerilogOutput,
       dataflow = dataflow,
       arrayDimension = arrayDimension,

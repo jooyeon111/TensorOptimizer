@@ -1,6 +1,6 @@
 package simulation
 
-import common.Dataflow
+import common.{Dataflow, OutputPortCalculator}
 
 object ArrayConfigGenerator extends OutputPortCalculator {
 

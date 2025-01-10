@@ -3,6 +3,20 @@ package simulation
 import common.{Dataflow, ArrayDimension}
 import scala.math.{ceil, log10}
 
+object ArrayConfig {
+  def apply(arrayDimension: ArrayDimension, dataflow: Dataflow.Value, portBitWidth: PortBitWidth): ArrayConfig = {
+    ArrayConfig(
+      arrayDimension.groupPeRow,
+      arrayDimension.groupPeCol,
+      arrayDimension.vectorPeRow,
+      arrayDimension.vectorPeCol,
+      arrayDimension.numMultiplier,
+      dataflow,
+      portBitWidth
+    )
+  }
+}
+
 //Remember modeling not only modeling the systolic tensor array itself, modeling pre- and post-processor too
 case class ArrayConfig(
   override val groupPeRow: Int,
@@ -23,6 +37,7 @@ case class ArrayConfig(
   require(dataflow == Dataflow.Is || dataflow == Dataflow.Os || dataflow == Dataflow.Ws,
     "[error] Currently only 3 dataflow are supported input, weight and output")
 
+  val asArrayDimension: ArrayDimension = this
   val arrayConfigString: String = s"${dataflow.toString.toLowerCase}_$arrayDimensionString"
   val totalNumberOfMultipliers: Int = groupPeRow * groupPeCol * vectorPeRow * vectorPeCol * numMultiplier
 

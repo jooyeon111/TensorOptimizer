@@ -1,4 +1,4 @@
-package rtl
+package common
 
 object IntegerType  extends Enumeration {
   type IntegerType = Value

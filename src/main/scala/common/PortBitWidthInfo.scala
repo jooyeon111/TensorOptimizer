@@ -1,4 +1,4 @@
-package rtl
+package common
 
 case class PortBitWidthInfo(
   bitWidthPortA: Int,
