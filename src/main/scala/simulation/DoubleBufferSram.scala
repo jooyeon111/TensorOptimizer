@@ -24,18 +24,12 @@ class DoubleBufferSram(
     }
   }
 
-  private case class TileReceivingEntry(
-    id: (Int, Int),
-    var isReceived: Boolean = false,
-  ) {
-    def markAsReceived(): Unit = {
-      isReceived = true
-    }
-  }
-
   require(outputBandwidth >= 1, "[error] Output bandwidth must be at least 1")
   require(singleBufferTileCapacity >=  1, "[error] Tile capacity must be at least 1")
   setMode(loggerOption)
+
+  var tileSizeA: Int = 0
+  var tileSizeB: Int = 0
 
   private var tileIdToSend: (Int, Int) = (-1, -1)
   private val tileOperationOrder: mutable.ListBuffer[TileScheduleEntry] = mutable.ListBuffer.empty[TileScheduleEntry]
@@ -58,6 +52,14 @@ class DoubleBufferSram(
   }
 
   //Function called by compiler
+  //TODO split based on data type
+  def initTileSize(multiplicationOperation: MultiplicationOperation): Unit = {
+
+    tileSizeA = multiplicationOperation.generateTileA.dims.memorySize
+    tileSizeB = multiplicationOperation.generateTileB.dims.memorySize
+
+  }
+
   //TODO integrate below two functions
   def initTileSchedule(operationVector: Vector[MultiplicationOperation]): Unit = {
     operationVector.foreach{ operation =>
@@ -73,27 +75,6 @@ class DoubleBufferSram(
     }
 
   }
-
-//  def initReceivingSequence(operationVector: Vector[MultiplicationOperation]): Unit = {
-//
-//    val sex1 = operationVector.map { operation =>
-//      dataType match {
-//        case DataType.A =>
-//          TileReceivingEntry(operation.getTileAId)
-//        case DataType.B =>
-//          TileReceivingEntry(operation.getTileBId)
-//        case DataType.C =>
-//          Console.err.println("[error] SRAM Tile Schedule Uploading fails")
-//          sys.exit(1)
-//      }
-//    }
-//
-//    sex1.distinct.foreach { entry =>
-//      tileReceivingOrder += entry
-//    }
-//
-//  }
-
 
   //Functions are called by DRAM
   def existsInBuffers(targetTile: Tile): Boolean = {
@@ -115,26 +96,6 @@ class DoubleBufferSram(
       assert(tiles.front.memoryOccupiedBySram > 0, s"[error] SRAM $dataType cannot take this tile ${tiles.front.id}")
       assert(tiles.front.dataType == dataType, s"[error] SRAM $dataType data type and tile data type do not match")
 
-//      if(tiles.head.ownedBySram){
-//        val idx = tileReceivingOrder.indexWhere(!_.isReceived)
-//        if( idx != -1){
-//          if(tiles.head.id == tileReceivingOrder(idx).id ){
-//            tileReceivingOrder(idx).markAsReceived()
-//          } else {
-//            Console.err.println("Tile receiving malfunction")
-//            sys.exit(1)
-//          }
-//        } else {
-//          Console.err.println("Tile receiving malfunction")
-//          log(s"SRAM $dataType")
-//          log(s"Tile ID: ${tiles.head.id}")
-//          printSchedule()
-//          printReceivingOrder()
-//
-//          sys.exit(1)
-//        }
-//
-//      }
 
       writePendingBuffer += tiles.dequeue()
 
@@ -156,11 +117,24 @@ class DoubleBufferSram(
   def judgeDoubleBufferState(): Unit = {
     require(isNothingToUpdateInWriteBuffer, "[error] There is something to update in write buffer")
 
-    if(isFirstFillUpCompete && isWriteBufferTilesIntact){
-      updateToReadBuffer(writeBuffer)
-      updateToWriteBuffer(readBuffer)
-      swapBuffers()
-      increaseBufferToggleCount()
+//    if(isFirstFillUpCompete && isWriteBufferTilesIntact){
+//      updateToReadBuffer(writeBuffer)
+//      updateToWriteBuffer(readBuffer)
+//      swapBuffers()
+//      increaseBufferSwapCount()
+//    } else {
+//      increaseBufferSwapStallCount()
+//    }
+
+    if(isFirstFillUpCompete){
+      if(isWriteBufferTilesIntact){
+        updateToReadBuffer(writeBuffer)
+        updateToWriteBuffer(readBuffer)
+        swapBuffers()
+        increaseBufferSwapCount()
+      } else {
+        increaseBufferSwapStallCount()
+      }
     }
 
   }
@@ -313,10 +287,13 @@ class DoubleBufferSram(
       updateToReadBuffer(writeBuffer)
       swapBuffers()
       isFirstFillUpDone = true
+      firstFillUpCycle = interface.getCycle
 
       otherSram.updateToReadBuffer(otherSram.writeBuffer)
       otherSram.swapBuffers()
       otherSram.isFirstFillUpDone = true
+      otherSram.firstFillUpCycle = interface.getCycle
+
 
     }
 
@@ -328,11 +305,11 @@ class DoubleBufferSram(
       if(unscheduledTiles.nonEmpty){
         val bufferIds = (readBuffer.map(_.id.asInstanceOf[(Int, Int)]) ++ writeBuffer.map(_.id.asInstanceOf[(Int, Int)])).toSet
         if(!unscheduledTiles.subsetOf(bufferIds)){
-          totalDramAccessCount += 1
+          totalDramAccessCount += tileSizeA
           if(writePendingBuffer.nonEmpty){
-            totalDramHitCount += 1
+            totalDramHitCount += tileSizeA
           } else {
-            totalDramMissCount += 1
+            totalDramMissCount += tileSizeA
           }
         }
       }

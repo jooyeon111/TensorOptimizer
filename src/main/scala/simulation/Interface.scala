@@ -12,6 +12,13 @@ class Interface(
   require(sramB.dataType == DataType.B, "Double buffering SRAM B data type dose not match")
   require(sramC.dataType == DataType.C, "Double buffering SRAM B data type dose not match")
 
+  private var cycle: Long = 0
+
+  def updateCycle(currentCycle: Long): Unit = {
+    cycle = currentCycle
+  }
+
+  def getCycle: Long = cycle
 
   def checkTraffic(): Either[RunTimeError, Unit] = {
 

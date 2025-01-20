@@ -1,4 +1,4 @@
-[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/rtl/ConfigurationParser.scala:29:23: not found: value ArrayDimension[0m
-[0m[[0m[31merror[0m] [0m[0m    val arrayConfig = ArrayDimension([0m
-[0m[[0m[31merror[0m] [0m[0m                      ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/Array.scala:397:3: illegal start of simple expression[0m
+[0m[[0m[31merror[0m] [0m[0m  }[0m
+[0m[[0m[31merror[0m] [0m[0m  ^[0m
 [0m[[0m[31merror[0m] [0m[0mone error found[0m

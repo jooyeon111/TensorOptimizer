@@ -11,8 +11,12 @@ final class Array(
 
   setMode(loggerOption)
 
-  private var holdUp = false
-  var holdUpCount = 0
+  private var isArrayOutputStall = false
+  var arrayInputStallCount = 0
+  var arrayOutputStallCount = 0
+
+  var tileSizeA: Int = 0
+  var tileSizeB: Int = 0
 
   private var tileIdToReceiveA: (Int,Int) = (-1, -1)
   private var tileIdToReceiveB: (Int,Int) = (-1, -1)
@@ -39,7 +43,6 @@ final class Array(
   private var arrayActiveCount: Int = 0
 
   //Functions called by compiler
-
   def getMemoryAccessCountA: Double = totalMemoryAccessCountA
   def getMemoryHitCountA: Double = totalMemoryHitCountA
   def getMemoryMissCountA: Double = totalMemoryMissCountA
@@ -50,6 +53,13 @@ final class Array(
 
   def isAllCalculated: Boolean = schedule.forall(_.isCalculated)
   def getArrayActiveCount: Int = arrayActiveCount
+
+  def initTileSize(multiplicationOperation: MultiplicationOperation): Unit = {
+
+    tileSizeA = multiplicationOperation.generateTileA.dims.memorySize
+    tileSizeB = multiplicationOperation.generateTileB.dims.memorySize
+
+  }
 
   def uploadOperationVector(operationVector: Vector[MultiplicationOperation]): Unit = {
 
@@ -124,41 +134,41 @@ final class Array(
         sys.exit(1)
     }
 
-//    writeAccessCount +=  1
     incrementWriteAccessCount()
 
   }
 
   //Functions called by Output Double buffer SRAM
   def stop(): Unit = {
-    holdUp = true
+    isArrayOutputStall = true
   }
 
   def go(): Unit = {
-    holdUp = false
+    isArrayOutputStall = false
   }
 
   override def update(interface: Interface) : Unit = {
 
     //TODO consider output double buffer SRAM capacity
-    if (calculatingOperation.nonEmpty && !holdUp) {
+    if (calculatingOperation.nonEmpty && !isArrayOutputStall) {
       prepareTileForSend()
       send(interface)
     } else
       stuck = true
 
+
     countSramAccess(interface)
     updateState()
+
 
     changeOperationState(interface)
 
     resetTileIdToReceive()
     setTileIdToReceive()
 
-    if(!holdUp) {
+    if(!isArrayOutputStall) {
 
       calculatingOperation.foreach(op => op.updateTimer())
-//      countSramAccess(interface)
       countArrayActiveState()
       judgeSramDoubleBufferLogic(interface)
 
@@ -169,9 +179,8 @@ final class Array(
           Console.err.println(s"[error] Invalid dataflow")
           sys.exit(1)
       }
-
     } else {
-      holdUpCount += 1
+      arrayOutputStallCount += 1
     }
 
     if(isAllCalculated){
@@ -186,33 +195,34 @@ final class Array(
       arrayActiveCount += 1
   }
 
+  //TODO change code below see double buffer sram countDramAccess
   private def countSramAccess(interface: Interface): Unit = {
 
-    if(tileIdToReceiveA != (-1, -1) ) {
-      totalMemoryAccessCountA += 1.0
+    if(tileIdToReceiveA != (-1, -1) && interface.sramA.isFirstFillUpCompete) {
+      totalMemoryAccessCountA += tileSizeA
       if(interface.sramA.hasThisTileForArray(tileIdToReceiveA, DataType.A) &&
         capacityLeftTileA() >= arrayConfig.bandwidthOfInputA &&
         nextTileQueueTypeA.exists(_.id == tileIdToReceiveA)){
-        totalMemoryHitCountA += 1.0
+        totalMemoryHitCountA += tileSizeA
       } else {
-        totalMemoryMissCountA += 1.0
+        arrayInputStallCount += 1
+        totalMemoryMissCountA += tileSizeA
       }
     }
 
-
-    if(tileIdToReceiveB != (-1, -1) ) {
-      totalMemoryAccessCountB += 1.0
+    if(tileIdToReceiveB != (-1, -1) && interface.sramB.isFirstFillUpCompete) {
+      totalMemoryAccessCountB += tileSizeB
       if(interface.sramB.hasThisTileForArray(tileIdToReceiveB, DataType.B) &&
         capacityLeftTileB() >= arrayConfig.bandwidthOfInputB &&
         nextTileQueueTypeB.exists(_.id == tileIdToReceiveB)){
-        totalMemoryHitCountB += 1.0
+        totalMemoryHitCountB += tileSizeB
       } else {
-        totalMemoryMissCountB += 1.0
+        arrayInputStallCount += 1
+        totalMemoryMissCountB += tileSizeB
       }
     }
 
   }
-
 
   private def judgeSramDoubleBufferLogic(interface: Interface): Unit = {
 

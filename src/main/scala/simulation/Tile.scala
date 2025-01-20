@@ -116,21 +116,21 @@ trait Tile extends Logger {
 
   def printTile() : Unit = {
 
-    log(s"\t\tDataType: $dataType ID: $id")
-    dims.printDimension()
-    log(s"\t\tDRAM: $memoryOccupiedByDram, SRAM: $memoryOccupiedBySram, Array: $memoryOccupiedByArray, Calculated: $memoryCalculatedByArray")
-    logWithoutNewLine("\t\tState: ")
+//    log(s"\t\tDataType: $dataType ID: $id")
+//    dims.printDimension()
+    logWithoutNewLine(s"\t\tDataType: $dataType ID: $id (DRAM: $memoryOccupiedByDram, SRAM: $memoryOccupiedBySram, Array: $memoryOccupiedByArray, Calculated: $memoryCalculatedByArray) ")
+    logWithoutNewLine("(State: ")
     state match {
       case TileState.waiting =>
-        log("waiting")
+        logWithoutNewLine("waiting)")
       case TileState.loading =>
-        log("loading")
+        logWithoutNewLine("loading)")
       case TileState.loaded =>
-        log("loaded")
+        logWithoutNewLine("loaded)")
       case TileState.calculating =>
-        log("calculating")
+        logWithoutNewLine("calculating)")
       case TileState.calculated =>
-        log("calculated")
+        logWithoutNewLine("calculated)")
       case _ =>
         Console.err.println(s"Wrong tile state")
         sys.exit(1)
@@ -242,24 +242,24 @@ final class TileC(
     state == TileState.nextCalculation
 
   override def printTile(): Unit = {
-    log(s"\t\tLayer Name: $layerName DataType: $dataType ID: $id")
-    dims.printDimension()
-    log(s"\t\tDRAM: $memoryOccupiedByDram SRAM: $memoryOccupiedBySram Array: $memoryOccupiedByArray Calculated: $memoryCalculatedByArray")
+//    log(s"\t\tDataType: $dataType ID: $id")
+//    dims.printDimension()
+    logWithoutNewLine(s"\t\tDataType: $dataType ID: $id (DRAM: $memoryOccupiedByDram SRAM: $memoryOccupiedBySram Array: $memoryOccupiedByArray Calculated: $memoryCalculatedByArray) ")
 
-    logWithoutNewLine("\t\tState: ")
+    logWithoutNewLine("(State: ")
     state match {
       case TileState.waiting =>
-        log("waiting")
+        logWithoutNewLine("waiting)")
       case TileState.loading =>
-        log("loading")
+        logWithoutNewLine("loading)")
       case TileState.loaded =>
-        log("loaded")
+        logWithoutNewLine("loaded)")
       case TileState.calculating =>
-        log("calculating")
+        logWithoutNewLine("calculating)")
       case TileState.calculated =>
-        log("calculated")
+        logWithoutNewLine("calculated)")
       case TileState.nextCalculation =>
-        log("Will receive")
+        logWithoutNewLine("Will receive)")
       case _ =>
         Console.err.println(s"[error] Wrong tile state")
         sys.exit(1)

@@ -418,14 +418,14 @@ case class ScheduledOperation(
   //Util
   def printOperation() : Unit = {
 
-//    tileC.identifyState match {
-//      case TileState.calculating | TileState.loading | TileState.loaded | TileState.calculated | TileState.nextCalculation =>
-//        log(s"\t\tLayer Name: $layerName ID: $operationId State: ${tileC.identifyState}")
-//      case TileState.waiting =>
-//
-//    }
+    tileC.identifyState match {
+      case TileState.calculating | TileState.loading | TileState.loaded | TileState.calculated | TileState.nextCalculation =>
+        log(s"\t\tLayer Name: $layerName ID: $operationId State: ${tileC.identifyState}")
+      case TileState.waiting =>
 
-    log(s"\t\tLayer Name: $layerName ID: $operationId State: ${tileC.identifyState}")
+    }
+
+//    log(s"\t\tLayer Name: $layerName ID: $operationId State: ${tileC.identifyState}")
 //    log()
 //    log(s"Tile A ID: $getTileAId, Tile B ID: $getTileBId")
 //    log(s"Tile A used in nex operation: $isTileAUsedInNextOp")

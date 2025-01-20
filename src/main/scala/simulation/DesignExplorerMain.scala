@@ -1,10 +1,7 @@
-package simulation
-
-
-
-
-
-//package starsim
+//package simulation
+//
+//
+//import common.{OutputPortCalculator, Dataflow}
 //
 //import java.io.File
 //import scala.annotation.tailrec
@@ -101,66 +98,6 @@ package simulation
 //
 //  }
 //
-//
-//  case class SimulationResult(
-//
-//    //Tile Size Info
-//    tileSizeA: Int,
-//    tileSizeB: Int,
-//    tileSizeC: Int,
-//    tileRowA: Int,
-//    tileRowB: Int,
-//    tileRowC: Int,
-//    tileColumnA: Int,
-//    tileColumnB: Int,
-//    tileColumnC: Int,
-//    bitWidthA: Int,
-//    bitWidthB: Int,
-//    bitWidthC: Int,
-//
-//    //Cycle Results
-//    cycle: Long,
-//    arrayStallCycle: Int,
-//    dramTrimCountA: Int,
-//    dramTrimCountB: Int,
-//    averageMemoryUsageA: Double,
-//    averageMemoryUsageB: Double,
-//    averageMemoryUsageC: Double,
-//    averageMemoryUtilizationA: Double,
-//    averageMemoryUtilizationB: Double,
-//    averageMemoryUtilizationC: Double,
-//
-//  )
-//
-//  object SimulationResult {
-//    def apply(wrongCycle: Long): SimulationResult = SimulationResult(
-//      tileSizeA = -1,
-//      tileSizeB = -1,
-//      tileSizeC = -1,
-//      tileRowA = -1,
-//      tileRowB = -1,
-//      tileRowC = -1,
-//      tileColumnA = -1,
-//      tileColumnB = -1,
-//      tileColumnC = -1,
-//      bitWidthA = -1,
-//      bitWidthB = -1,
-//      bitWidthC = -1,
-//      cycle = wrongCycle,
-//      arrayStallCycle = -1,
-//      dramTrimCountA = -1,
-//      dramTrimCountB = -1,
-//      averageMemoryUsageA = -1,
-//      averageMemoryUsageB = -1,
-//      averageMemoryUsageC = -1,
-//      averageMemoryUtilizationA = -1,
-//      averageMemoryUtilizationB = -1,
-//      averageMemoryUtilizationC = -1,
-//
-//    )
-//  }
-//
-//
 //  case class Result(
 //    architecture: Architecture,
 //    simulationResult: SimulationResult
@@ -215,7 +152,7 @@ package simulation
 //      throw ParseError("SRAM config not found")
 //    )
 //
-//    val simulationConfig = buildSimulationConfig(layerConfig, testConfig, sramConfig.sramEnergies)
+//    val simulationConfig = buildSimulationConfig(layerConfig, testConfig, sramConfig.sramReferenceDataVector)
 //    val architectureArrayBuffer = buildInitialArchitecture(simConfig = simulationConfig)
 //
 //    if(!simulationConfig.validate)
@@ -326,10 +263,10 @@ package simulation
 //
 //
 //  private def buildSimulationConfig(
-//                                     layerConfig: ConfigParser.Config,
-//                                     testConfig: ConfigParser.Config,
-//                                     sramEnergies: Vector[SramReferenceData],
-//     ): SimulationConfig ={
+//    layerConfig: ConfigParser.Config,
+//    testConfig: ConfigParser.Config,
+//    sramEnergies: Vector[SramReferenceData],
+//  ): SimulationConfig ={
 //
 //    //layer
 //    val layerName = layerConfig.getString("Layer Name").getOrElse(
@@ -585,9 +522,9 @@ package simulation
 //  }
 //
 //  private def buildComponents(
-//                               simConfig: DesignExplorerMain.SimulationConfig,
-//                               architecture: Architecture,
-//                               loggerOption: LoggerOption,
+//    simConfig: DesignExplorerMain.SimulationConfig,
+//    architecture: Architecture,
+//    loggerOption: LoggerOption,
 //  ):Either[CompBuildError, (Layer, Dram, (DoubleBufferSram, DoubleBufferSram, OutputDoubleBufferSram), Array, Interface, Vector[SramReferenceData], LoggerOption)] = {
 //
 //
@@ -635,7 +572,7 @@ package simulation
 //
 //
 //      case Left(error) =>
-//        println(s"Failed to build hardware components array configuration: ${architecture.arrayConfig.name}")
+//        println(s"Failed to build hardware components array configuration: ${architecture.arrayConfig.arrayConfigString}")
 //        Left(error)
 //
 //    }
@@ -658,7 +595,7 @@ package simulation
 //    val capacityC = singleBufferLimitKbs.limitBitC / sizeTileC
 //
 //    if(!(capacityA > 0 && capacityB > 0 && capacityC > 0 )) {
-//      println(s"Building SRAM is failed: ${arrayConfig.name}")
+//      println(s"Building SRAM is failed: ${arrayConfig.arrayConfigString}")
 //      Left(CompBuildError("SRAM Cannot contain even 1 tile increase SRAM size"))
 //    } else {
 //      val sramA = new DoubleBufferSram(
@@ -692,7 +629,7 @@ package simulation
 //  private def runSimulation(
 //    components: (Layer, Dram, (DoubleBufferSram, DoubleBufferSram, OutputDoubleBufferSram), Array, Interface, Vector[SramReferenceData] ,LoggerOption)
 //  ):  SimulationResult = {
-//    val (layer, dram, srams, array, interface, sramEnergies, loggerOption) = components
+//    val (layer, dram, srams, array, interface, sramData, loggerOption) = components
 //    val (sramA, sramB, sramC) = srams
 //
 //    val compiler = new Compiler(
@@ -703,7 +640,7 @@ package simulation
 //      interface = interface,
 //      layer = layer,
 //      array = array,
-//      sramEnergies = sramEnergies,
+//      sramDataReferenceVector = sramData,
 //      loggerOption = loggerOption
 //    )
 //
@@ -716,28 +653,82 @@ package simulation
 //      val tileC = layer.operationVector.head.generateTileC
 //
 //      SimulationResult(
-//        tileSizeA = tileA.dims.memorySize,
-//        tileSizeB = tileB.dims.memorySize,
-//        tileSizeC = tileC.dims.memorySize,
-//        tileRowA = tileA.dims.row,
-//        tileRowB = tileB.dims.row,
-//        tileRowC = tileC.dims.row,
-//        tileColumnA = tileA.dims.col,
-//        tileColumnB = tileB.dims.col,
-//        tileColumnC = tileC.dims.col,
-//        bitWidthA = tileA.dims.bandwidth,
-//        bitWidthB = tileB.dims.bandwidth,
-//        bitWidthC = tileC.dims.bandwidth,
+//        totalOperationNumber = compiler.getTotalOperationNumber,
+//        tileSizeA = compiler.getTileSizeA,
+//        tileSizeB = compiler.getTileSizeB,
+//        tileSizeC = compiler.getTileSizeC,
+//        trimTileCountA = compiler.getTrimTileCountA,
+//        trimTileCountB = compiler.getTrimTileCountB,
+//        singleBufferTileCapacityA = compiler.getSingleBufferTileCapacityA,
+//        singleBufferTileCapacityB = compiler.getSingleBufferTileCapacityB,
+//        singleBufferTileCapacityC = compiler.getSingleBufferTileCapacityC,
+//
 //        cycle = compiler.getTotalCycle,
-//        arrayStallCycle = compiler.arrayHoldUpCount,
-//        dramTrimCountA = compiler.trimTileCountA,
-//        dramTrimCountB = compiler.trimTileCountB,
-//        averageMemoryUsageA = compiler.averageMemoryUsageA,
-//        averageMemoryUsageB = compiler.averageMemoryUsageB,
-//        averageMemoryUsageC = compiler.averageMemoryUsageC,
-//        averageMemoryUtilizationA = compiler.averageMemoryUtilizationA,
-//        averageMemoryUtilizationB = compiler.averageMemoryUtilizationB,
-//        averageMemoryUtilizationC = compiler.averageMemoryUtilizationC
+//        arrayActiveCount = compiler.getArrayActiveCount,
+//        arrayHoldUpCount = compiler.getArrayHoldUpCount,
+//        dramHolUpCount = compiler.getDramHoldUpCount,
+//
+//        dramLogs = compiler.getDramLogs,
+//        dramReadAccessCount = compiler.getDramReadAccessCount,
+//        dramWriteAccessCount = compiler.getDramWriteAccessCount,
+//        sramReadAccessCountA = compiler.getSramReadAccessCountA,
+//        sramWriteAccessCountA = compiler.getSramWriteAccessCountA,
+//        sramReadAccessCountB = compiler.getSramReadAccessCountB,
+//        sramWriteAccessCountB = compiler.getSramWriteAccessCountB,
+//
+//        dramHitRatio = compiler.getTotalDramHitCount,
+//        dramMissRatio = compiler.getTotalDramMissCount,
+//
+//        sramHitRatioA = compiler.getSramHitRatioA,
+//        sramHitRatioB = compiler.getSramHitRatioB,
+//        sramMissRatioA = compiler.getSramMissRatioA,
+//        sramMissRatioB = compiler.getSramMissRatioB,
+//        sramHitRatio = compiler.getTotalSramHitRatio,
+//        sramMissRatio = compiler.getTotalSramMissRatio,
+//
+//        sramBufferToggleCountA = compiler.getBufferSwapCountA,
+//        sramBufferToggleCountB = compiler.getBufferSwapCountB,
+//        sramBufferToggleCountC = compiler.getBufferSwapCountC,
+//
+//        averageMemoryUsageKbA = compiler.getAverageMemoryUsageKbA,
+//        averageMemoryUtilizationA = compiler.getAverageMemoryUtilizationA,
+//        averageMemoryUsageKbB = compiler.getAverageMemoryUsageKbB,
+//        averageMemoryUtilizationB = compiler.getAverageMemoryUtilizationB,
+//        averageMemoryUsageKbC = compiler.getAverageMemoryUsageKbC,
+//        averageMemoryUtilizationC = compiler.getAverageMemoryUtilizationC,
+//
+//        sramAreaMmA = compiler.getSramAreaMmA,
+//        sramAreaMmB = compiler.getSramAreaMmB,
+//        sramAreaMmC = compiler.getSramAreaMmC,
+//        dramAreaMm = compiler.getDramAreaMm,
+//        arrayAreaMm = compiler.getArrayAreaMm,
+//        areaMm = compiler.getTotalArea,
+//
+//        sramReadEnergyPjA = compiler.getSramReadEnergyA,
+//        sramWriteEnergyPjA = compiler.getSramWriteEnergyA,
+//        sramLeakageEnergyPjA = compiler.getSramLeakageEnergyA,
+//        sramEnergyPjA = compiler.getSramEnergyA,
+//
+//        sramReadEnergyPjB = compiler.getSramWriteEnergyB,
+//        sramWriteEnergyPjB = compiler.getSramWriteEnergyB,
+//        sramLeakageEnergyPjB = compiler.getSramLeakageEnergyB,
+//        sramEnergyPjB = compiler.getSramEnergyB,
+//
+//        sramReadEnergyPjC = compiler.getSramReadEnergyC,
+//        sramWriteEnergyPjC = compiler.getSramWriteEnergyC,
+//        sramLeakageEnergyPjC = compiler.getSramLeakageEnergyC,
+//        sramEnergyPjC = compiler.getSramEnergyC,
+//
+//        dramReadEnergyPj = compiler.getDramReadEnergy,
+//        dramWriteEnergyPj = compiler.getDramWriteEnergy,
+//        dramLeakageEnergyPj = compiler.getDramLeakageEnergy,
+//        dramEnergyPj = compiler.getDramEnergy,
+//
+//        arrayDynamicEnergyPj = compiler.getArrayDynamicEnergy,
+//        arrayLeakageEnergyPj = compiler.getArrayLeakageEnergy,
+//        arrayEnergy = compiler.getArrayEnergy,
+//
+//        energyPj = compiler.getTotalEnergy,
 //      )
 //
 //    } catch {
@@ -769,52 +760,5 @@ package simulation
 //    log(s"\tPort B Bit Width: ${simConfig.bitWidthPortB}")
 //    log(s"\tTotal Number of Multipliers: ${simConfig.totalNumberOfMultipliers}")
 //  }
-//
-//  private def showResult(result: Result): Unit = {
-//
-//    val architecture = result.architecture
-//    val simulationResult = result.simulationResult
-//
-//    log(s"[${architecture.arrayConfig.name}]")
-//    //Architecture Result
-//    log(s"\tStreaming Dimension Size: ${architecture.streamingDimensionSize}")
-//    log(s"")
-//    log(s"\tSingle Buffer Limit A: ${architecture.singleBufferLimitKbs.limitA} KB")
-//    log(s"\tSingle Buffer Limit B: ${architecture.singleBufferLimitKbs.limitB} KB")
-//    log(s"\tSingle Buffer Limit C: ${architecture.singleBufferLimitKbs.limitC} KB")
-//    log(s"")
-//    log(s"\tSingle Buffer Limit A: ${architecture.singleBufferLimitKbs.limitBitA / 8} byte")
-//    log(s"\tSingle Buffer Limit B: ${architecture.singleBufferLimitKbs.limitBitB / 8} byte")
-//    log(s"\tSingle Buffer Limit C: ${architecture.singleBufferLimitKbs.limitBitC / 8} byte")
-//    log(s"")
-//    log(s"\tTile A Size: ${simulationResult.tileSizeA}")
-//    log(s"\t\tTile A Row: ${simulationResult.tileRowA}")
-//    log(s"\t\tTile A Col: ${simulationResult.tileColumnA}")
-//    log(s"\t\tTile A Bit Width: ${simulationResult.bitWidthA}")
-//    log(s"")
-//    log(s"\tTile B Size: ${simulationResult.tileSizeB}")
-//    log(s"\t\tTile B Row: ${simulationResult.tileRowB}")
-//    log(s"\t\tTile B Col: ${simulationResult.tileColumnB}")
-//    log(s"\t\tTile B Bit Width: ${simulationResult.bitWidthB}")
-//    log(s"")
-//    log(s"\tTile C Size: ${simulationResult.tileSizeC}")
-//    log(s"\t\tTile C Row: ${simulationResult.tileRowC}")
-//    log(s"\t\tTile C Col: ${simulationResult.tileColumnC}")
-//    log(s"\t\tTile C Bit Width: ${simulationResult.bitWidthC}")
-//    log(s"")
-//    log(s"\tAverage SRAM A Usage: ${simulationResult.averageMemoryUsageA%.2f}")
-//    log(s"\tAverage SRAM B Usage: ${simulationResult.averageMemoryUsageB%.2f}")
-//    log(s"\tAverage SRAM C Usage: ${simulationResult.averageMemoryUsageB%.2f}")
-//    log(s"")
-//    log(s"\tAverage SRAM A Utilization: ${simulationResult.averageMemoryUtilizationA%.2f}")
-//    log(s"\tAverage SRAM B Utilization: ${simulationResult.averageMemoryUtilizationB%.2f}")
-//    log(s"\tAverage SRAM C Utilization: ${simulationResult.averageMemoryUtilizationC%.2f}")
-//    log(s"")
-//    log(s"\tArray Stall Cycle: ${simulationResult.arrayStallCycle}")
-//    log(s"")
-//    log(s"\tCycle: ${simulationResult.cycle}")
-//    log(s"")
-//  }
-//
 //
 //}

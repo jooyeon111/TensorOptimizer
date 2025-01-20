@@ -6,6 +6,7 @@ import scala.collection.mutable
 
 trait Sram extends Hardware with Logger {
 
+  //TODO unify name toggle or swap
   //Abstract members
   val dataType: DataType
   protected val singleBufferLimitKb: Int
@@ -15,9 +16,11 @@ trait Sram extends Hardware with Logger {
   protected val sramTotalSizeBit: Double = singleBufferLimitKb.toDouble * 2.0 * 8.0 * 1024.0
 
   //Double buffer state
-  private var bufferToggleCount: Int = 0
+  private var bufferSwapCount: Int = 0
+  private var bufferSwapStallCount: Int = 0
   private var isWritingToPong: Boolean = false
   protected var isFirstFillUpDone: Boolean = false
+  protected var firstFillUpCycle: Long = 0
 
   //memory monitoring
   private var accumulatedMemoryUsageBit: Double = 0.0
@@ -36,7 +39,7 @@ trait Sram extends Hardware with Logger {
   protected def writePendingBuffer: mutable.Queue[Tile] = if(isWritingToPong) pendingPongBuffer else pendingPingBuffer
 
   //Buffer operations
-  protected  def swapBuffers(): Unit = {
+  protected def swapBuffers(): Unit = {
     isWritingToPong = !isWritingToPong
   }
 
@@ -64,8 +67,11 @@ trait Sram extends Hardware with Logger {
   }
 
   //public API
-  def getBufferToggleCount: Int = bufferToggleCount
-  def increaseBufferToggleCount(): Unit = bufferToggleCount += 1
+  def getFirstFillUpCycle: Long = firstFillUpCycle
+  def getBufferSwapCount: Int = bufferSwapCount
+  def getBufferSwapStallCount: Int = bufferSwapStallCount
+  def increaseBufferSwapCount(): Unit = bufferSwapCount += 1
+  def increaseBufferSwapStallCount(): Unit = bufferSwapStallCount += 1
   def getAccumulatedMemoryUsage: Double = accumulatedMemoryUsageBit
   def getAccumulateMemoryUtilization: Double = accumulatedMemoryUtilization
 

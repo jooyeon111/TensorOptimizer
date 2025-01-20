@@ -32,7 +32,7 @@ trait RtlSynthesisManager extends BandWidthFilter with OutputPortCalculator with
       val filteredConfigs = filterConfigsWithTwoSigma(arrayConfigs)
 
       filteredConfigs.foreach { arrayConfig =>
-        generateVerilogForConfig(arrayConfig, config.streamingDimensionSize )
+        generateVerilogForConfig(arrayConfig, config.streamingDimensionSize, config.verilogGeneration, config.splitVerilogModules )
       }
 
       showBandwidthComparison(arrayConfigs, filteredConfigs)
@@ -112,9 +112,11 @@ trait RtlSynthesisManager extends BandWidthFilter with OutputPortCalculator with
   private def generateVerilogForConfig(
     config: ArrayConfig,
     streamingDimensionSize: Int,
+    verilogGeneration: Boolean,
+    splitVerilogModules: Boolean,
   ): Unit = {
     val verilogConfig = VerilogGenerationConfig(
-      splitVerilogOutput = true,
+      splitVerilogOutput = splitVerilogModules,
       dataflow = config.dataflow,
       arrayDimension = config.asArrayDimension,
       integerType = IntegerType.Signed,
@@ -131,7 +133,8 @@ trait RtlSynthesisManager extends BandWidthFilter with OutputPortCalculator with
         streamingDimensionSize = streamingDimensionSize
       )
     )
-    generateRtl(verilogConfig)
+    if(verilogGeneration)
+      generateRtl(verilogConfig)
   }
 
 

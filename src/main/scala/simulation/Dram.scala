@@ -1,7 +1,6 @@
 package simulation
 
 import common.Dataflow
-
 import scala.collection.mutable
 
 final class Dram(
@@ -11,6 +10,11 @@ final class Dram(
 
   setMode(loggerOption)
 
+  //TODO parameterize it to include HBM
+  private val ddr4CapacityBit: Long = 68719476736L
+
+
+  private val dramLogs: mutable.Queue[DramLog] = mutable.Queue.empty[DramLog]
   private val currentTileQueue: mutable.Queue[Tile] = mutable.Queue.empty[Tile]
   private val nextTileQueue: mutable.Queue[Tile] = mutable.Queue.empty[Tile]
 
@@ -25,18 +29,20 @@ final class Dram(
   private var singleBufferTileCapacityOfSramB = -1
   private var writeEnable: Boolean = false
 
+  //TODO change variable names below
   var trimTileCountA: Int = 0
   var trimTileCountB: Int = 0
 
-//  var totalNumberOfTiles: Int = 0
-
   private var isTrimmed = false
-  var holdUpCount = 0
+  var dramStall = 0
 
   //Function called by Compiler
+
+
   //TODO assert this function is called once
-  def uploadInitialTiles(operationVector: Vector[MultiplicationOperation], dataflow: Dataflow.Value) : Unit = {
+  private def uploadInitialTiles(operationVector: Vector[MultiplicationOperation], dataflow: Dataflow.Value) : Unit = {
     dataflow match {
+
       case Dataflow.Is =>
         operationVector.foreach{ operation =>
           currentTileQueue += operation.generateTileA
@@ -54,9 +60,18 @@ final class Dram(
         }
     }
 
-//    totalNumberOfTiles = currentTileQueue.length
-
   }
+
+  private def checkCapacity(): Unit = {
+    assert (currentTileQueue.map(_.dims.memorySize).sum <= ddr4CapacityBit, "[error] Cannot contain tiles ")
+  }
+
+  def initDram(operationVector: Vector[MultiplicationOperation], dataflow: Dataflow.Value) : Unit = {
+    uploadInitialTiles(operationVector, dataflow)
+    checkCapacity()
+  }
+
+  def getDramLogs: mutable.Queue[DramLog] = dramLogs
 
   //Function called by Output Double Buffer SRAM
   def onWriteEnable(): Unit = {
@@ -68,8 +83,9 @@ final class Dram(
   }
 
   //Function called by array
-  def receive(): Unit = {
+  def receive(interface: Interface): Unit = {
     incrementWriteAccessCount()
+    dramLogs += DramLog(interface.getCycle, DramAccessState.Write)
   }
 
   //Function called by interface
@@ -238,11 +254,13 @@ final class Dram(
 
   override def send(interface: Interface) : Unit = {
 
-    if(sendingTileQueueA.nonEmpty || sendingTileQueueB.nonEmpty)
+    if(sendingTileQueueA.nonEmpty || sendingTileQueueB.nonEmpty) {
+      dramLogs += DramLog(interface.getCycle, DramAccessState.Read)
       incrementReadAccessCount()
+    }
 
     if(sendingTileQueueA.isEmpty && sendingTileQueueB.isEmpty)
-      holdUpCount += 1
+      dramStall += 1
 
     if(sendingTileQueueA.isEmpty && sendingTileQueueB.isEmpty && !isTrimmed)
       stuck = true

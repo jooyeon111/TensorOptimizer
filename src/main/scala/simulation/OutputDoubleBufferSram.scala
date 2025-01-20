@@ -88,7 +88,7 @@ class OutputDoubleBufferSram(
     }
 
     if (temporalTileQueue.nonEmpty) {
-      interface.dram.receive()
+      interface.dram.receive(interface)
       incrementReadAccessCount()
     } else
       stuck = true
@@ -117,33 +117,37 @@ class OutputDoubleBufferSram(
 
   private def judgeDoubleBufferState(interface: Interface): Unit = {
 
+    //TODO split checkFirstFillUpLogic
     if (!isFirstFillUpDone) {
       if (isBufferIntactAndFull(writeBuffer) || interface.array.isAllCalculated){
         swapBuffers()
+        firstFillUpCycle = interface.getCycle
         isFirstFillUpDone = true
       }
     } else {
 
-      if(writeBuffer.forall(tile => tile.ownedBySram)){
-
-        if(readBuffer.isEmpty){
+      if(readBuffer.isEmpty){
+        if(writeBuffer.forall(tile => tile.ownedBySram)){
           swapBuffers()
-          increaseBufferToggleCount()
+          increaseBufferSwapCount()
           interface.array.go()
         } else {
+          increaseBufferSwapStallCount()
+        }
+      } else {
+        if(writeBuffer.forall(tile => tile.ownedBySram)) {
           if(writeBuffer.length == singleBufferTileCapacity){
             interface.array.stop()
           } else {
             interface.array.go()
           }
         }
-
       }
 
       if(interface.array.isAllCalculated)
         if(readBuffer.isEmpty && writeBuffer.nonEmpty && writeBuffer.last.ownedBySram) {
           swapBuffers()
-          increaseBufferToggleCount()
+          increaseBufferSwapCount()
         }
     }
 

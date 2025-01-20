@@ -3,8 +3,7 @@ package simulation
 import java.io.File
 import common.{Dataflow, OutputPortCalculator, FilePaths, ArrayDimension}
 
-trait SingleLayerSimulation extends OutputPortCalculator with Logger with StreamingDimensionCalculator
-{
+trait SingleLayerSimulation extends OutputPortCalculator with Logger with StreamingDimensionCalculator {
 
   private case class SimulationConfig(
     debugPrint: Boolean,
@@ -47,7 +46,6 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
         dramReferenceData.validate
     }
   }
-
 
   def processOneLayer(
     layerPath: String,
@@ -122,7 +120,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     println("Run Simulation")
     val simResult = runSimulation(simulationConfig, components)
 
+//  TODO change it after few simulations
     simResult.printFullResults(loggerOption)
+//    simResult.showSummary(loggerOption)
 
   }
 
@@ -153,6 +153,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     val debugPrint = testConfig.getBoolean("Debug Print").getOrElse(false)
     val debugStartCycle = testConfig.getInt("Debug Start Cycle").getOrElse(0)
     val debugEndCycle = testConfig.getInt("Debug End Cycle").getOrElse(0)
+    val showReferenceEnergy = testConfig.getBoolean("Show Reference Energy Information").getOrElse(false)
+    val showAreaReport = testConfig.getBoolean("Show Area Report").getOrElse(false)
+    val showEnergyReport = testConfig.getBoolean("Show Energy Report").getOrElse(false)
 
     //Hardware configuration
     val dataflow = testConfig.getString("Dataflow").get match {
@@ -298,14 +301,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
       throw ParseError("DRAM Data Not found")
     )
 
-    val dramLeakagePower: Double = dramDataConfig.getDouble("Leakage Power").getOrElse(
-      throw ParseError("DRAM Data Not found")
-    )
-
     val dramReferenceData: DramReferenceData = DramReferenceData(
       readEnergyPj = dramReadEnergy,
       writeEnergyPj = dramWriteEnergy,
-      leakagePowerMw = dramLeakagePower
     )
 
     SimulationConfig(
@@ -329,8 +327,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
       singleBufferLimitKbC = singleBufferLimitKbC,
       sramReferenceDataVector = sramDataVector,
       dramReferenceData = dramReferenceData,
-      arrayReferenceData = arrayDataReference
-
+      arrayReferenceData = arrayDataReference,
     )
 
   }
@@ -361,7 +358,6 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
       simConfig.numMultiplier,
     )
 
-    //Simulation init
     val arrayConfig = ArrayConfig(
       arrayDimension = arrayDimension,
       dataflow = simConfig.dataflow,
@@ -503,10 +499,15 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
         singleBufferTileCapacityB = compiler.getSingleBufferTileCapacityB,
         singleBufferTileCapacityC = compiler.getSingleBufferTileCapacityC,
 
+        arrayInputBandwidthA = compiler.getArrayInputBandwidthA,
+        arrayInputBandwidthB = compiler.getArrayInputBandwidthB,
+        arrayOutputBandwidthC = compiler.getArrayOutputBandwidthC,
+
         cycle = compiler.getTotalCycle,
         arrayActiveCount = compiler.getArrayActiveCount,
-        arrayHoldUpCount = compiler.getArrayHoldUpCount,
-        dramHolUpCount = compiler.getDramHoldUpCount,
+
+
+        dramLogs = compiler.getDramLogs,
         dramReadAccessCount = compiler.getDramReadAccessCount,
         dramWriteAccessCount = compiler.getDramWriteAccessCount,
         sramReadAccessCountA = compiler.getSramReadAccessCountA,
@@ -524,9 +525,22 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
         sramHitRatio = compiler.getTotalSramHitRatio,
         sramMissRatio = compiler.getTotalSramMissRatio,
 
-        sramBufferToggleCountA = compiler.getSramBufferToggleCountA,
-        sramBufferToggleCountB = compiler.getSramBufferToggleCountB,
-        sramBufferToggleCountC = compiler.getSramBufferToggleCountC,
+        dramStallCount = compiler.getDramStallCount,
+
+        firstFillUpCycleA = compiler.getFirstFillUptCycleA,
+        bufferSwapCountA = compiler.getBufferSwapCountA,
+        bufferSwapStallCountA = compiler.getBufferSwapStallCountA,
+
+        firstFillUpCycleB = compiler.getFirstFillUptCycleB,
+        bufferSwapCountB = compiler.getBufferSwapCountB,
+        bufferSwapStallCountB = compiler.getBufferSwapStallCountB,
+
+        arrayInputStallCount = compiler.getArrayInputStallCount,
+        arrayOutputStallCount = compiler.getArrayOutputStallCount,
+
+        firstFillUpCycleC = compiler.getFirstFillUptCycleC,
+        bufferSwapCountC = compiler.getBufferSwapCountC,
+        bufferSwapStallCountC = compiler.getBufferSwapStallCountC,
 
         averageMemoryUsageKbA = compiler.getAverageMemoryUsageKbA,
         averageMemoryUtilizationA = compiler.getAverageMemoryUtilizationA,
@@ -559,7 +573,6 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
 
         dramReadEnergyPj = compiler.getDramReadEnergy,
         dramWriteEnergyPj = compiler.getDramWriteEnergy,
-        dramLeakageEnergyPj = compiler.getDramLeakageEnergy,
         dramEnergyPj = compiler.getDramEnergy,
 
         arrayDynamicEnergyPj = compiler.getArrayDynamicEnergy,
@@ -574,53 +587,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
         SimulationResult(Long.MaxValue)
     }
 
-
   }
-
-
-  //  private def showSigmaBandwidth(arrayConfigs: Vector[ArrayConfig]): Unit = {
-  //
-  //    log("\n[Configuration Candidates]")
-  //    arrayConfigs.foreach(arrayConfig =>log(s"\t[${arrayConfig.arrayConfigString}] " +
-  //      s"\tInput Bandwidth A: ${arrayConfig.bandwidthOfInputA} " +
-  //      s"\tInput Bandwidth B: ${arrayConfig.bandwidthOfInputB} " +
-  //      s"\tOutput Bandwidth C: ${arrayConfig.outputBandwidth}"
-  //    ))
-  //
-  //    log(s"")
-  //    log(s"${arrayConfigs.length} have been created")
-  //    log(s"Minimum value input bandwidth A: ${arrayConfigs.map(_.bandwidthOfInputA).min}")
-  //    log(s"Minimum value input bandwidth B: ${arrayConfigs.map(_.bandwidthOfInputB).min}")
-  //    log(s"Minimum value output bandwidth C: ${arrayConfigs.map(_.outputBandwidth).min}")
-  //    log(s"Max value input bandwidth A: ${arrayConfigs.map(_.bandwidthOfInputA).max}")
-  //    log(s"Max value input bandwidth B: ${arrayConfigs.map(_.bandwidthOfInputB).max}")
-  //    log(s"Max value output bandwidth C: ${arrayConfigs.map(_.outputBandwidth).max}")
-  //    log(s"")
-  //
-  //    log(s"[After Configuration trimming with sigma-2]")
-  //
-  //    val arrayConfigSigma2 = filterConfigsWithTwoSigma(arrayConfigs)
-  //
-  //    writeConfigurationFile(arrayConfigSigma2)
-  //    generateMakefile(arrayConfigSigma2)
-  //
-  //    arrayConfigSigma2.foreach(arrayConfig => log(s"\t[${arrayConfig.arrayConfigString}] " +
-  //      s"\tInput Bandwidth A: ${arrayConfig.bandwidthOfInputA} " +
-  //      s"\tInput Bandwidth B: ${arrayConfig.bandwidthOfInputB} " +
-  //      s"\tOutput Bandwidth C: ${arrayConfig.outputBandwidth}"
-  //    ))
-  //
-  //    log(s"${arrayConfigSigma2.length} have survived")
-  //    log(s"Minimum value input bandwidth A: ${arrayConfigSigma2.map(_.bandwidthOfInputA).min}")
-  //    log(s"Minimum value input bandwidth B: ${arrayConfigSigma2.map(_.bandwidthOfInputB).min}")
-  //    log(s"Minimum value output bandwidth C: ${arrayConfigSigma2.map(_.outputBandwidth).min}")
-  //    log(s"Max value input bandwidth A: ${arrayConfigSigma2.map(_.bandwidthOfInputA).max}")
-  //    log(s"Max value input bandwidth B: ${arrayConfigSigma2.map(_.bandwidthOfInputB).max}")
-  //    log(s"Max value output bandwidth C: ${arrayConfigSigma2.map(_.outputBandwidth).max}")
-  //    log(s"")
-  //
-  //  }
-
 
   private def logSimulation(simConfig: SimulationConfig): Unit = {
 
@@ -632,25 +599,25 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     log(s"\tStreaming Dimension Size: ${simConfig.streamingDimensionSize}")
     log("")
     log(s"[DRAM]")
-    log(s"\tDRAM Bandwidth: ${simConfig.dramBandwidth}")
+    log(s"\tDRAM Bandwidth: ${simConfig.dramBandwidth} bit")
     log("")
     log("[Input SRAM A]")
     log(s"\tSRAM A Single Buffer Limit (KB): ${simConfig.singleBufferLimitKbA} KB")
     log(s"\tSRAM A Single Buffer Limit (bit): ${simConfig.singleBufferLimitKbA * 8 * 1024} bit")
-    log(s"\tSRAM A Total SRAM Size (KB): ${simConfig.singleBufferLimitKbA * 2}")
-    log(s"\tSRAM A Total SRAM Size (bit): ${simConfig.singleBufferLimitKbA * 2 * 8 * 1024}")
+    log(s"\tSRAM A Total SRAM Size (KB): ${simConfig.singleBufferLimitKbA * 2} KB")
+    log(s"\tSRAM A Total SRAM Size (bit): ${simConfig.singleBufferLimitKbA * 2 * 8 * 1024} bit")
     log("")
     log("[Input SRAM B]")
     log(s"\tSRAM B Single Buffer Limit (KB): ${simConfig.singleBufferLimitKbB} KB")
     log(s"\tSRAM B Single Buffer Limit (bit): ${simConfig.singleBufferLimitKbB * 8 * 1024} bit")
-    log(s"\tSRAM B Total SRAM Size (KB): ${simConfig.singleBufferLimitKbB * 2}")
-    log(s"\tSRAM B Total SRAM Size (bit): ${simConfig.singleBufferLimitKbB * 2 * 8 * 1024}")
+    log(s"\tSRAM B Total SRAM Size (KB): ${simConfig.singleBufferLimitKbB * 2} KB")
+    log(s"\tSRAM B Total SRAM Size (bit): ${simConfig.singleBufferLimitKbB * 2 * 8 * 1024} bit")
     log("")
     log("[Output SRAM C]")
     log(s"\tSRAM B Single Buffer Limit (KB): ${simConfig.singleBufferLimitKbC} KB")
     log(s"\tSRAM B Single Buffer Limit (bit): ${simConfig.singleBufferLimitKbC * 8 * 1024} bit")
-    log(s"\tSRAM B Total SRAM Size (KB): ${simConfig.singleBufferLimitKbC * 2}")
-    log(s"\tSRAM B Total SRAM Size (bit): ${simConfig.singleBufferLimitKbC * 2 * 8 * 1024}")
+    log(s"\tSRAM B Total SRAM Size (KB): ${simConfig.singleBufferLimitKbC * 2} KB")
+    log(s"\tSRAM B Total SRAM Size (bit): ${simConfig.singleBufferLimitKbC * 2 * 8 * 1024} bit")
     log("")
     log(s"[Systolic Tensor Array]")
     log(s"\t[Systolic Tensor Array Dimension]")
@@ -676,14 +643,14 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     log(s"")
     log(s"[Tile Size info]")
 
-    log(s"[SRAM Energy info]")
-    simConfig.sramReferenceDataVector.foreach{ energy =>
-      log(s"Capacity: ${energy.capacityKb} (KB)," +
-        s" Bandwidth: ${energy.bandwidthBytes} (Byte)," +
-        s" Read Energy: ${energy.readEnergyPj} (pJ)," +
-        s" Write energy: ${energy.writeEnergyPj} (pJ)," +
-        s" Leakage Power ${energy.leakagePowerMw} (mW)")
-    }
+//    log(s"[SRAM Energy info]")
+//    simConfig.sramReferenceDataVector.foreach{ energy =>
+//      log(s"Capacity: ${energy.capacityKb} (KB)," +
+//        s" Bandwidth: ${energy.bandwidthBytes} (Byte)," +
+//        s" Read Energy: ${energy.readEnergyPj} (pJ)," +
+//        s" Write energy: ${energy.writeEnergyPj} (pJ)," +
+//        s" Leakage Power ${energy.leakagePowerMw} (mW)")
+//    }
 
     log(s"\tStreaming Dimension Size: ${simConfig.streamingDimensionSize}")
     log(s"")

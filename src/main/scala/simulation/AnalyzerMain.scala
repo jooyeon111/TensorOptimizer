@@ -24,7 +24,7 @@ object AnalyzerMain extends App
     sys.exit(1)
   }
 
-  println("Debug Main START")
+  println("Analyzer Main START")
 
   Try {
 

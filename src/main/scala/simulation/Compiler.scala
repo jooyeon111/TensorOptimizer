@@ -1,6 +1,7 @@
 package simulation
 
 import scala.util.control.Breaks._
+import scala.collection.mutable
 
 class Compiler(
   val dram: Dram,
@@ -10,6 +11,7 @@ class Compiler(
   val interface: Interface,
   val layer: Layer,
   val array: Array,
+              //TODO make it Option
   val sramDataReferenceVector: Vector[SramReferenceData],
   val dramReferenceDataData: DramReferenceData,
   val arrayReferenceData: ArrayReferenceData,
@@ -29,7 +31,7 @@ class Compiler(
   private val inputSramDataA: SramReferenceData = {
     sramDataReferenceVector
       .find{ sram =>
-        (sram.capacityKb == sramA.singleBufferLimitKb) && (sram.bandwidthBits < array.arrayConfig.bandwidthOfInputA)
+        (sram.capacityKb == sramA.singleBufferLimitKb) && (array.arrayConfig.bandwidthOfInputA < sram.bandwidthBits)
       }.getOrElse{
         Console.err.println("There is no SRAM info in SRAM table... reorganize SRAM output files")
         sys.exit(1)
@@ -39,7 +41,7 @@ class Compiler(
   private val inputSramDataB: SramReferenceData = {
     sramDataReferenceVector
       .find{ sram =>
-        (sram.capacityKb == sramB.singleBufferLimitKb) && (sram.bandwidthBits < array.arrayConfig.bandwidthOfInputB)
+        (sram.capacityKb == sramB.singleBufferLimitKb) && (array.arrayConfig.bandwidthOfInputB < sram.bandwidthBits)
       }.getOrElse{
         Console.err.println("There is no SRAM info in SRAM table... reorganize SRAM output files")
         sys.exit(1)
@@ -49,7 +51,7 @@ class Compiler(
   private val outputSramDataC: SramReferenceData = {
     sramDataReferenceVector
       .find{ sram =>
-        (sram.capacityKb == sramC.singleBufferLimitKb) && (sram.bandwidthBits < array.arrayConfig.outputBandwidth)
+        (sram.capacityKb == sramC.singleBufferLimitKb) && (array.arrayConfig.outputBandwidth < sram.bandwidthBits)
       }.getOrElse{
         Console.err.println("There is no SRAM info in SRAM table... reorganize SRAM output files")
         sys.exit(1)
@@ -65,15 +67,19 @@ class Compiler(
 
     var cycle: Long = 0
 
-    dram.uploadInitialTiles(layer.operationVector, array.arrayConfig.dataflow)
+//    dram.uploadInitialTiles(layer.operationVector, array.arrayConfig.dataflow)
+    require(layer.operationVector.nonEmpty, "Empty operation vector function is called in wrong place")
+    dram.initDram(layer.operationVector, array.arrayConfig.dataflow)
     array.uploadOperationVector(layer.operationVector)
+    array.initTileSize(layer.operationVector.head)
     sramA.initTileSchedule(layer.operationVector)
-//    sramA.initReceivingSequence(layer.operationVector)
+    sramA.initTileSize(layer.operationVector.head)
     sramB.initTileSchedule(layer.operationVector)
-//    sramB.initReceivingSequence(layer.operationVector)
+    sramB.initTileSize(layer.operationVector.head)
 
     breakable {
       while(!areAllHardwareQueueEmpty) {
+        interface.updateCycle(cycle)
 
         if(debugMode)
           if( debugStartCycle <= cycle && cycle < debugEndCycle )
@@ -113,8 +119,9 @@ class Compiler(
     cycle
 
   }
+
+  //TODO DELETE!!!! Useless METRIC!!!!
   //1. Initial Workload Metrics
-//  def getTotalNumberOfTilesInInitialDram: Int = dram.totalNumberOfTiles
   def getTotalOperationNumber: Int = layer.operationVector.size
   def getTileSizeA: Int = layer.operationVector.head.generateTileA.dims.memorySize
   def getTileSizeB: Int = layer.operationVector.head.generateTileB.dims.memorySize
@@ -125,13 +132,36 @@ class Compiler(
   def getTrimTileCountA: Int = dram.trimTileCountA
   def getTrimTileCountB: Int = dram.trimTileCountB
 
-  //2. Performance Metrics
+  //2. Bandwidth info
+  def getArrayInputBandwidthA: Int = array.arrayConfig.bandwidthOfInputA
+  def getArrayInputBandwidthB: Int = array.arrayConfig.bandwidthOfInputB
+  def getArrayOutputBandwidthC: Int = array.arrayConfig.outputBandwidth
+
+  //3. Performance Metrics
   def getTotalCycle: Long = cycle
   def getArrayActiveCount: Int = array.getArrayActiveCount
-  def getArrayHoldUpCount: Int = array.holdUpCount
-  def getDramHoldUpCount: Int = dram.holdUpCount
 
-  //Read write counts
+
+  //Pipeline state
+  def getDramStallCount: Int = dram.dramStall
+
+  def getFirstFillUptCycleA: Long = sramA.getFirstFillUpCycle
+  def getFirstFillUptCycleB: Long = sramB.getFirstFillUpCycle
+  def getFirstFillUptCycleC: Long = sramC.getFirstFillUpCycle
+
+  def getBufferSwapCountA: Int = sramA.getBufferSwapCount
+  def getBufferSwapCountB: Int = sramB.getBufferSwapCount
+  def getBufferSwapCountC: Int = sramC.getBufferSwapCount
+
+  def getArrayInputStallCount: Int = array.arrayInputStallCount
+  def getArrayOutputStallCount: Int = array.arrayOutputStallCount
+
+  def getBufferSwapStallCountA: Int = sramA.getBufferSwapStallCount
+  def getBufferSwapStallCountB: Int = sramB.getBufferSwapStallCount
+  def getBufferSwapStallCountC: Int = sramC.getBufferSwapStallCount
+
+  //Read write log
+  def getDramLogs: mutable.Queue[DramLog] = dram.getDramLogs
   def getDramReadAccessCount: Long = dram.getReadAccessCount
   def getDramWriteAccessCount: Long = dram.getWriteAccessCount
 
@@ -160,10 +190,7 @@ class Compiler(
   def getSramHitRatioB: Double =  array.getMemoryHitCountB / array.getMemoryAccessCountB
   def getSramMissRatioB: Double = array.getMemoryMissCountB / array.getMemoryAccessCountB
 
-  //3. Memory Utilization
-  def getSramBufferToggleCountA: Int = sramA.getBufferToggleCount
-  def getSramBufferToggleCountB: Int = sramB.getBufferToggleCount
-  def getSramBufferToggleCountC: Int = sramC.getBufferToggleCount
+  //4. Memory Utilization
 
   def getAverageMemoryUsageKbA: Double = (sramA.getAccumulatedMemoryUsage / 8.0 / 1024.0)/ cycle.toDouble
   def getAverageMemoryUsageKbB: Double = (sramB.getAccumulatedMemoryUsage / 8.0 / 1024.0)/ cycle.toDouble
@@ -173,7 +200,7 @@ class Compiler(
   def getAverageMemoryUtilizationB: Double = sramB.getAccumulateMemoryUtilization / cycle.toDouble
   def getAverageMemoryUtilizationC: Double = sramC.getAccumulateMemoryUtilization / cycle.toDouble
 
-  //4. Area results
+  //5. Area results
   //Final area results unit is mm^2
   def getSramAreaMmA: Double = inputSramDataA.areaUm2
   def getSramAreaMmB: Double= inputSramDataB.areaUm2
@@ -182,7 +209,7 @@ class Compiler(
   def getDramAreaMm: Double = dramReferenceDataData.areaMm2
   def getTotalArea: Double = getSramAreaMmA + getSramAreaMmB + getSramAreaMmC + getArrayAreaMm + getDramAreaMm
 
-  //5. Energy results
+  //6. Energy results
   //Final energy results unit is pJ
   //SRAM A
   def getSramReadEnergyA: Double = inputSramDataA.readEnergyPj * sramA.getReadAccessCount
@@ -205,8 +232,7 @@ class Compiler(
   //DRAM
   def getDramReadEnergy: Double = dram.getReadAccessCount * dramReferenceDataData.readEnergyPj
   def getDramWriteEnergy: Double = dram.getWriteAccessCount * dramReferenceDataData.writeEnergyPj
-  def getDramLeakageEnergy: Double = dramReferenceDataData.leakagePowerPw * cycle * clockPeriod
-  def getDramEnergy: Double = getDramReadEnergy + getDramWriteEnergy + getDramLeakageEnergy
+  def getDramEnergy: Double = getDramReadEnergy + getDramWriteEnergy
 
   //Array
   def getArrayDynamicEnergy: Double = array.getArrayActiveCount.toDouble * computeArrayDynamicPower
@@ -214,6 +240,7 @@ class Compiler(
   def getArrayEnergy: Double = getArrayDynamicEnergy + getArrayLeakageEnergy
 
   def getTotalEnergy: Double = getSramEnergyA + getSramEnergyB + getSramEnergyC + getDramEnergy + getArrayEnergy
+
 
   private def computeArrayDynamicPower: Double = {
     array.arrayConfig.groupPeRow * arrayReferenceData.dynamicPowerGroupPeRowPj +
@@ -257,8 +284,8 @@ class Compiler(
     array.printTiles()
     sramC.printTiles()
     array.printSchedule()
-    sramA.printSchedule()
-    sramB.printSchedule()
+//    sramA.printSchedule()
+//    sramB.printSchedule()
 //    sramA.printReceivingOrder()
 //    sramB.printReceivingOrder()
     log("")
