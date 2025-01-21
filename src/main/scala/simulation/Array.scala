@@ -69,6 +69,7 @@ final class Array(
       isTileBUsedInNext: Boolean = false
     ) = {
       ScheduledOperation(
+        arrayConfig.dataflow,
         op.layerName,
         op.operationId,
         op.generateTileC,
@@ -156,10 +157,8 @@ final class Array(
     } else
       stuck = true
 
-
     countSramAccess(interface)
     updateState()
-
 
     changeOperationState(interface)
 
@@ -305,6 +304,10 @@ final class Array(
   }
 
   override def send(interface: Interface) : Unit = {
+    if(calculatingOperation.isEmpty){
+      println("SSibal")
+      return
+    }
     val operation = calculatingOperation.front
     val targetTileA = operation.getTileA
     val targetTileB = operation.getTileB
@@ -389,6 +392,7 @@ final class Array(
         }
       }
     }
+
   }
 
   private def changeOperationState(interface: Interface): Unit =
@@ -409,45 +413,102 @@ final class Array(
     op match {
       case Some(op) if op.isNextCalculation =>
 
-        if(currentTileQueueTypeA.exists(tile => tile.id == op.getTileAId && tile.isWaiting)){
+        if (currentTileQueueTypeA.exists(tile => tile.id == op.getTileAId && tile.isWaiting)) {
 
-          op.setTileA(currentTileQueueTypeA.find(tile => tile.id == op.getTileAId && tile.isWaiting).get)
-          interface.sramA.changeTileStateIfExists(op.getTileAId, TileState.loading)
-          op.startLoading(arrayConfig.dataflow)
+//          op.setTileA(currentTileQueueTypeA.find(tile => tile.id == op.getTileAId && tile.isWaiting).get)
+//          interface.sramA.changeTileStateIfExists(op.getTileAId, TileState.loading)
+//          op.startLoading(arrayConfig.dataflow)
+//
+//          if (op.getTileA.ownedByArray)
+//            op.completeLoading(arrayConfig.dataflow)
 
-          if(op.getTileA.ownedByArray)
-            op.completeLoading(arrayConfig.dataflow)
+          var opIndex = schedule.indexOf(op)
+          val loadingTileA = currentTileQueueTypeA.find(tile => tile.id == op.getTileAId && tile.isWaiting).get
+          interface.sramA.changeTileStateIfExists(loadingTileA.id, TileState.loading)
 
+//          val loadingOutputTileIDs: mutable.Queue[(Int, Int, Int)] = interface.sramB.getReadBufferIDs.map { id =>
+//            assert(loadingTileA.id._2 == id._1, "[error] ID does not match")
+//            (loadingTileA.id._1, id._2, id._1)
+//          }
+
+          val loadingOutputTileIDs: mutable.Queue[(Int, Int, Int)] = interface.sramB.getReadBufferIDs
+            .filter(_._1 == loadingTileA.id._2 )
+            .map(id =>(loadingTileA.id._1, id._2, id._1))
+
+          while(loadingOutputTileIDs.nonEmpty){
+
+            if((schedule(opIndex).isNextCalculation || schedule(opIndex).isWaiting) &&
+              schedule(opIndex).operationId == loadingOutputTileIDs.head){
+
+              schedule(opIndex).setTileA(loadingTileA)
+              schedule(opIndex).startLoading(arrayConfig.dataflow)
+              opIndex += 1
+              loadingOutputTileIDs.dequeue()
+
+            }
+
+          }
         }
 
       case Some(op) if op.isLoading =>
 
-        if(op.getTileA.ownedByArray)
-          op.completeLoading(arrayConfig.dataflow)
+        if (op.getTileA.ownedByArray) {
+
+//          op.completeLoading(arrayConfig.dataflow)
+//          val opIndex = schedule.indexOf(op)
+//          var nextIndex = opIndex + 1
+//
+//          while(
+//            nextIndex < schedule.length &&
+//              schedule(nextIndex).isWaiting &&
+//              schedule(nextIndex).getTileAId == op.getTileAId
+//          ){
+//            schedule(nextIndex).setTileA(op.getTileA)
+//            schedule(nextIndex).completeLoading(arrayConfig.dataflow)
+//            nextIndex += 1
+//          }
+
+          val loadedTile = op.getTileA
+          val loadingOperations = schedule.filter( op => op.isLoading && loadedTile.id == op.getTileAId)
+
+          loadingOperations.foreach{ op =>
+            if(interface.sramB.getReadBufferIDs.exists(_._1 == loadedTile.id._2))
+              op.completeLoading(arrayConfig.dataflow)
+          }
+
+
+        }
+
+//  loaded previous code
+//      case Some(op) if op.isLoaded =>
+//        if (currentTileQueueTypeB.exists(tile => tile.id == op.getTileBId && tile.isWaiting && tile.memoryOccupiedByArray > 0)) {
+//          op.setTileB(currentTileQueueTypeB.find(tile => tile.id == op.getTileBId && tile.isWaiting && tile.memoryOccupiedByArray > 0).get)
+//          interface.sramB.changeTileStateIfExists(op.getTileBId, TileState.calculating)
+//          op.startCalculation(arrayConfig)
+//          calculatingOperation += op
+//        }
 
       case Some(op) if op.isLoaded =>
 
-        if(currentTileQueueTypeB.exists(tile => tile.id == op.getTileBId && tile.isWaiting && tile.memoryOccupiedByArray > 0)){
-          op.setTileB(currentTileQueueTypeB.find(tile => tile.id == op.getTileBId && tile.isWaiting && tile.memoryOccupiedByArray > 0).get)
+        if (currentTileQueueTypeB.exists(
+          tile => tile.id == op.getTileBId && tile.isWaiting && tile.memoryOccupiedByArray > 0)
+        ){
+          op.setTileB( currentTileQueueTypeB.find(
+            tile => tile.id == op.getTileBId && tile.isWaiting && tile.memoryOccupiedByArray > 0
+          ).get)
           interface.sramB.changeTileStateIfExists(op.getTileBId, TileState.calculating)
           op.startCalculation(arrayConfig)
           calculatingOperation += op
         }
 
+
       case Some(op) if op.isWaiting =>
 
-        if(currentTileQueueTypeA.exists(tile => tile.id == op.getTileAId && tile.isLoaded )){
-
-          val tileA = currentTileQueueTypeA.find(tile => tile.id == op.getTileAId && tile.isLoaded).get
-          assert(tileA.memoryOccupiedByArray == tileA.dims.memorySize, "[error] Assert this tile is loaded")
-          op.setTileA(tileA)
-          op.completeLoading(arrayConfig.dataflow)
-
-        } else if(capacityLeftTileA() >= arrayConfig.bandwidthOfInputA)
+        if (capacityLeftTileA() >= arrayConfig.bandwidthOfInputA)
           schedule.find(op => op.isWaiting).get.willCalculateTile()
 
       case _ =>
-        //Do nothing
+      //Do nothing
 
     }
 
@@ -507,7 +568,7 @@ final class Array(
           op.completeLoading(arrayConfig.dataflow)
 
       case Some(op) if op.isLoaded =>
-
+        //TODO change loaded tile into calculating
         if(currentTileQueueTypeA.exists(tile => tile.id == op.getTileAId && tile.isWaiting && tile.memoryOccupiedByArray > 0 )){
           op.setTileA(currentTileQueueTypeA.find(tile => tile.id == op.getTileAId && tile.isWaiting && tile.memoryOccupiedByArray > 0).get)
           interface.sramA.changeTileStateIfExists(op.getTileAId, TileState.calculating)

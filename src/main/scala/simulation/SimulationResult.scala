@@ -21,6 +21,9 @@ case class SimulationResult(
   arrayInputBandwidthB: Int,
   arrayOutputBandwidthC: Int,
 
+  arrayCapacityA: Int,
+  arrayCapacityB: Int,
+
   //3. Performance Metrics
   cycle: Long,
   arrayActiveCount: Int,
@@ -124,6 +127,9 @@ case class SimulationResult(
     log(s"\t\tArray Input Bandwidth B: $arrayInputBandwidthB bit")
     log(s"\t\tArray Output Bandwidth C: $arrayOutputBandwidthC bit")
     log(s"")
+    log(s"\t\tArray Capacity A: $arrayCapacityA bit")
+    log(s"\t\tArray Capacity B: $arrayCapacityB bit")
+    log(s"")
     log("\t\t[Performance Metrics]")
     log(s"")
     log(s"\t\tTotal Cycle: $cycle")
@@ -174,43 +180,43 @@ case class SimulationResult(
     log(s"\t\tSRAM C Average Memory Usage: ${String.format("%.2f", averageMemoryUsageKbC)} KB")
     log(s"\t\tSRAM C Average Memory Utilization: ${String.format("%.2f", averageMemoryUtilizationC)} %")
     log(s"")
-    log("\t\t[Area Analysis (mm^2)]")
-    log(s"")
-    log(s"\t\tSRAM A Area: ${String.format("%.2f", sramAreaMmA)} mm^2")
-    log(s"\t\tSRAM B Area: ${String.format("%.2f", sramAreaMmB)} mm^2")
-    log(s"\t\tSRAM C Area: ${String.format("%.2f", sramAreaMmC)} mm^2")
-    log(s"\t\tDRAM Area: ${String.format("%.2f", dramAreaMm)} mm^2")
-    log(s"\t\tArray Area: ${String.format("%.2f", arrayAreaMm)} mm^2")
-    log(s"\t\tTotal Area: ${String.format("%.2f", areaMm)} mm^2")
-    log(s"")
-    log("\t\t[Energy Analysis (pJ)]")
-    log(s"")
-    log(s"\t\tSRAM A Read Energy: ${String.format("%.2f", sramReadEnergyPjA)} pJ")
-    log(s"\t\tSRAM A Write Energy: ${String.format("%.2f", sramWriteEnergyPjA)} pJ")
-    log(s"\t\tSRAM A Leakage Energy: ${String.format("%.2f", sramLeakageEnergyPjA)} pJ")
-    log(s"\t\tSRAM A Total Energy: ${String.format("%.2f", sramEnergyPjA)} pJ")
-    log(s"")
-    log(s"\t\tSRAM B Read Energy: ${String.format("%.2f", sramReadEnergyPjB)} pJ")
-    log(s"\t\tSRAM B Write Energy: ${String.format("%.2f", sramWriteEnergyPjB)} pJ")
-    log(s"\t\tSRAM B Leakage Energy: ${String.format("%.2f", sramLeakageEnergyPjB)} pJ")
-    log(s"\t\tSRAM B Total Energy: ${String.format("%.2f", sramEnergyPjB)} pJ")
-    log(s"")
-    log(s"\t\tSRAM C Read Energy: ${String.format("%.2f", sramReadEnergyPjC)} pJ")
-    log(s"\t\tSRAM C Write Energy: ${String.format("%.2f", sramWriteEnergyPjC)} pJ")
-    log(s"\t\tSRAM C Leakage Energy: ${String.format("%.2f", sramLeakageEnergyPjC)} pJ")
-    log(s"\t\tSRAM C Total Energy: ${String.format("%.2f", sramEnergyPjC)} pJ")
-    log(s"")
-    log(s"\t\tDRAM Read Energy: ${String.format("%.2f", dramReadEnergyPj)} pJ")
-    log(s"\t\tDRAM Write Energy: ${String.format("%.2f", dramWriteEnergyPj)} pJ")
-    log(s"\t\tDRAM Total Energy: ${String.format("%.2f", dramEnergyPj)} pJ")
-    log(s"")
-    log(s"\t\tArray Dynamic Energy: ${String.format("%.2f", arrayDynamicEnergyPj)} pJ")
-    log(s"\t\tArray Leakage Energy: ${String.format("%.2f", arrayLeakageEnergyPj)} pJ")
-    log(s"\t\tArray Total Energy: ${String.format("%.2f", arrayEnergy)} pJ")
-    log(s"")
-    log(s"\t\tTotal Energy: ${String.format("%.2f", energyPj)} pJ")
-    log(s"")
-    log("\t\t[Compute-Memory Overlap Analysis]")
+//    log("\t\t[Area Analysis (mm^2)]")
+//    log(s"")
+//    log(s"\t\tSRAM A Area: ${String.format("%.2f", sramAreaMmA)} mm^2")
+//    log(s"\t\tSRAM B Area: ${String.format("%.2f", sramAreaMmB)} mm^2")
+//    log(s"\t\tSRAM C Area: ${String.format("%.2f", sramAreaMmC)} mm^2")
+//    log(s"\t\tDRAM Area: ${String.format("%.2f", dramAreaMm)} mm^2")
+//    log(s"\t\tArray Area: ${String.format("%.2f", arrayAreaMm)} mm^2")
+//    log(s"\t\tTotal Area: ${String.format("%.2f", areaMm)} mm^2")
+//    log(s"")
+//    log("\t\t[Energy Analysis (pJ)]")
+//    log(s"")
+//    log(s"\t\tSRAM A Read Energy: ${String.format("%.2f", sramReadEnergyPjA)} pJ")
+//    log(s"\t\tSRAM A Write Energy: ${String.format("%.2f", sramWriteEnergyPjA)} pJ")
+//    log(s"\t\tSRAM A Leakage Energy: ${String.format("%.2f", sramLeakageEnergyPjA)} pJ")
+//    log(s"\t\tSRAM A Total Energy: ${String.format("%.2f", sramEnergyPjA)} pJ")
+//    log(s"")
+//    log(s"\t\tSRAM B Read Energy: ${String.format("%.2f", sramReadEnergyPjB)} pJ")
+//    log(s"\t\tSRAM B Write Energy: ${String.format("%.2f", sramWriteEnergyPjB)} pJ")
+//    log(s"\t\tSRAM B Leakage Energy: ${String.format("%.2f", sramLeakageEnergyPjB)} pJ")
+//    log(s"\t\tSRAM B Total Energy: ${String.format("%.2f", sramEnergyPjB)} pJ")
+//    log(s"")
+//    log(s"\t\tSRAM C Read Energy: ${String.format("%.2f", sramReadEnergyPjC)} pJ")
+//    log(s"\t\tSRAM C Write Energy: ${String.format("%.2f", sramWriteEnergyPjC)} pJ")
+//    log(s"\t\tSRAM C Leakage Energy: ${String.format("%.2f", sramLeakageEnergyPjC)} pJ")
+//    log(s"\t\tSRAM C Total Energy: ${String.format("%.2f", sramEnergyPjC)} pJ")
+//    log(s"")
+//    log(s"\t\tDRAM Read Energy: ${String.format("%.2f", dramReadEnergyPj)} pJ")
+//    log(s"\t\tDRAM Write Energy: ${String.format("%.2f", dramWriteEnergyPj)} pJ")
+//    log(s"\t\tDRAM Total Energy: ${String.format("%.2f", dramEnergyPj)} pJ")
+//    log(s"")
+//    log(s"\t\tArray Dynamic Energy: ${String.format("%.2f", arrayDynamicEnergyPj)} pJ")
+//    log(s"\t\tArray Leakage Energy: ${String.format("%.2f", arrayLeakageEnergyPj)} pJ")
+//    log(s"\t\tArray Total Energy: ${String.format("%.2f", arrayEnergy)} pJ")
+//    log(s"")
+//    log(s"\t\tTotal Energy: ${String.format("%.2f", energyPj)} pJ")
+//    log(s"")
+//    log("\t\t[Compute-Memory Overlap Analysis]")
 //    log("\t[DRAM Log]")
 //    dramLogs.foreach { dramLog =>
 //      log(s"\t\tCycle: ${dramLog.cycle}, DRAM Access State: ${dramLog.accessState.toString}")
@@ -244,6 +250,8 @@ object SimulationResult {
     arrayInputBandwidthA = -1,
     arrayInputBandwidthB = -1,
     arrayOutputBandwidthC = -1,
+    arrayCapacityA = -1,
+    arrayCapacityB = -1,
 
     cycle = wrongCycle,
     arrayActiveCount = -1,

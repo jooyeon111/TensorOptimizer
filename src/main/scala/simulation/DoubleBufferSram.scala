@@ -43,6 +43,11 @@ class DoubleBufferSram(
   def getDramHitCount: Double = totalDramHitCount
   def getDramMissCount: Double = totalDramMissCount
 
+
+  def getReadBufferIDs: mutable.Queue[(Int, Int)] = {
+    readBuffer.map(tile =>tile.id.asInstanceOf[(Int,Int)])
+  }
+
   private def isWriteBufferTilesIntact: Boolean = {
     writeBuffer.forall(_.ownedBySram)
   }
@@ -144,6 +149,7 @@ class DoubleBufferSram(
     writeBuffer.clear()
   }
 
+  //TODO delete after change operation state in array
   def changeTileStateIfExists(id: (Int, Int), tileState: TileState): Unit = {
     if(readBuffer.exists( tile => tile.id == id && tile.memoryOccupiedByArray > 0)){
       val tile = readBuffer.find(tile => tile.id == id).get

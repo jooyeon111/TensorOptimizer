@@ -6,6 +6,7 @@ import common.Dataflow.Dataflow
 import scala.math.{ceil, log10}
 
 case class ScheduledOperation(
+  dataflow: Dataflow.Value,
   layerName: String,
   operationId:(Int, Int, Int),
   private val tileC: TileC,
@@ -25,8 +26,8 @@ case class ScheduledOperation(
 
   //Output outputTileGenerationTimer setting
   def updateTimer(): Unit = {
-    require(inputATileGoneTimer != -1, s"[error] Input tile gone timer is not set Input Timer: $inputATileGoneTimer")
-    require(inputBTileGoneTimer != -1 , s"[error] Input tile gone timer is not set Input Timer: $inputBTileGoneTimer")
+    require(inputATileGoneTimer != -1, s"[error] Input tile gone timer is not set Input Timer A: $inputATileGoneTimer")
+    require(inputBTileGoneTimer != -1 , s"[error] Input tile gone timer is not set Input Timer B: $inputBTileGoneTimer")
     require(outputTileGenerationTimer != -1, "[error] Output tile generation timer is not set")
 
     inputATileGoneTimer -= 1
@@ -163,11 +164,6 @@ case class ScheduledOperation(
   def getRequiredTileBId(dataflow: Dataflow): (Int, Int) =
     dataflow match {
       case Dataflow.Is =>
-//        if(tileA.totalMemoryUsedByArray >= tileA.dims.memorySize){
-//          tileB.id
-//        } else
-//          (-1,-1)
-
       if(isLoaded){
         getTileBId
       } else if(isCalculating){
@@ -359,14 +355,13 @@ case class ScheduledOperation(
     //array config.array - 1: deskew buffer stage
     //1: railway module register
 
-    tileA.startCalculation()
-    tileB.startCalculation()
-    tileC.startCalculation()
-
     val peBasicDelay = 2 + ceil(log10(arrayConfig.numMultiplier)/log10(2.0)).toInt
 
     arrayConfig.dataflow match {
       case Dataflow.Is =>
+
+        tileB.startCalculation()
+        tileC.startCalculation()
 
         inputATileGoneTimer = 0
         inputBTileGoneTimer = peBasicDelay
@@ -382,6 +377,10 @@ case class ScheduledOperation(
           s"Tile A and Tile B dimension is wrong")
 
 
+        tileA.startCalculation()
+        tileB.startCalculation()
+        tileC.startCalculation()
+
         inputATileGoneTimer = peBasicDelay
         inputBTileGoneTimer = peBasicDelay
         outputTileGenerationTimer = tileA.dims.memorySize / arrayConfig.bandwidthOfInputA + peBasicDelay + 1 + (arrayConfig.groupPeRow - 1) + 1
@@ -391,6 +390,9 @@ case class ScheduledOperation(
         assert(inputATileGoneTimer == inputBTileGoneTimer, "[error] input A perish timer and weight B perish timer must be same")
 
       case Dataflow.Ws =>
+
+        tileA.startCalculation()
+        tileC.startCalculation()
 
         inputATileGoneTimer = peBasicDelay
         inputBTileGoneTimer = 0
@@ -425,13 +427,6 @@ case class ScheduledOperation(
 
     }
 
-//    log(s"\t\tLayer Name: $layerName ID: $operationId State: ${tileC.identifyState}")
-//    log()
-//    log(s"Tile A ID: $getTileAId, Tile B ID: $getTileBId")
-//    log(s"Tile A used in nex operation: $isTileAUsedInNextOp")
-//    log(s"Tile B used in nex operation: $isTileBUsedInNextOp")
-//    log(s"TileC: ${tileC.identifyState}")
-//    log("")
   }
 
 }

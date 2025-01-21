@@ -3,8 +3,8 @@
 ########################################################################################################################
 
 # Layer info
-#LAYER := input/simulation/layer/swin/swin_b_stage4_final_linear_projection.cfg
-LAYER := input/simulation/layer/etc/middle_k.cfg
+LAYER := input/simulation/layer/swin/swin_b_stage4_final_linear_projection.cfg
+TEST_LAYER := input/simulation/layer/etc/middle_k.cfg
 
 TEST_OPTION_SRAM_REF := input/simulation/hardware_reference/nvsim/sram.cfg
 TEST_OPTION_DRAM_REF := input/simulation/hardware_reference/cacti/ddr4_dram.cfg
@@ -15,6 +15,10 @@ BASE_CONFIG_PATH := input/simulation/configs/analyzer
 TEST_16 = $(BASE_CONFIG_PATH)/oneLayer/is_{4x4}x{1x1}x1_sd_16.cfg
 TEST_32 = $(BASE_CONFIG_PATH)/oneLayer/is_{4x4}x{1x1}x1_sd_32.cfg
 TEST_64 = $(BASE_CONFIG_PATH)/oneLayer/is_{4x4}x{1x1}x1_sd_64.cfg
+
+TEST_OPTION_IS_SD_2 = $(BASE_CONFIG_PATH)/oneLayer/is_{4x4}x{1x1}x1_sd_2.cfg
+TEST_OPTION_IS_SD_4 = $(BASE_CONFIG_PATH)/oneLayer/is_{4x4}x{1x1}x1_sd_4.cfg
+TEST_OPTION_IS_SD_8 = $(BASE_CONFIG_PATH)/oneLayer/is_{4x4}x{1x1}x1_sd_8.cfg
 
 TEST_OPTION_IS_SD_32 = $(BASE_CONFIG_PATH)/oneLayer/is_{32x32}x{1x1}x1_sd_32.cfg
 TEST_OPTION_IS_SD_48 = $(BASE_CONFIG_PATH)/oneLayer/is_{32x32}x{1x1}x1_sd_48.cfg
@@ -51,14 +55,20 @@ TEST_OPTION_MULT_4096 = $(BASE_CONFIG_PATH)/bandwidth/multiplier_4096.cfg
 TEST_OPTION_MULT_8192 = $(BASE_CONFIG_PATH)/bandwidth/multiplier_8192.cfg
 TEST_OPTION_MULT_16384 = $(BASE_CONFIG_PATH)/bandwidth/multiplier_16384.cfg
 
+.PHONY: test
+test:
+	sbt "runMain simulation.AnalyzerMain ${TEST_LAYER} ${TEST_OPTION_IS_SD_2} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	sbt "runMain simulation.AnalyzerMain ${TEST_LAYER} ${TEST_OPTION_IS_SD_4} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	sbt "runMain simulation.AnalyzerMain ${TEST_LAYER} ${TEST_OPTION_IS_SD_8} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+
 .PHONY: sd_is
 sd_is:
 	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_32} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
 	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_64} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
 	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_128} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
-	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_256} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
-	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_512} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
-	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_1024} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_256} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_512} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_1024} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
 
 .PHONY: sd_os
 sd_os:

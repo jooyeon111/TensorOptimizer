@@ -503,6 +503,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
         arrayInputBandwidthB = compiler.getArrayInputBandwidthB,
         arrayOutputBandwidthC = compiler.getArrayOutputBandwidthC,
 
+        arrayCapacityA = compiler.getArrayCapacityA,
+        arrayCapacityB = compiler.getArrayCapacityB,
+
         cycle = compiler.getTotalCycle,
         arrayActiveCount = compiler.getArrayActiveCount,
 

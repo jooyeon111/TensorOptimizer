@@ -136,6 +136,8 @@ class Compiler(
   def getArrayInputBandwidthA: Int = array.arrayConfig.bandwidthOfInputA
   def getArrayInputBandwidthB: Int = array.arrayConfig.bandwidthOfInputB
   def getArrayOutputBandwidthC: Int = array.arrayConfig.outputBandwidth
+  def getArrayCapacityA: Int = array.arrayConfig.capacityOfTileA
+  def getArrayCapacityB: Int = array.arrayConfig.capacityOfTileB
 
   //3. Performance Metrics
   def getTotalCycle: Long = cycle

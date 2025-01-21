@@ -1,4 +1,4 @@
-[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/Array.scala:397:3: illegal start of simple expression[0m
-[0m[[0m[31merror[0m] [0m[0m  }[0m
-[0m[[0m[31merror[0m] [0m[0m  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/Array.scala:430:118: ';' expected but double literal found.[0m
+[0m[[0m[31merror[0m] [0m[0m          val loadingOutputTileIDs: mutable.Queue[(Int, Int, Int)] = interface.sramB.getReadBufferIDs.filter{ id =>id.1 == loadingTileA.id._2 }.map{ id =>[0m
+[0m[[0m[31merror[0m] [0m[0m                                                                                                                     ^[0m
 [0m[[0m[31merror[0m] [0m[0mone error found[0m
