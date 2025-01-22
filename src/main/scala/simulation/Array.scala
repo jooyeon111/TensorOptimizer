@@ -160,10 +160,10 @@ final class Array(
     countSramAccess(interface)
     updateState()
 
-    changeOperationState(interface)
-
     resetTileIdToReceive()
     setTileIdToReceive()
+
+    changeOperationState(interface)
 
     if(!isArrayOutputStall) {
 
@@ -237,13 +237,32 @@ final class Array(
 
   private def setSendingTileInSramIsOrWs(interface: Interface): Unit = {
 
-    if(interface.sramA.hasThisTileForArray(tileIdToReceiveA, DataType.A) && tileIdToReceiveA != (-1, -1))
-      if(capacityLeftTileA() >= arrayConfig.bandwidthOfInputA)
-        interface.sramA.setTileIdToSend(tileIdToReceiveA)
 
-    if(interface.sramB.hasThisTileForArray(tileIdToReceiveB, DataType.B) && tileIdToReceiveB != (-1, -1))
-      if(capacityLeftTileB() >= arrayConfig.bandwidthOfInputB)
+    if(interface.sramA.hasThisTileForArray(tileIdToReceiveA, DataType.A) && tileIdToReceiveA != (-1, -1)) {
+      if ( capacityLeftTileA() >= arrayConfig.bandwidthOfInputA ) {
+        interface.sramA.setTileIdToSend(tileIdToReceiveA)
+      } else if (capacityLeftTileA() == 0) {
+        calculatingOperation.find(op => op.getTileA.memoryOccupiedByArray > 0) match {
+          case Some(op) if op.isInputATileGoneTimerExpired=>
+            interface.sramA.setTileIdToSend(tileIdToReceiveA)
+          case _ =>
+        }
+
+      }
+
+    }
+
+    if(interface.sramB.hasThisTileForArray(tileIdToReceiveB, DataType.B) && tileIdToReceiveB != (-1, -1)) {
+      if ( capacityLeftTileB() >= arrayConfig.bandwidthOfInputB) {
         interface.sramB.setTileIdToSend(tileIdToReceiveB)
+      } else if (capacityLeftTileB() == 0){
+        calculatingOperation.find(op =>op.getTileB.memoryOccupiedByArray > 0) match {
+          case Some(op) if op.isInputBTileGoneTimerExpired =>
+            interface.sramB.setTileIdToSend(tileIdToReceiveB)
+          case _ =>
+        }
+      }
+    }
 
   }
 
@@ -255,10 +274,12 @@ final class Array(
         && tileIdToReceiveA != (-1, -1)
         && tileIdToReceiveB != (-1, -1)
     ){
-      if(capacityLeftTileA() >= arrayConfig.bandwidthOfInputA)
+//      if(capacityLeftTileA() >= arrayConfig.bandwidthOfInputA)
+      if(capacityLeftTileA() >= 0)
         interface.sramA.setTileIdToSend(tileIdToReceiveA)
 
-      if(capacityLeftTileB() >= arrayConfig.bandwidthOfInputB)
+//      if(capacityLeftTileB() >= arrayConfig.bandwidthOfInputB)
+      if(capacityLeftTileB() >= 0)
         interface.sramB.setTileIdToSend(tileIdToReceiveB)
 
     }
@@ -267,18 +288,30 @@ final class Array(
 
   override def prepareTileForSend(): Unit = {
 
-    val op = calculatingOperation.front
-    val tileA = op.getTileA
-    val tileB = op.getTileB
-    val tileC = op.getTileC
+//    val tileA = op.getTileA
+//    val tileB = op.getTileB
 
-    if(op.isInputATileGoneTimerExpired(arrayConfig.dataflow) && !op.isTileAUsedInNextOp)
-      coloringTileAorB(tileA, arrayConfig.bandwidthOfInputA)
+    calculatingOperation.find(op => op.getTileA.memoryOccupiedByArray > 0) match {
+      case Some(op) if op.isInputATileGoneTimerExpired && !op.isTileAUsedInNextOp =>
+        coloringTileAorB(op.getTileA, arrayConfig.bandwidthOfInputA)
+      case _ =>
+    }
 
-    if(op.isInputBTileGoneTimerExpired(arrayConfig.dataflow) && !op.isTileBUsedInNextOp)
-      coloringTileAorB(tileB, arrayConfig.bandwidthOfInputB)
+    calculatingOperation.find(op => op.getTileB.memoryOccupiedByArray > 0 ) match {
+      case Some(op) if op.isInputBTileGoneTimerExpired && !op.isTileBUsedInNextOp =>
+        coloringTileAorB(op.getTileB, arrayConfig.bandwidthOfInputB)
+      case _ =>
+    }
 
-    if(op.isOutputTileGenerationTimerExpired)
+//    if(op.isInputATileGoneTimerExpired && !op.isTileAUsedInNextOp)
+//      coloringTileAorB(tileA, arrayConfig.bandwidthOfInputA)
+//
+//    if(op.isInputBTileGoneTimerExpired && !op.isTileBUsedInNextOp)
+//      coloringTileAorB(tileB, arrayConfig.bandwidthOfInputB)
+
+    val outputTileC = calculatingOperation.front
+    val tileC = outputTileC.getTileC
+    if(outputTileC.isOutputTileGenerationTimerExpired)
       coloringTileC(tileC)
 
   }
@@ -304,10 +337,7 @@ final class Array(
   }
 
   override def send(interface: Interface) : Unit = {
-    if(calculatingOperation.isEmpty){
-      println("SSibal")
-      return
-    }
+
     val operation = calculatingOperation.front
     val targetTileA = operation.getTileA
     val targetTileB = operation.getTileB
@@ -441,7 +471,7 @@ final class Array(
               schedule(opIndex).operationId == loadingOutputTileIDs.head){
 
               schedule(opIndex).setTileA(loadingTileA)
-              schedule(opIndex).startLoading(arrayConfig.dataflow)
+              schedule(opIndex).startLoading()
               opIndex += 1
               loadingOutputTileIDs.dequeue()
 
@@ -473,7 +503,7 @@ final class Array(
 
           loadingOperations.foreach{ op =>
             if(interface.sramB.getReadBufferIDs.exists(_._1 == loadedTile.id._2))
-              op.completeLoading(arrayConfig.dataflow)
+              op.completeLoading()
           }
 
 
@@ -503,8 +533,7 @@ final class Array(
 
 
       case Some(op) if op.isWaiting =>
-
-        if (capacityLeftTileA() >= arrayConfig.bandwidthOfInputA)
+//        if (capacityLeftTileA() >= arrayConfig.bandwidthOfInputA)
           schedule.find(op => op.isWaiting).get.willCalculateTile()
 
       case _ =>
@@ -555,17 +584,17 @@ final class Array(
         if(currentTileQueueTypeB.exists(tile => tile.id == op.getTileBId && tile.isWaiting)) {
           op.setTileB(currentTileQueueTypeB.find(tile => tile.id == op.getTileBId && tile.isWaiting).get)
           interface.sramB.changeTileStateIfExists(op.getTileBId, TileState.loading)
-          op.startLoading( arrayConfig.dataflow )
+          op.startLoading()
 
           if (op.getTileB.ownedByArray)
-            op.completeLoading(arrayConfig.dataflow)
+            op.completeLoading()
 
         }
 
       case Some(op) if op.isLoading =>
 
         if (op.getTileB.ownedByArray)
-          op.completeLoading(arrayConfig.dataflow)
+          op.completeLoading()
 
       case Some(op) if op.isLoaded =>
         //TODO change loaded tile into calculating
@@ -583,7 +612,7 @@ final class Array(
           val tileB = currentTileQueueTypeB.find(tile => tile.id == op.getTileBId && tile.isLoaded).get
           assert(tileB.memoryOccupiedByArray == tileB.dims.memorySize, "[error] Asser this Tile is loaded")
           op.setTileB(tileB)
-          op.completeLoading(arrayConfig.dataflow)
+          op.completeLoading()
 
         } else if(capacityLeftTileB() >= arrayConfig.bandwidthOfInputB)
           schedule.find(op => op.isWaiting).get.willCalculateTile()
@@ -600,10 +629,10 @@ final class Array(
   }
 
   private def setTileIdToReceive(): Unit = {
-    if(schedule.exists(op => op.needTile(arrayConfig.dataflow))){
-      val operation = schedule.find(op => op.needTile(arrayConfig.dataflow)).get
-      tileIdToReceiveA = operation.getRequiredTileAId(arrayConfig.dataflow)
-      tileIdToReceiveB = operation.getRequiredTileBId(arrayConfig.dataflow)
+    if(schedule.exists(op => op.needTile)){
+      val operation = schedule.find(op => op.needTile).get
+      tileIdToReceiveA = operation.getRequiredTileAId
+      tileIdToReceiveB = operation.getRequiredTileBId
     }
   }
 
@@ -634,12 +663,26 @@ final class Array(
       currentTileQueueTypeA.foreach(tile => tile.printTile())
     log("")
 
+//    log("\t\t[Next tile data type A]")
+//    if(nextTileQueueTypeA.isEmpty)
+//      log("\t\tEmpty")
+//    else
+//      nextTileQueueTypeA.foreach(tile => tile.printTile())
+//    log("")
+
     log("\t\t[Current tile data type B]")
     if(currentTileQueueTypeB.isEmpty)
       log("\t\tEmpty")
     else
       currentTileQueueTypeB.foreach(tile => tile.printTile())
     log("")
+
+//    log("\t\t[Next tile data type B]")
+//    if(nextTileQueueTypeB.isEmpty)
+//      log("\t\tEmpty")
+//    else
+//      nextTileQueueTypeB.foreach(tile => tile.printTile())
+//    log("")
 
     log("\t\t[Current tile data type C]")
     if(calculatingOperation.isEmpty)

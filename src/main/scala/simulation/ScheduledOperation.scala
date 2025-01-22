@@ -46,7 +46,7 @@ case class ScheduledOperation(
     }
   }
 
-  def isInputATileGoneTimerExpired(dataflow: Dataflow): Boolean = {
+  def isInputATileGoneTimerExpired: Boolean = {
 
     dataflow match {
       case Dataflow.Is =>
@@ -66,7 +66,7 @@ case class ScheduledOperation(
 
   }
 
-  def isInputBTileGoneTimerExpired(dataflow: Dataflow): Boolean = {
+  def isInputBTileGoneTimerExpired: Boolean = {
 
     dataflow match {
       case Dataflow.Is =>
@@ -110,7 +110,7 @@ case class ScheduledOperation(
 
   def getTileBId: (Int, Int) = (operationId._3, operationId._2)
 
-  def getRequiredTileAId(dataflow: Dataflow): (Int, Int) =
+  def getRequiredTileAId: (Int, Int) =
     dataflow match {
       case Dataflow.Is =>
 
@@ -161,7 +161,7 @@ case class ScheduledOperation(
     }
 
 
-  def getRequiredTileBId(dataflow: Dataflow): (Int, Int) =
+  def getRequiredTileBId: (Int, Int) =
     dataflow match {
       case Dataflow.Is =>
       if(isLoaded){
@@ -234,7 +234,7 @@ case class ScheduledOperation(
   def isCalculated: Boolean =
     tileC.isCalculated
 
-  def needTile(dataflow: Dataflow): Boolean = {
+  def needTile: Boolean = {
 
     dataflow match {
       case Dataflow.Is =>
@@ -306,7 +306,7 @@ case class ScheduledOperation(
   }
 
   //State convert
-  def startLoading(dataflow: Dataflow): Unit = {
+  def startLoading(): Unit = {
     require(dataflow != Dataflow.Os, "[error] Output stationary systolic tensor array cannot call this function")
     dataflow match {
       case Dataflow.Is =>
@@ -322,7 +322,7 @@ case class ScheduledOperation(
     }
   }
 
-  def completeLoading(dataflow: Dataflow): Unit = {
+  def completeLoading(): Unit = {
     require(dataflow != Dataflow.Os, "[error] Output stationary systolic tensor array cannot call this function")
     dataflow match {
       case Dataflow.Is =>
@@ -364,7 +364,8 @@ case class ScheduledOperation(
         tileC.startCalculation()
 
         inputATileGoneTimer = 0
-        inputBTileGoneTimer = peBasicDelay
+        if(inputBTileGoneTimer == -1)
+          inputBTileGoneTimer = peBasicDelay
         outputTileGenerationTimer = (arrayConfig.groupPeCol * arrayConfig.vectorPeCol) + peBasicDelay + 1 + arrayConfig.groupPeRow
 
       case Dataflow.Os =>
