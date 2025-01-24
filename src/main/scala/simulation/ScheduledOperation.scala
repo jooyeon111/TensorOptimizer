@@ -36,7 +36,7 @@ case class ScheduledOperation(
     }
 
     inputBTileGoneTimer -= 1
-    if(inputBTileGoneTimer <0){
+    if(inputBTileGoneTimer < 0){
       inputBTileGoneTimer = 0
     }
 
@@ -91,12 +91,12 @@ case class ScheduledOperation(
 
   //Set and get
   def setTileA(tileA: TileA): Unit = {
-    assert(tileA.id == getTileAId, s"[error] tileA id and operation id dose not match $operationId Layer: $layerName")
+    assert(tileA.id == getTileAId, s"[error] tileA id and operation id dose not match $operationId required tile A ID: ${getTileAId} received tile A ID: ${tileA.id} Layer: $layerName")
     this.tileA = tileA
   }
 
   def setTileB(tileB: TileB): Unit = {
-    assert(tileB.id == getTileBId, s"[error] tileB id and operation id dose not match $operationId Layer: $layerName")
+    assert(tileB.id == getTileBId, s"[error] tileB id and operation id dose not match $operationId required tile A ID: ${getTileBId} received tile A ID: ${tileB.id} Layer: $layerName")
     this.tileB = tileB
   }
 
@@ -109,111 +109,165 @@ case class ScheduledOperation(
   def getTileAId: (Int, Int) = (operationId._1, operationId._3)
 
   def getTileBId: (Int, Int) = (operationId._3, operationId._2)
+//
+//  def getRequiredTileAId: (Int, Int) =
+//    dataflow match {
+//      case Dataflow.Is =>
+//
+//      if(isNextCalculation){
+//        getTileAId
+//      } else if (isLoading){
+//        if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize)
+//          tileA.id
+//        else
+//          (-1, -1)
+//
+//      } else
+//        (-1, -1)
+//
+//      case Dataflow.Os =>
+//        assert(!isLoading, "[error] output stationary cannot have this state")
+//        assert(!isCalculated, "[error] right now this stat cannot happen")
+//
+//        if(isNextCalculation){
+//          getTileAId
+//        } else if(isCalculating){
+//          if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize)
+//            tileA.id
+//          else
+//            (-1, -1)
+//        } else {
+//          Console.err.println(s"This state dose not exist")
+//          sys.exit(1)
+//        }
+//
+//
+//      case Dataflow.Ws =>
+//
+//        if(isLoaded){
+//          getTileAId
+//        } else if (isCalculating){
+//          if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize)
+//            getTileAId
+//          else
+//            (-1, -1)
+//        } else
+//          (-1, -1)
+//
+//      case _ =>
+//        Console.err.println(
+//          s"[error] This type of dataflow cannot use start loading function Current Dataflow: $dataflow")
+//        sys.exit(1)
+//    }
+//
+//
+//  def getRequiredTileBId: (Int, Int) =
+//    dataflow match {
+//      case Dataflow.Is =>
+//      if(isLoaded){
+//        getTileBId
+//      } else if(isCalculating){
+//
+//        if(tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
+//          getTileBId
+//        else
+//          (-1, -1)
+//
+//      } else
+//        (-1, -1)
+//
+//      case Dataflow.Os =>
+//        assert(!isLoading, "[error] output stationary cannot have this state")
+//        assert(!isLoaded, "[error] output stationary cannot have this state")
+//        assert(!isCalculated, "[error] right now this stat cannot happen")
+//
+//        if(isNextCalculation){
+//          getTileBId
+//        } else if (isCalculating){
+//          if(tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
+//            tileB.id
+//          else
+//            (-1, -1)
+//        } else {
+//          Console.err.println(s"This state dose not exist")
+//          sys.exit(1)
+//        }
+//
+//      case Dataflow.Ws =>
+//
+//        if(isNextCalculation){
+//          getTileBId
+//        } else if (isLoading){
+//
+//          if(tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
+//            tileB.id
+//          else
+//            (-1, -1)
+//
+//        } else {
+//          (-1, -1)
+//        }
+//
+//      case _ =>
+//        Console.err.println(
+//          s"[error] This type of dataflow cannot use start loading function Current Dataflow: $dataflow")
+//        sys.exit(1)
+//    }
+//
 
-  def getRequiredTileAId: (Int, Int) =
+def getRequiredTileAId: (Int, Int) = {
+  def needMemorySpace(tile: Tile): Boolean =
+    tile.totalMemoryUsedByArray < tile.dims.memorySize
+
+  dataflow match {
+    case Dataflow.Is =>
+      if (isNextCalculation) getTileAId
+      else if (isLoading && needMemorySpace(tileA)) tileA.id
+      else (-1, -1)
+
+    case Dataflow.Os =>
+      require(!isLoading && !isCalculated, "[error] output stationary invalid state")
+      if (isNextCalculation) getTileAId
+      else if (isCalculating && needMemorySpace(tileA)) tileA.id
+      else (-1, -1)
+
+    case Dataflow.Ws =>
+      if (isLoaded) getTileAId
+      else if (isCalculating && needMemorySpace(tileA)) getTileAId
+      else (-1, -1)
+
+    case _ =>
+      Console.err.println(s"[error] Invalid dataflow: $dataflow")
+      sys.exit(1)
+  }
+}
+
+  def getRequiredTileBId: (Int, Int) = {
+    def needMemorySpace(tile: Tile): Boolean =
+      tile.totalMemoryUsedByArray < tile.dims.memorySize
+
     dataflow match {
       case Dataflow.Is =>
-
-      if(isNextCalculation){
-        getTileAId
-      } else if (isLoading){
-        if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize)
-          tileA.id
-        else
-          (-1, -1)
-
-      } else
-        (-1, -1)
+        if (isLoaded) getTileBId
+        else if (isCalculating && needMemorySpace(tileB)) getTileBId
+        else (-1, -1)
 
       case Dataflow.Os =>
-        assert(!isLoading, "[error] output stationary cannot have this state")
-        assert(!isCalculated, "[error] right now this stat cannot happen")
-
-        if(isNextCalculation){
-          getTileAId
-        } else if(isCalculating){
-          if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize)
-            tileA.id
-          else
-            (-1, -1)
-        } else {
-          Console.err.println(s"This state dose not exist")
-          sys.exit(1)
-        }
-
+        require(!isLoading && !isLoaded && !isCalculated, "[error] output stationary invalid state")
+        if (isNextCalculation) getTileBId
+        else if (isCalculating && needMemorySpace(tileB)) tileB.id
+        else (-1, -1)
 
       case Dataflow.Ws =>
-
-        if(isLoaded){
-          getTileAId
-        } else if (isCalculating){
-          if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize)
-            getTileAId
-          else
-            (-1, -1)
-        } else
-          (-1, -1)
+        if (isNextCalculation) getTileBId
+        else if (isLoading && needMemorySpace(tileB)) tileB.id
+        else (-1, -1)
 
       case _ =>
-        Console.err.println(
-          s"[error] This type of dataflow cannot use start loading function Current Dataflow: $dataflow")
+        Console.err.println(s"[error] Invalid dataflow: $dataflow")
         sys.exit(1)
     }
-
-
-  def getRequiredTileBId: (Int, Int) =
-    dataflow match {
-      case Dataflow.Is =>
-      if(isLoaded){
-        getTileBId
-      } else if(isCalculating){
-
-        if(tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
-          getTileBId
-        else
-          (-1, -1)
-
-      } else
-        (-1, -1)
-
-      case Dataflow.Os =>
-        assert(!isLoading, "[error] output stationary cannot have this state")
-        assert(!isLoaded, "[error] output stationary cannot have this state")
-        assert(!isCalculated, "[error] right now this stat cannot happen")
-
-        if(isNextCalculation){
-          getTileBId
-        } else if (isCalculating){
-          if(tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
-            tileB.id
-          else
-            (-1, -1)
-        } else {
-          Console.err.println(s"This state dose not exist")
-          sys.exit(1)
-        }
-
-      case Dataflow.Ws =>
-
-        if(isNextCalculation){
-          getTileBId
-        } else if (isLoading){
-
-          if(tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
-            tileB.id
-          else
-            (-1, -1)
-
-        } else {
-          (-1, -1)
-        }
-
-      case _ =>
-        Console.err.println(
-          s"[error] This type of dataflow cannot use start loading function Current Dataflow: $dataflow")
-        sys.exit(1)
-    }
-
+  }
 
   //State check
   def isWaiting: Boolean =
@@ -235,75 +289,100 @@ case class ScheduledOperation(
     tileC.isCalculated
 
   def needTile: Boolean = {
+    def needInputTile(tile: Tile): Boolean =
+      tile.totalMemoryUsedByArray < tile.dims.memorySize
 
     dataflow match {
       case Dataflow.Is =>
-        if(isNextCalculation){
-          true
-        } else if(isLoading){
-
-          if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize)
-            true
-          else
-            false
-
-        } else if(isLoaded){
-          true
-        } else if(isCalculating){
-
-          if(tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
-            true
-          else
-            false
-
-        } else {
-          false
-        }
-
+        isNextCalculation ||
+          (isLoading && needInputTile(tileA)) ||
+          isLoaded ||
+          (isCalculating && needInputTile(tileB))
 
       case Dataflow.Os =>
-        assert(!isLoading, "[error] output stationary cannot have this state")
-        assert(!isLoaded, "[error] output stationary cannot have this state")
-
-        if(isNextCalculation) {
-          true
-        } else if(isCalculating) {
-
-          if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize || tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
-            true
-          else
-            false
-
-        } else {
-          false
-        }
+        require(!isLoading && !isLoaded, "[error] output stationary cannot have loading states")
+        isNextCalculation ||
+          (isCalculating && (needInputTile(tileA) || needInputTile(tileB)))
 
       case Dataflow.Ws =>
-
-        if(isNextCalculation){
-          true
-        } else if(isLoading){
-
-          if(tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
-            true
-          else
-            false
-
-        } else if(isLoaded){
-          true
-        } else if(isCalculating){
-
-          if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize)
-            true
-          else
-            false
-
-        } else {
-          false
-        }
-
+        isNextCalculation ||
+          (isLoading && needInputTile(tileB)) ||
+          isLoaded ||
+          (isCalculating && needInputTile(tileA))
     }
+
   }
+
+//  def needTile: Boolean = {
+//
+//    dataflow match {
+//      case Dataflow.Is =>
+//        if(isNextCalculation){
+//          true
+//        } else if(isLoading){
+//
+//          if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize)
+//            true
+//          else
+//            false
+//
+//        } else if(isLoaded){
+//          true
+//        } else if(isCalculating){
+//
+//          if(tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
+//            true
+//          else
+//            false
+//
+//        } else {
+//          false
+//        }
+//
+//
+//      case Dataflow.Os =>
+//        assert(!isLoading, "[error] output stationary cannot have this state")
+//        assert(!isLoaded, "[error] output stationary cannot have this state")
+//
+//        if(isNextCalculation) {
+//          true
+//        } else if(isCalculating) {
+//
+//          if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize || tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
+//            true
+//          else
+//            false
+//
+//        } else {
+//          false
+//        }
+//
+//      case Dataflow.Ws =>
+//
+//        if(isNextCalculation){
+//          true
+//        } else if(isLoading){
+//
+//          if(tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
+//            true
+//          else
+//            false
+//
+//        } else if(isLoaded){
+//          true
+//        } else if(isCalculating){
+//
+//          if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize)
+//            true
+//          else
+//            false
+//
+//        } else {
+//          false
+//        }
+//
+//    }
+//  }
 
   //State convert
   def startLoading(): Unit = {
@@ -360,6 +439,9 @@ case class ScheduledOperation(
     arrayConfig.dataflow match {
       case Dataflow.Is =>
 
+        if(!isTileAUsedInNextOp)
+          tileA.startCalculation()
+
         tileB.startCalculation()
         tileC.startCalculation()
 
@@ -393,6 +475,9 @@ case class ScheduledOperation(
       case Dataflow.Ws =>
 
         tileA.startCalculation()
+        if(!isTileBUsedInNextOp)
+          tileB.startCalculation()
+
         tileC.startCalculation()
 
         inputATileGoneTimer = peBasicDelay
@@ -419,12 +504,20 @@ case class ScheduledOperation(
     tileC.willCalculateTile()
 
   //Util
-  def printOperation() : Unit = {
+  def printSchedule() : Unit = {
 
     tileC.identifyState match {
-      case TileState.calculating | TileState.loading | TileState.loaded | TileState.calculated | TileState.nextCalculation =>
-        log(s"\t\tLayer Name: $layerName ID: $operationId State: ${tileC.identifyState}")
-      case TileState.waiting =>
+      case TileState.waiting | TileState.calculating | TileState.loading | TileState.loaded | TileState.calculated | TileState.nextCalculation =>
+//        logWithoutNewLine(s"\t\tLayer Name: $layerName ID: $operationId State: ${tileC.identifyState} ")
+        if(isTileAUsedInNextOp)
+          log(s"\t\tLayer Name: $layerName ID: $operationId State: ${tileC.identifyState} TileA Used in Next Op: $isTileAUsedInNextOp")
+        else if(isTileBUsedInNextOp)
+          log(s"\t\tLayer Name: $layerName ID: $operationId State: ${tileC.identifyState} TileB Used in Next Op: $isTileBUsedInNextOp")
+        else
+          log(s"\t\tLayer Name: $layerName ID: $operationId State: ${tileC.identifyState}")
+
+//      case TileState.waiting =>
+      case _ =>
 
     }
 

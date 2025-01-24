@@ -27,8 +27,8 @@ class Interface(
       sramB.isStuck &&
       array.isStuck &&
       sramC.isStuck &&
-      sramA.isFirstFillUpCompete &&
-      sramB.isFirstFillUpCompete
+      sramA.isFirstFillUpDone &&
+      sramB.isFirstFillUpDone
 
     if(isTransmissionStuck) {
       Left(RunTimeError("Hardware is stuck !!!"))

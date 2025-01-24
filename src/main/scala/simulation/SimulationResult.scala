@@ -74,40 +74,38 @@ case class SimulationResult(
 
   averageMemoryUsageKbC: Double,
   averageMemoryUtilizationC: Double,
-
-  //5. Area Analysis
-  sramAreaMmA: Double,
-  sramAreaMmB: Double,
-  sramAreaMmC: Double,
-  dramAreaMm: Double,
-  arrayAreaMm: Double,
-  areaMm: Double,
-
-  //6. Energy Analysis
-  sramReadEnergyPjA: Double,
-  sramWriteEnergyPjA: Double,
-  sramLeakageEnergyPjA: Double,
-  sramEnergyPjA: Double,
-
-  sramReadEnergyPjB: Double,
-  sramWriteEnergyPjB: Double,
-  sramLeakageEnergyPjB: Double,
-  sramEnergyPjB: Double,
-
-  sramReadEnergyPjC: Double,
-  sramWriteEnergyPjC: Double,
-  sramLeakageEnergyPjC: Double,
-  sramEnergyPjC: Double,
-
-  dramReadEnergyPj: Double,
-  dramWriteEnergyPj: Double,
-  dramEnergyPj: Double,
-
-  arrayDynamicEnergyPj: Double,
-  arrayLeakageEnergyPj: Double,
-  arrayEnergy: Double,
-
-  energyPj: Double
+//
+//  sramAreaMmA: Double,
+//  sramAreaMmB: Double,
+//  sramAreaMmC: Double,
+//  dramAreaMm: Double,
+//  arrayAreaMm: Double,
+//  areaMm: Double,
+//
+//  sramReadEnergyPjA: Double,
+//  sramWriteEnergyPjA: Double,
+//  sramLeakageEnergyPjA: Double,
+//  sramEnergyPjA: Double,
+//
+//  sramReadEnergyPjB: Double,
+//  sramWriteEnergyPjB: Double,
+//  sramLeakageEnergyPjB: Double,
+//  sramEnergyPjB: Double,
+//
+//  sramReadEnergyPjC: Double,
+//  sramWriteEnergyPjC: Double,
+//  sramLeakageEnergyPjC: Double,
+//  sramEnergyPjC: Double,
+//
+//  dramReadEnergyPj: Double,
+//  dramWriteEnergyPj: Double,
+//  dramEnergyPj: Double,
+//
+//  arrayDynamicEnergyPj: Double,
+//  arrayLeakageEnergyPj: Double,
+//  arrayEnergy: Double,
+//
+//  energyPj: Double
 
 ) extends Logger {
 
@@ -228,8 +226,8 @@ case class SimulationResult(
     setMode(loggerOption)
     log("[Summary Results]")
     log(s"\tCycle: $cycle")
-    log(s"\tArea: ${String.format("%.2f", areaMm)} mm^2")
-    log(s"\tEnergy: ${String.format("%.2f", energyPj)} pJ")
+//    log(s"\tArea: ${String.format("%.2f", areaMm)} mm^2")
+//    log(s"\tEnergy: ${String.format("%.2f", energyPj)} pJ")
   }
 
 
@@ -300,37 +298,37 @@ object SimulationResult {
 
     averageMemoryUsageKbC = -1,
     averageMemoryUtilizationC = -1,
-
-    sramAreaMmA = -1,
-    sramAreaMmB = -1,
-    sramAreaMmC = -1,
-    dramAreaMm = -1,
-    arrayAreaMm = -1,
-    areaMm = -1,
-
-    sramReadEnergyPjA = -1,
-    sramWriteEnergyPjA = -1,
-    sramLeakageEnergyPjA = -1,
-    sramEnergyPjA = -1,
-
-    sramReadEnergyPjB = -1,
-    sramWriteEnergyPjB = -1,
-    sramLeakageEnergyPjB = -1,
-    sramEnergyPjB = -1,
-
-    sramReadEnergyPjC = -1,
-    sramWriteEnergyPjC = -1,
-    sramLeakageEnergyPjC = -1,
-    sramEnergyPjC = -1,
-
-    dramReadEnergyPj = -1,
-    dramWriteEnergyPj = -1,
-    dramEnergyPj = -1,
-
-    arrayDynamicEnergyPj = - 1,
-    arrayLeakageEnergyPj = - 1,
-    arrayEnergy = - 1,
-
-    energyPj = -1,
+//
+//    sramAreaMmA = -1,
+//    sramAreaMmB = -1,
+//    sramAreaMmC = -1,
+//    dramAreaMm = -1,
+//    arrayAreaMm = -1,
+//    areaMm = -1,
+//
+//    sramReadEnergyPjA = -1,
+//    sramWriteEnergyPjA = -1,
+//    sramLeakageEnergyPjA = -1,
+//    sramEnergyPjA = -1,
+//
+//    sramReadEnergyPjB = -1,
+//    sramWriteEnergyPjB = -1,
+//    sramLeakageEnergyPjB = -1,
+//    sramEnergyPjB = -1,
+//
+//    sramReadEnergyPjC = -1,
+//    sramWriteEnergyPjC = -1,
+//    sramLeakageEnergyPjC = -1,
+//    sramEnergyPjC = -1,
+//
+//    dramReadEnergyPj = -1,
+//    dramWriteEnergyPj = -1,
+//    dramEnergyPj = -1,
+//
+//    arrayDynamicEnergyPj = - 1,
+//    arrayLeakageEnergyPj = - 1,
+//    arrayEnergy = - 1,
+//
+//    energyPj = -1,
   )
 }

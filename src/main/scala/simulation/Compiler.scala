@@ -11,10 +11,9 @@ class Compiler(
   val interface: Interface,
   val layer: Layer,
   val array: Array,
-              //TODO make it Option
-  val sramDataReferenceVector: Vector[SramReferenceData],
-  val dramReferenceDataData: DramReferenceData,
-  val arrayReferenceData: ArrayReferenceData,
+//  val sramDataReferenceVector: Vector[SramReferenceData],
+//  val dramReferenceDataData: DramReferenceData,
+//  val arrayReferenceData: ArrayReferenceData,
   val debugStartCycle: Long = 0,
   val debugEndCycle: Long = 0,
   val debugMode: Boolean = false,
@@ -28,35 +27,35 @@ class Compiler(
 
   private val clockPeriod: Double = 2e-9
 
-  private val inputSramDataA: SramReferenceData = {
-    sramDataReferenceVector
-      .find{ sram =>
-        (sram.capacityKb == sramA.singleBufferLimitKb) && (array.arrayConfig.bandwidthOfInputA < sram.bandwidthBits)
-      }.getOrElse{
-        Console.err.println("There is no SRAM info in SRAM table... reorganize SRAM output files")
-        sys.exit(1)
-      }
-  }
-
-  private val inputSramDataB: SramReferenceData = {
-    sramDataReferenceVector
-      .find{ sram =>
-        (sram.capacityKb == sramB.singleBufferLimitKb) && (array.arrayConfig.bandwidthOfInputB < sram.bandwidthBits)
-      }.getOrElse{
-        Console.err.println("There is no SRAM info in SRAM table... reorganize SRAM output files")
-        sys.exit(1)
-      }
-  }
-
-  private val outputSramDataC: SramReferenceData = {
-    sramDataReferenceVector
-      .find{ sram =>
-        (sram.capacityKb == sramC.singleBufferLimitKb) && (array.arrayConfig.outputBandwidth < sram.bandwidthBits)
-      }.getOrElse{
-        Console.err.println("There is no SRAM info in SRAM table... reorganize SRAM output files")
-        sys.exit(1)
-      }
-  }
+//  private val inputSramDataA: SramReferenceData = {
+//    sramDataReferenceVector
+//      .find{ sram =>
+//        (sram.capacityKb == sramA.singleBufferLimitKb) && (array.arrayConfig.bandwidthOfInputA < sram.bandwidthBits)
+//      }.getOrElse{
+//        Console.err.println("There is no SRAM info in SRAM table... reorganize SRAM output files")
+//        sys.exit(1)
+//      }
+//  }
+//
+//  private val inputSramDataB: SramReferenceData = {
+//    sramDataReferenceVector
+//      .find{ sram =>
+//        (sram.capacityKb == sramB.singleBufferLimitKb) && (array.arrayConfig.bandwidthOfInputB < sram.bandwidthBits)
+//      }.getOrElse{
+//        Console.err.println("There is no SRAM info in SRAM table... reorganize SRAM output files")
+//        sys.exit(1)
+//      }
+//  }
+//
+//  private val outputSramDataC: SramReferenceData = {
+//    sramDataReferenceVector
+//      .find{ sram =>
+//        (sram.capacityKb == sramC.singleBufferLimitKb) && (array.arrayConfig.outputBandwidth < sram.bandwidthBits)
+//      }.getOrElse{
+//        Console.err.println("There is no SRAM info in SRAM table... reorganize SRAM output files")
+//        sys.exit(1)
+//      }
+//  }
 
   def run(): Unit = {
     cycle = compileLayerCycle()
@@ -71,11 +70,9 @@ class Compiler(
     require(layer.operationVector.nonEmpty, "Empty operation vector function is called in wrong place")
     dram.initDram(layer.operationVector, array.arrayConfig.dataflow)
     array.uploadOperationVector(layer.operationVector)
-    array.initTileSize(layer.operationVector.head)
     sramA.initTileSchedule(layer.operationVector)
-    sramA.initTileSize(layer.operationVector.head)
     sramB.initTileSchedule(layer.operationVector)
-    sramB.initTileSize(layer.operationVector.head)
+
 
     breakable {
       while(!areAllHardwareQueueEmpty) {
@@ -105,17 +102,28 @@ class Compiler(
 
           case Left(e) =>
 
-            log(s"Failed: ${e.getMessage}")
+            println(s"Failed: ${e.getMessage}")
             printCompilationState(cycle)
             sys.exit(1)
 
         }
 
+        if(array.capacityLeftTileA <0) {
+          println(" CApacity a is minus")
+          printCompilationState(cycle)
+          break()
+        }
+
+        if(array.capacityLeftTileB() < 0 ) {
+          println(" CApacity a is minus")
+          printCompilationState(cycle)
+          break()
+        }
         cycle += 1
 
       }
     }
-
+//    printCompilationState(cycle)
     cycle
 
   }
@@ -202,71 +210,62 @@ class Compiler(
   def getAverageMemoryUtilizationB: Double = sramB.getAccumulateMemoryUtilization / cycle.toDouble
   def getAverageMemoryUtilizationC: Double = sramC.getAccumulateMemoryUtilization / cycle.toDouble
 
-  //5. Area results
-  //Final area results unit is mm^2
-  def getSramAreaMmA: Double = inputSramDataA.areaUm2
-  def getSramAreaMmB: Double= inputSramDataB.areaUm2
-  def getSramAreaMmC: Double = outputSramDataC.areaUm2
-  def getArrayAreaMm: Double = computeArrayArea
-  def getDramAreaMm: Double = dramReferenceDataData.areaMm2
-  def getTotalArea: Double = getSramAreaMmA + getSramAreaMmB + getSramAreaMmC + getArrayAreaMm + getDramAreaMm
-
-  //6. Energy results
-  //Final energy results unit is pJ
-  //SRAM A
-  def getSramReadEnergyA: Double = inputSramDataA.readEnergyPj * sramA.getReadAccessCount
-  def getSramWriteEnergyA: Double = inputSramDataA.writeEnergyPj * sramA.getWriteAccessCount
-  def getSramLeakageEnergyA: Double = inputSramDataA.leakagePowerPw * cycle * clockPeriod
-  def getSramEnergyA: Double = getSramReadEnergyA + getSramWriteEnergyA + getSramLeakageEnergyA
-
-  //SRAM B
-  def getSramReadEnergyB: Double = inputSramDataB.readEnergyPj * sramB.getReadAccessCount
-  def getSramWriteEnergyB: Double = inputSramDataB.writeEnergyPj * sramB.getWriteAccessCount
-  def getSramLeakageEnergyB: Double = inputSramDataB.leakagePowerPw * cycle * clockPeriod
-  def getSramEnergyB: Double = getSramReadEnergyB + getSramWriteEnergyB + getSramLeakageEnergyB
-
-  //SRAM C
-  def getSramReadEnergyC: Double = outputSramDataC.readEnergyPj * sramC.getReadAccessCount
-  def getSramWriteEnergyC: Double = outputSramDataC.writeEnergyPj * sramC.getWriteAccessCount
-  def getSramLeakageEnergyC: Double = outputSramDataC.leakagePowerPw * cycle * clockPeriod
-  def getSramEnergyC: Double = getSramReadEnergyC + getSramWriteEnergyC + getSramLeakageEnergyC
-
-  //DRAM
-  def getDramReadEnergy: Double = dram.getReadAccessCount * dramReferenceDataData.readEnergyPj
-  def getDramWriteEnergy: Double = dram.getWriteAccessCount * dramReferenceDataData.writeEnergyPj
-  def getDramEnergy: Double = getDramReadEnergy + getDramWriteEnergy
-
-  //Array
-  def getArrayDynamicEnergy: Double = array.getArrayActiveCount.toDouble * computeArrayDynamicPower
-  def getArrayLeakageEnergy: Double = computeArrayLeakagePower * cycle * clockPeriod
-  def getArrayEnergy: Double = getArrayDynamicEnergy + getArrayLeakageEnergy
-
-  def getTotalEnergy: Double = getSramEnergyA + getSramEnergyB + getSramEnergyC + getDramEnergy + getArrayEnergy
-
-
-  private def computeArrayDynamicPower: Double = {
-    array.arrayConfig.groupPeRow * arrayReferenceData.dynamicPowerGroupPeRowPj +
-      array.arrayConfig.groupPeCol * arrayReferenceData.dynamicPowerGroupPeColPj +
-      array.arrayConfig.vectorPeRow * arrayReferenceData.dynamicPowerVectorPeRowPj +
-      array.arrayConfig.vectorPeCol * arrayReferenceData.dynamicPowerVectorPeColPj +
-      array.arrayConfig.numMultiplier * arrayReferenceData.dynamicPowerNumMultiplierPj
-  }
-
-  private def computeArrayLeakagePower: Double = {
-    array.arrayConfig.groupPeRow * arrayReferenceData.leakagePowerGroupPeRowPw +
-      array.arrayConfig.groupPeCol * arrayReferenceData.leakagePowerGroupPeColPw +
-      array.arrayConfig.vectorPeRow * arrayReferenceData.leakagePowerVectorPeRowPw +
-      array.arrayConfig.vectorPeCol * arrayReferenceData.leakagePowerVectorPeColPw +
-      array.arrayConfig.numMultiplier * arrayReferenceData.leakagePowerNumMultiplierPw
-  }
-
-  private def computeArrayArea: Double = {
-    array.arrayConfig.groupPeRow * arrayReferenceData.areaPowerGroupPeRowUm2 +
-      array.arrayConfig.groupPeCol * arrayReferenceData.areaPowerGroupPeColUm2 +
-      array.arrayConfig.vectorPeRow * arrayReferenceData.areaPowerVectorPeRowUm2 +
-      array.arrayConfig.vectorPeCol * arrayReferenceData.areaPowerVectorPeColUm2 +
-      array.arrayConfig.numMultiplier * arrayReferenceData.areaPowerNumMultiplierUm2
-  }
+//  def getSramAreaMmA: Double = inputSramDataA.areaUm2
+//  def getSramAreaMmB: Double= inputSramDataB.areaUm2
+//  def getSramAreaMmC: Double = outputSramDataC.areaUm2
+//  def getArrayAreaMm: Double = computeArrayArea
+//  def getDramAreaMm: Double = dramReferenceDataData.areaMm2
+//  def getTotalArea: Double = getSramAreaMmA + getSramAreaMmB + getSramAreaMmC + getArrayAreaMm + getDramAreaMm
+//
+//  def getSramReadEnergyA: Double = inputSramDataA.readEnergyPj * sramA.getReadAccessCount
+//  def getSramWriteEnergyA: Double = inputSramDataA.writeEnergyPj * sramA.getWriteAccessCount
+//  def getSramLeakageEnergyA: Double = inputSramDataA.leakagePowerPw * cycle * clockPeriod
+//  def getSramEnergyA: Double = getSramReadEnergyA + getSramWriteEnergyA + getSramLeakageEnergyA
+//
+//  def getSramReadEnergyB: Double = inputSramDataB.readEnergyPj * sramB.getReadAccessCount
+//  def getSramWriteEnergyB: Double = inputSramDataB.writeEnergyPj * sramB.getWriteAccessCount
+//  def getSramLeakageEnergyB: Double = inputSramDataB.leakagePowerPw * cycle * clockPeriod
+//  def getSramEnergyB: Double = getSramReadEnergyB + getSramWriteEnergyB + getSramLeakageEnergyB
+//
+//  def getSramReadEnergyC: Double = outputSramDataC.readEnergyPj * sramC.getReadAccessCount
+//  def getSramWriteEnergyC: Double = outputSramDataC.writeEnergyPj * sramC.getWriteAccessCount
+//  def getSramLeakageEnergyC: Double = outputSramDataC.leakagePowerPw * cycle * clockPeriod
+//  def getSramEnergyC: Double = getSramReadEnergyC + getSramWriteEnergyC + getSramLeakageEnergyC
+//
+//  def getDramReadEnergy: Double = dram.getReadAccessCount * dramReferenceDataData.readEnergyPj
+//  def getDramWriteEnergy: Double = dram.getWriteAccessCount * dramReferenceDataData.writeEnergyPj
+//  def getDramEnergy: Double = getDramReadEnergy + getDramWriteEnergy
+//
+//  def getArrayDynamicEnergy: Double = array.getArrayActiveCount.toDouble * computeArrayDynamicPower
+//  def getArrayLeakageEnergy: Double = computeArrayLeakagePower * cycle * clockPeriod
+//  def getArrayEnergy: Double = getArrayDynamicEnergy + getArrayLeakageEnergy
+//
+//  def getTotalEnergy: Double = getSramEnergyA + getSramEnergyB + getSramEnergyC + getDramEnergy + getArrayEnergy
+//
+//
+//  private def computeArrayDynamicPower: Double = {
+//    array.arrayConfig.groupPeRow * arrayReferenceData.dynamicPowerGroupPeRowPj +
+//      array.arrayConfig.groupPeCol * arrayReferenceData.dynamicPowerGroupPeColPj +
+//      array.arrayConfig.vectorPeRow * arrayReferenceData.dynamicPowerVectorPeRowPj +
+//      array.arrayConfig.vectorPeCol * arrayReferenceData.dynamicPowerVectorPeColPj +
+//      array.arrayConfig.numMultiplier * arrayReferenceData.dynamicPowerNumMultiplierPj
+//  }
+//
+//  private def computeArrayLeakagePower: Double = {
+//    array.arrayConfig.groupPeRow * arrayReferenceData.leakagePowerGroupPeRowPw +
+//      array.arrayConfig.groupPeCol * arrayReferenceData.leakagePowerGroupPeColPw +
+//      array.arrayConfig.vectorPeRow * arrayReferenceData.leakagePowerVectorPeRowPw +
+//      array.arrayConfig.vectorPeCol * arrayReferenceData.leakagePowerVectorPeColPw +
+//      array.arrayConfig.numMultiplier * arrayReferenceData.leakagePowerNumMultiplierPw
+//  }
+//
+//  private def computeArrayArea: Double = {
+//    array.arrayConfig.groupPeRow * arrayReferenceData.areaPowerGroupPeRowUm2 +
+//      array.arrayConfig.groupPeCol * arrayReferenceData.areaPowerGroupPeColUm2 +
+//      array.arrayConfig.vectorPeRow * arrayReferenceData.areaPowerVectorPeRowUm2 +
+//      array.arrayConfig.vectorPeCol * arrayReferenceData.areaPowerVectorPeColUm2 +
+//      array.arrayConfig.numMultiplier * arrayReferenceData.areaPowerNumMultiplierUm2
+//  }
 
   //Util functions
   private def areAllHardwareQueueEmpty: Boolean = {

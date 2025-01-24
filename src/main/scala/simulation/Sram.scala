@@ -19,7 +19,7 @@ trait Sram extends Hardware with Logger {
   private var bufferSwapCount: Int = 0
   private var bufferSwapStallCount: Int = 0
   private var isWritingToPong: Boolean = false
-  protected var isFirstFillUpDone: Boolean = false
+  var isFirstFillUpDone: Boolean = false
   protected var firstFillUpCycle: Long = 0
 
   //memory monitoring
@@ -33,17 +33,17 @@ trait Sram extends Hardware with Logger {
   private val pendingPongBuffer: mutable.Queue[Tile] = mutable.Queue.empty[Tile]
 
   //Buffer access
-  protected def readBuffer: mutable.Queue[Tile] = if(isWritingToPong) pingBuffer else pongBuffer
-  protected def writeBuffer: mutable.Queue[Tile]= if(isWritingToPong) pongBuffer else pingBuffer
-  protected def readPendingBuffer: mutable.Queue[Tile] = if(isWritingToPong) pendingPingBuffer else pendingPongBuffer
-  protected def writePendingBuffer: mutable.Queue[Tile] = if(isWritingToPong) pendingPongBuffer else pendingPingBuffer
+  final protected def readBuffer: mutable.Queue[Tile] = if(isWritingToPong) pingBuffer else pongBuffer
+  final protected def writeBuffer: mutable.Queue[Tile]= if(isWritingToPong) pongBuffer else pingBuffer
+  final protected def readPendingBuffer: mutable.Queue[Tile] = if(isWritingToPong) pendingPingBuffer else pendingPongBuffer
+  final protected def writePendingBuffer: mutable.Queue[Tile] = if(isWritingToPong) pendingPongBuffer else pendingPingBuffer
 
   //Buffer operations
-  protected def swapBuffers(): Unit = {
+  final protected def executeBufferSwap(): Unit = {
     isWritingToPong = !isWritingToPong
   }
 
-  protected def isBufferIntactAndFull(buffer: mutable.Queue[Tile]): Boolean = {
+  final protected def isBufferIntactAndFull(buffer: mutable.Queue[Tile]): Boolean = {
     if (buffer.forall(tile => tile.ownedBySram)
       && (singleBufferTileCapacity - buffer.length == 0))
       true
@@ -52,38 +52,38 @@ trait Sram extends Hardware with Logger {
   }
 
   //Memory monitoring
-  protected def updateMemoryMonitor(): Unit = {
+  final protected def updateMemoryMonitor(): Unit = {
     accumulatedMemoryUsageBit += calculateMemoryUsage()
     accumulatedMemoryUtilization += calculateMemoryUtilization()
   }
 
-  private def calculateMemoryUsage(): Double = {
+  final private def calculateMemoryUsage(): Double = {
     pingBuffer.map(_.dims.memorySize).sum +
       pongBuffer.map(_.dims.memorySize).sum
   }
 
-  private def calculateMemoryUtilization(): Double = {
+  final private def calculateMemoryUtilization(): Double = {
     calculateMemoryUsage() / sramTotalSizeBit * 100.0
   }
 
   //public API
-  def getFirstFillUpCycle: Long = firstFillUpCycle
-  def getBufferSwapCount: Int = bufferSwapCount
-  def getBufferSwapStallCount: Int = bufferSwapStallCount
-  def increaseBufferSwapCount(): Unit = bufferSwapCount += 1
-  def increaseBufferSwapStallCount(): Unit = bufferSwapStallCount += 1
-  def getAccumulatedMemoryUsage: Double = accumulatedMemoryUsageBit
-  def getAccumulateMemoryUtilization: Double = accumulatedMemoryUtilization
+  final def getFirstFillUpCycle: Long = firstFillUpCycle
+  final def getBufferSwapCount: Int = bufferSwapCount
+  final def getBufferSwapStallCount: Int = bufferSwapStallCount
+  final def increaseBufferSwapCount(): Unit = bufferSwapCount += 1
+  final def increaseBufferSwapStallCount(): Unit = bufferSwapStallCount += 1
+  final def getAccumulatedMemoryUsage: Double = accumulatedMemoryUsageBit
+  final def getAccumulateMemoryUtilization: Double = accumulatedMemoryUtilization
 
   //Overriding from Hardware
-  override def isHardwareEmpty: Boolean =
+  final override def isHardwareEmpty: Boolean =
     readBuffer.isEmpty &&
       readPendingBuffer.isEmpty &&
       writeBuffer.isEmpty &&
       writePendingBuffer.isEmpty
 
 
-  def printSram(): Unit = {
+  final def printSram(): Unit = {
     if(dataType == DataType.A)
       log(s"\t[Input Double Buffer SRAM A]")
     else if(dataType == DataType.B)
@@ -104,10 +104,19 @@ trait Sram extends Hardware with Logger {
     }
     log("")
 
-    if(isWritingToPong)
-      log("\t\t[Buffer0: Writing to ARRAY]")
-    else
-      log("\t\t[Buffer0: Reading from DRAM]")
+    if(dataType == DataType.A | dataType == DataType.B){
+      if(isWritingToPong)
+        log("\t\t[Buffer0: Writing to ARRAY]")
+      else
+        log("\t\t[Buffer0: Reading from DRAM]")
+    } else if(dataType == DataType.C) {
+      if(isWritingToPong)
+        log("\t\t[Buffer0: Writing to DRAM]")
+      else
+        log("\t\t[Buffer0: Reading from ARRAY]")
+    }
+
+
 
 
     if(pingBuffer.isEmpty){
@@ -117,10 +126,18 @@ trait Sram extends Hardware with Logger {
     }
 
     log("")
-    if(isWritingToPong)
-      log("\t\t[Buffer1: Reading from DRAM]")
-    else
-      log("\t\t[Buffer1: Writing to ARRAY]")
+    if(dataType == DataType.A | dataType == DataType.B){
+      if(isWritingToPong)
+        log("\t\t[Buffer1: Reading from DRAM]")
+      else
+        log("\t\t[Buffer1: Writing to ARRAY]")
+    } else if (dataType == DataType.C){
+      if(isWritingToPong)
+        log("\t\t[Buffer1: Reading from ARRAY]")
+      else
+        log("\t\t[Buffer1: Writing to DRAM]")
+    }
+
 
     if(pongBuffer.isEmpty){
       log("\t\tEmpty")

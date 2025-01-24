@@ -24,9 +24,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     singleBufferLimitKbA: Int,
     singleBufferLimitKbB: Int,
     singleBufferLimitKbC: Int,
-    arrayReferenceData: ArrayReferenceData,
-    sramReferenceDataVector: Vector[SramReferenceData],
-    dramReferenceData: DramReferenceData,
+//    arrayReferenceData: Option[ArrayReferenceData],
+//    sramReferenceDataVector: Option[Vector[SramReferenceData]],
+//    dramReferenceData: Option[DramReferenceData],
   ) {
     def validate: Boolean = {
       streamingDimensionSize > 0 &&
@@ -40,27 +40,28 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
         singleBufferLimitKbB > 0 &&
         singleBufferLimitKbC > 0 &&
         portBitWidth.validate &&
-        layerGemmDimension.validate &&
-        arrayReferenceData.validate &&
-        sramReferenceDataVector.forall( x => x.validate) &&
-        dramReferenceData.validate
+        layerGemmDimension.validate
+      //TODO add validation code
+//        arrayReferenceData.validate &&
+//        sramReferenceDataVector.forall( x => x.validate) &&
+//        dramReferenceData.validate
     }
   }
 
   def processOneLayer(
     layerPath: String,
     testPath: String,
-    sramDataPath: String,
-    dramDataPath: String,
-    arrayDataPath: String,
+//    sramDataPath: String,
+//    dramDataPath: String,
+//    arrayDataPath: String,
     help: String
   ): Unit = {
 
     val layerConfigParser = new ConfigManager(layerPath)
     val testConfigParser = new ConfigManager(testPath)
-    val sramDataParser = new ConfigManager(sramDataPath)
-    val dramDataParser = new ConfigManager(dramDataPath)
-    val arrayDataParser = new ConfigManager(arrayDataPath)
+//    val sramDataParser = new ConfigManager(sramDataPath)
+//    val dramDataParser = new ConfigManager(dramDataPath)
+//    val arrayDataParser = new ConfigManager(arrayDataPath)
 
     if(!layerConfigParser.parse()) {
       throw ParseError("Layer parsing failed" + help)
@@ -70,17 +71,17 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
       throw ParseError("Test option parsing failed" + help)
     }
 
-    if(!sramDataParser.parse()){
-      throw ParseError("SRAM Energy configuration parsing failed" + help)
-    }
-
-    if(!dramDataParser.parse()){
-      throw ParseError("DRAM Energy configuration parsing failed" + help)
-    }
-
-    if(!arrayDataParser.parse()){
-      throw ParseError("DRAM Energy configuration parsing failed" + help)
-    }
+//    if(!sramDataParser.parse()){
+//      throw ParseError("SRAM Energy configuration parsing failed" + help)
+//    }
+//
+//    if(!dramDataParser.parse()){
+//      throw ParseError("DRAM Energy configuration parsing failed" + help)
+//    }
+//
+//    if(!arrayDataParser.parse()){
+//      throw ParseError("DRAM Energy configuration parsing failed" + help)
+//    }
 
     val layerConfig = layerConfigParser.getConfig.getOrElse(
       throw ParseError("Layer config not found")
@@ -89,24 +90,24 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
       throw ParseError("Test Config not found")
     )
 
-    val sramDataConfig = sramDataParser.getConfig.getOrElse(
-      throw ParseError("SRAM config not found")
-    )
-
-    val dramDataConfig = dramDataParser.getConfig.getOrElse(
-      throw ParseError("DRAM config not found")
-    )
-
-    val arrayDataConfig = arrayDataParser.getConfig.getOrElse(
-      throw ParseError("Array config not found")
-    )
+//    val sramDataConfig = sramDataParser.getConfig.getOrElse(
+//      throw ParseError("SRAM config not found")
+//    )
+//
+//    val dramDataConfig = dramDataParser.getConfig.getOrElse(
+//      throw ParseError("DRAM config not found")
+//    )
+//
+//    val arrayDataConfig = arrayDataParser.getConfig.getOrElse(
+//      throw ParseError("Array config not found")
+//    )
 
     val simulationConfig = buildSimulationOneLayerConfig(
       layerConfig = layerConfig,
       testConfig = testConfig,
-      sramDataVector = sramDataConfig.sramReferenceDataVector,
-      dramDataConfig = dramDataConfig,
-      arrayDataConfig = arrayDataConfig
+//      sramDataVector = sramDataConfig.sramReferenceDataVector,
+//      dramDataConfig = dramDataConfig,
+//      arrayDataConfig = arrayDataConfig
     )
 
     if(!simulationConfig.validate)
@@ -129,9 +130,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
   private def buildSimulationOneLayerConfig(
     layerConfig: ConfigParser.Config,
     testConfig: ConfigParser.Config,
-    sramDataVector: Vector[SramReferenceData],
-    dramDataConfig: ConfigParser.Config,
-    arrayDataConfig: ConfigParser.Config
+//    sramDataVector: Vector[SramReferenceData],
+//    dramDataConfig: ConfigParser.Config,
+//    arrayDataConfig: ConfigParser.Config
   ): SimulationConfig ={
 
     //layer
@@ -153,9 +154,6 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     val debugPrint = testConfig.getBoolean("Debug Print").getOrElse(false)
     val debugStartCycle = testConfig.getInt("Debug Start Cycle").getOrElse(0)
     val debugEndCycle = testConfig.getInt("Debug End Cycle").getOrElse(0)
-    val showReferenceEnergy = testConfig.getBoolean("Show Reference Energy Information").getOrElse(false)
-    val showAreaReport = testConfig.getBoolean("Show Area Report").getOrElse(false)
-    val showEnergyReport = testConfig.getBoolean("Show Energy Report").getOrElse(false)
 
     //Hardware configuration
     val dataflow = testConfig.getString("Dataflow").get match {
@@ -228,83 +226,83 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
       throw ParseError("SRAM C Single Buffer Limit (KB)")
     )
 
-    val leakagePowerGroupPeRow: Double = arrayDataConfig.getDouble("Leakage Power Group PE Row").getOrElse(
-      throw ParseError("Array Data Not found")
-    )
-
-    val leakagePowerGroupPeCol: Double = arrayDataConfig.getDouble("Leakage Power Group PE Column").getOrElse(
-      throw ParseError("Array Data Not found")
-    )
-    val leakagePowerVectorPeRow: Double = arrayDataConfig.getDouble("Leakage Power Vector PE Row").getOrElse(
-      throw ParseError("Array Data Not found")
-    )
-    val leakagePowerVectorPeCol: Double = arrayDataConfig.getDouble("Leakage Power Vector PE Column").getOrElse(
-      throw ParseError("Array Data Not found")
-    )
-    val leakagePowerNumMultiplier: Double = arrayDataConfig.getDouble("Leakage Power Total Number of Multipliers").getOrElse(
-      throw ParseError("Array Data Not found")
-    )
-    val dynamicPowerGroupPeRow: Double = arrayDataConfig.getDouble("Dynamic Power Group PE Row").getOrElse(
-      throw ParseError("Array Data Not found")
-    )
-    val dynamicPowerGroupPeCol: Double = arrayDataConfig.getDouble("Dynamic Power Group PE Column").getOrElse(
-      throw ParseError("Array Data Not found")
-    )
-    val dynamicPowerVectorPeRow: Double = arrayDataConfig.getDouble("Dynamic Power Vector PE Row").getOrElse(
-      throw ParseError("Array Data Not found")
-    )
-    val dynamicPowerVectorPeCol: Double = arrayDataConfig.getDouble("Dynamic Power Vector PE Column").getOrElse(
-      throw ParseError("Array Data Not found")
-    )
-    val dynamicPowerNumMultiplier: Double = arrayDataConfig.getDouble("Dynamic Power Total Number of Multipliers").getOrElse(
-      throw ParseError("Array Data Not found")
-    )
-    val areaPowerGroupPeRow: Double = arrayDataConfig.getDouble("Area Group PE Row").getOrElse(
-      throw ParseError("Array Data Not found")
-    )
-    val areaPowerGroupPeCol: Double = arrayDataConfig.getDouble("Area Group PE Column").getOrElse(
-      throw ParseError("Array Data Not found")
-    )
-    val areaPowerVectorPeRow: Double = arrayDataConfig.getDouble("Area Vector PE Row").getOrElse(
-      throw ParseError("Array Data Not found")
-    )
-    val areaPowerVectorPeCol: Double = arrayDataConfig.getDouble("Area Vector PE Column").getOrElse(
-      throw ParseError("Array Data Not found")
-    )
-    val areaPowerNumMultiplier: Double = arrayDataConfig.getDouble("Area Total Number of Multipliers").getOrElse(
-      throw ParseError("Array Data Not found")
-    )
-
-    val arrayDataReference = ArrayReferenceData(
-      leakagePowerGroupPeRowMw = leakagePowerGroupPeRow,
-      leakagePowerGroupPeColMw = leakagePowerGroupPeCol,
-      leakagePowerVectorPeRowMw = leakagePowerVectorPeRow,
-      leakagePowerVectorPeColMw = leakagePowerVectorPeCol,
-      leakagePowerNumMultiplierMw = leakagePowerNumMultiplier,
-      dynamicPowerGroupPeRowPj = dynamicPowerGroupPeRow,
-      dynamicPowerGroupPeColPj = dynamicPowerGroupPeCol,
-      dynamicPowerVectorPeRowPj = dynamicPowerVectorPeRow,
-      dynamicPowerVectorPeColPj = dynamicPowerVectorPeCol,
-      dynamicPowerNumMultiplierPj = dynamicPowerNumMultiplier,
-      areaPowerGroupPeRowUm2 = areaPowerGroupPeRow,
-      areaPowerGroupPeColUm2 = areaPowerGroupPeCol,
-      areaPowerVectorPeRowUm2 = areaPowerVectorPeRow,
-      areaPowerVectorPeColUm2 = areaPowerVectorPeCol,
-      areaPowerNumMultiplierUm2 = areaPowerNumMultiplier,
-    )
-
-    val dramReadEnergy: Double = dramDataConfig.getDouble("Read Energy").getOrElse(
-      throw ParseError("DRAM Data Not found")
-    )
-
-    val dramWriteEnergy: Double = dramDataConfig.getDouble("Write Energy").getOrElse(
-      throw ParseError("DRAM Data Not found")
-    )
-
-    val dramReferenceData: DramReferenceData = DramReferenceData(
-      readEnergyPj = dramReadEnergy,
-      writeEnergyPj = dramWriteEnergy,
-    )
+//    val leakagePowerGroupPeRow: Double = arrayDataConfig.getDouble("Leakage Power Group PE Row").getOrElse(
+//      throw ParseError("Array Data Not found")
+//    )
+//
+//    val leakagePowerGroupPeCol: Double = arrayDataConfig.getDouble("Leakage Power Group PE Column").getOrElse(
+//      throw ParseError("Array Data Not found")
+//    )
+//    val leakagePowerVectorPeRow: Double = arrayDataConfig.getDouble("Leakage Power Vector PE Row").getOrElse(
+//      throw ParseError("Array Data Not found")
+//    )
+//    val leakagePowerVectorPeCol: Double = arrayDataConfig.getDouble("Leakage Power Vector PE Column").getOrElse(
+//      throw ParseError("Array Data Not found")
+//    )
+//    val leakagePowerNumMultiplier: Double = arrayDataConfig.getDouble("Leakage Power Total Number of Multipliers").getOrElse(
+//      throw ParseError("Array Data Not found")
+//    )
+//    val dynamicPowerGroupPeRow: Double = arrayDataConfig.getDouble("Dynamic Power Group PE Row").getOrElse(
+//      throw ParseError("Array Data Not found")
+//    )
+//    val dynamicPowerGroupPeCol: Double = arrayDataConfig.getDouble("Dynamic Power Group PE Column").getOrElse(
+//      throw ParseError("Array Data Not found")
+//    )
+//    val dynamicPowerVectorPeRow: Double = arrayDataConfig.getDouble("Dynamic Power Vector PE Row").getOrElse(
+//      throw ParseError("Array Data Not found")
+//    )
+//    val dynamicPowerVectorPeCol: Double = arrayDataConfig.getDouble("Dynamic Power Vector PE Column").getOrElse(
+//      throw ParseError("Array Data Not found")
+//    )
+//    val dynamicPowerNumMultiplier: Double = arrayDataConfig.getDouble("Dynamic Power Total Number of Multipliers").getOrElse(
+//      throw ParseError("Array Data Not found")
+//    )
+//    val areaPowerGroupPeRow: Double = arrayDataConfig.getDouble("Area Group PE Row").getOrElse(
+//      throw ParseError("Array Data Not found")
+//    )
+//    val areaPowerGroupPeCol: Double = arrayDataConfig.getDouble("Area Group PE Column").getOrElse(
+//      throw ParseError("Array Data Not found")
+//    )
+//    val areaPowerVectorPeRow: Double = arrayDataConfig.getDouble("Area Vector PE Row").getOrElse(
+//      throw ParseError("Array Data Not found")
+//    )
+//    val areaPowerVectorPeCol: Double = arrayDataConfig.getDouble("Area Vector PE Column").getOrElse(
+//      throw ParseError("Array Data Not found")
+//    )
+//    val areaPowerNumMultiplier: Double = arrayDataConfig.getDouble("Area Total Number of Multipliers").getOrElse(
+//      throw ParseError("Array Data Not found")
+//    )
+//
+//    val arrayDataReference = ArrayReferenceData(
+//      leakagePowerGroupPeRowMw = leakagePowerGroupPeRow,
+//      leakagePowerGroupPeColMw = leakagePowerGroupPeCol,
+//      leakagePowerVectorPeRowMw = leakagePowerVectorPeRow,
+//      leakagePowerVectorPeColMw = leakagePowerVectorPeCol,
+//      leakagePowerNumMultiplierMw = leakagePowerNumMultiplier,
+//      dynamicPowerGroupPeRowPj = dynamicPowerGroupPeRow,
+//      dynamicPowerGroupPeColPj = dynamicPowerGroupPeCol,
+//      dynamicPowerVectorPeRowPj = dynamicPowerVectorPeRow,
+//      dynamicPowerVectorPeColPj = dynamicPowerVectorPeCol,
+//      dynamicPowerNumMultiplierPj = dynamicPowerNumMultiplier,
+//      areaPowerGroupPeRowUm2 = areaPowerGroupPeRow,
+//      areaPowerGroupPeColUm2 = areaPowerGroupPeCol,
+//      areaPowerVectorPeRowUm2 = areaPowerVectorPeRow,
+//      areaPowerVectorPeColUm2 = areaPowerVectorPeCol,
+//      areaPowerNumMultiplierUm2 = areaPowerNumMultiplier,
+//    )
+//
+//    val dramReadEnergy: Double = dramDataConfig.getDouble("Read Energy").getOrElse(
+//      throw ParseError("DRAM Data Not found")
+//    )
+//
+//    val dramWriteEnergy: Double = dramDataConfig.getDouble("Write Energy").getOrElse(
+//      throw ParseError("DRAM Data Not found")
+//    )
+//
+//    val dramReferenceData: DramReferenceData = DramReferenceData(
+//      readEnergyPj = dramReadEnergy,
+//      writeEnergyPj = dramWriteEnergy,
+//    )
 
     SimulationConfig(
       debugPrint = debugPrint,
@@ -325,9 +323,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
       singleBufferLimitKbA = singleBufferLimitKbA,
       singleBufferLimitKbB = singleBufferLimitKbB,
       singleBufferLimitKbC = singleBufferLimitKbC,
-      sramReferenceDataVector = sramDataVector,
-      dramReferenceData = dramReferenceData,
-      arrayReferenceData = arrayDataReference,
+//      sramReferenceDataVector = sramDataVector,
+//      dramReferenceData = dramReferenceData,
+//      arrayReferenceData = arrayDataReference,
     )
 
   }
@@ -432,6 +430,11 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     val capacityB = (simConfig.singleBufferLimitKbB * 8 * 1024)/ sizeTileB
     val capacityC = (simConfig.singleBufferLimitKbC * 8 * 1024)/ sizeTileC
 
+    println(s"Capacity A = ${capacityA}")
+    println(s"Capacity B = ${capacityB}")
+    println(s"Capacity C = ${capacityC}")
+
+
     if(!(capacityA > 0 && capacityB > 0 && capacityC > 0 ))
       throw RunTimeError("SRAM Cannot contain even 1 tile increase SRAM size")
 
@@ -475,9 +478,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
       interface = interface,
       layer = layer,
       array = array,
-      sramDataReferenceVector = simConfig.sramReferenceDataVector,
-      dramReferenceDataData = simConfig.dramReferenceData,
-      arrayReferenceData = simConfig.arrayReferenceData,
+//      sramDataReferenceVector = simConfig.sramReferenceDataVector,
+//      dramReferenceDataData = simConfig.dramReferenceData,
+//      arrayReferenceData = simConfig.arrayReferenceData,
       debugStartCycle = simConfig.debugStartCycle,
       debugEndCycle = simConfig.debugEndCycle,
       debugMode = simConfig.debugPrint,
@@ -552,37 +555,37 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
         averageMemoryUsageKbC = compiler.getAverageMemoryUsageKbC,
         averageMemoryUtilizationC = compiler.getAverageMemoryUtilizationC,
 
-        sramAreaMmA = compiler.getSramAreaMmA,
-        sramAreaMmB = compiler.getSramAreaMmB,
-        sramAreaMmC = compiler.getSramAreaMmC,
-        dramAreaMm = compiler.getDramAreaMm,
-        arrayAreaMm = compiler.getArrayAreaMm,
-        areaMm = compiler.getTotalArea,
-
-        sramReadEnergyPjA = compiler.getSramReadEnergyA,
-        sramWriteEnergyPjA = compiler.getSramWriteEnergyA,
-        sramLeakageEnergyPjA = compiler.getSramLeakageEnergyA,
-        sramEnergyPjA = compiler.getSramEnergyA,
-
-        sramReadEnergyPjB = compiler.getSramWriteEnergyB,
-        sramWriteEnergyPjB = compiler.getSramWriteEnergyB,
-        sramLeakageEnergyPjB = compiler.getSramLeakageEnergyB,
-        sramEnergyPjB = compiler.getSramEnergyB,
-
-        sramReadEnergyPjC = compiler.getSramReadEnergyC,
-        sramWriteEnergyPjC = compiler.getSramWriteEnergyC,
-        sramLeakageEnergyPjC = compiler.getSramLeakageEnergyC,
-        sramEnergyPjC = compiler.getSramEnergyC,
-
-        dramReadEnergyPj = compiler.getDramReadEnergy,
-        dramWriteEnergyPj = compiler.getDramWriteEnergy,
-        dramEnergyPj = compiler.getDramEnergy,
-
-        arrayDynamicEnergyPj = compiler.getArrayDynamicEnergy,
-        arrayLeakageEnergyPj = compiler.getArrayLeakageEnergy,
-        arrayEnergy = compiler.getArrayEnergy,
-
-        energyPj = compiler.getTotalEnergy,
+//        sramAreaMmA = compiler.getSramAreaMmA,
+//        sramAreaMmB = compiler.getSramAreaMmB,
+//        sramAreaMmC = compiler.getSramAreaMmC,
+//        dramAreaMm = compiler.getDramAreaMm,
+//        arrayAreaMm = compiler.getArrayAreaMm,
+//        areaMm = compiler.getTotalArea,
+//
+//        sramReadEnergyPjA = compiler.getSramReadEnergyA,
+//        sramWriteEnergyPjA = compiler.getSramWriteEnergyA,
+//        sramLeakageEnergyPjA = compiler.getSramLeakageEnergyA,
+//        sramEnergyPjA = compiler.getSramEnergyA,
+//
+//        sramReadEnergyPjB = compiler.getSramWriteEnergyB,
+//        sramWriteEnergyPjB = compiler.getSramWriteEnergyB,
+//        sramLeakageEnergyPjB = compiler.getSramLeakageEnergyB,
+//        sramEnergyPjB = compiler.getSramEnergyB,
+//
+//        sramReadEnergyPjC = compiler.getSramReadEnergyC,
+//        sramWriteEnergyPjC = compiler.getSramWriteEnergyC,
+//        sramLeakageEnergyPjC = compiler.getSramLeakageEnergyC,
+//        sramEnergyPjC = compiler.getSramEnergyC,
+//
+//        dramReadEnergyPj = compiler.getDramReadEnergy,
+//        dramWriteEnergyPj = compiler.getDramWriteEnergy,
+//        dramEnergyPj = compiler.getDramEnergy,
+//
+//        arrayDynamicEnergyPj = compiler.getArrayDynamicEnergy,
+//        arrayLeakageEnergyPj = compiler.getArrayLeakageEnergy,
+//        arrayEnergy = compiler.getArrayEnergy,
+//
+//        energyPj = compiler.getTotalEnergy,
       )
 
     } catch {

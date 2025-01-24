@@ -36,7 +36,12 @@ class OutputDoubleBufferSram(
 
     updateState()
 
-    judgeDoubleBufferState(interface)
+    if(!isFirstFillUpDone){
+      checkFirstFillUp(interface)
+    } else {
+      swapBuffers(interface)
+    }
+
     judgeDramReadWriteState(interface)
     updateMemoryMonitor()
 
@@ -75,7 +80,7 @@ class OutputDoubleBufferSram(
           if (readBuffer.front.ownedByDram) {
 
             temporalTileQueue += readBuffer.front
-            readBuffer.removeHead()
+            readBuffer.dequeue()
 
           } else {
             temporalTileQueue += readBuffer.front.copyTile()
@@ -113,42 +118,41 @@ class OutputDoubleBufferSram(
     updateBuffer(writeBuffer, writePendingBuffer)
   }
 
-
-
-  private def judgeDoubleBufferState(interface: Interface): Unit = {
-
-    //TODO split checkFirstFillUpLogic
+  private def checkFirstFillUp(interface: Interface): Unit = {
     if (!isFirstFillUpDone) {
-      if (isBufferIntactAndFull(writeBuffer) || interface.array.isAllCalculated){
-        swapBuffers()
+      if (isBufferIntactAndFull(writeBuffer) || interface.array.isAllCalculated) {
+        executeBufferSwap()
         firstFillUpCycle = interface.getCycle
         isFirstFillUpDone = true
       }
-    } else {
+    }
+  }
 
-      if(readBuffer.isEmpty){
-        if(writeBuffer.forall(tile => tile.ownedBySram)){
-          swapBuffers()
-          increaseBufferSwapCount()
-          interface.array.go()
-        } else {
-          increaseBufferSwapStallCount()
-        }
+  private def swapBuffers(interface: Interface): Unit = {
+
+    if(readBuffer.isEmpty){
+      if(writeBuffer.forall(tile => tile.ownedBySram)){
+        executeBufferSwap()
+        increaseBufferSwapCount()
+        interface.array.go()
       } else {
-        if(writeBuffer.forall(tile => tile.ownedBySram)) {
-          if(writeBuffer.length == singleBufferTileCapacity){
-            interface.array.stop()
-          } else {
-            interface.array.go()
-          }
+        increaseBufferSwapStallCount()
+      }
+    } else {
+      if(writeBuffer.forall(tile => tile.ownedBySram)) {
+        if(writeBuffer.length == singleBufferTileCapacity){
+          interface.array.stop()
+        } else {
+          interface.array.go()
         }
       }
+    }
 
-      if(interface.array.isAllCalculated)
-        if(readBuffer.isEmpty && writeBuffer.nonEmpty && writeBuffer.last.ownedBySram) {
-          swapBuffers()
-          increaseBufferSwapCount()
-        }
+    if(interface.array.isAllCalculated){
+      if(readBuffer.isEmpty && writeBuffer.nonEmpty && writeBuffer.last.ownedBySram) {
+        executeBufferSwap()
+        increaseBufferSwapCount()
+      }
     }
 
   }
@@ -156,7 +160,6 @@ class OutputDoubleBufferSram(
   private def judgeDramReadWriteState(interface: Interface): Unit = {
 
     val shouldEnableWrite = readBuffer.nonEmpty
-
     if(shouldEnableWrite)
       interface.dram.onWriteEnable()
     else

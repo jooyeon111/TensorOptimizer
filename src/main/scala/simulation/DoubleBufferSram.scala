@@ -28,9 +28,6 @@ class DoubleBufferSram(
   require(singleBufferTileCapacity >=  1, "[error] Tile capacity must be at least 1")
   setMode(loggerOption)
 
-  var tileSizeA: Int = 0
-  var tileSizeB: Int = 0
-
   private var tileIdToSend: (Int, Int) = (-1, -1)
   private val tileOperationOrder: mutable.ListBuffer[TileScheduleEntry] = mutable.ListBuffer.empty[TileScheduleEntry]
   private var availableOutputBandwidth: Int = outputBandwidth
@@ -57,13 +54,6 @@ class DoubleBufferSram(
   }
 
   //Function called by compiler
-  //TODO split based on data type
-  def initTileSize(multiplicationOperation: MultiplicationOperation): Unit = {
-
-    tileSizeA = multiplicationOperation.generateTileA.dims.memorySize
-    tileSizeB = multiplicationOperation.generateTileB.dims.memorySize
-
-  }
 
   //TODO integrate below two functions
   def initTileSchedule(operationVector: Vector[MultiplicationOperation]): Unit = {
@@ -119,28 +109,31 @@ class DoubleBufferSram(
     readBuffer.exists(_.id == tileId)
   }
 
-  def judgeDoubleBufferState(): Unit = {
+  def canSwapBuffers: Boolean = {
     require(isNothingToUpdateInWriteBuffer, "[error] There is something to update in write buffer")
 
 //    if(isFirstFillUpCompete && isWriteBufferTilesIntact){
 //      updateToReadBuffer(writeBuffer)
 //      updateToWriteBuffer(readBuffer)
-//      swapBuffers()
+//      executeBufferSwap()
 //      increaseBufferSwapCount()
 //    } else {
 //      increaseBufferSwapStallCount()
 //    }
 
-    if(isFirstFillUpCompete){
+    if(isFirstFillUpDone){
       if(isWriteBufferTilesIntact){
         updateToReadBuffer(writeBuffer)
         updateToWriteBuffer(readBuffer)
-        swapBuffers()
+        executeBufferSwap()
         increaseBufferSwapCount()
+        true
       } else {
         increaseBufferSwapStallCount()
+        false
       }
-    }
+    } else
+      false
 
   }
 
@@ -169,7 +162,7 @@ class DoubleBufferSram(
   }
 
   //Functions are called by interface
-  def isFirstFillUpCompete: Boolean = isFirstFillUpDone
+//  def isFirstFillUpCompete: Boolean = isFirstFillUpDone
 
   override def update(interface: Interface) : Unit = {
 
@@ -291,12 +284,12 @@ class DoubleBufferSram(
     if (shouldSwitch) {
 
       updateToReadBuffer(writeBuffer)
-      swapBuffers()
+      executeBufferSwap()
       isFirstFillUpDone = true
       firstFillUpCycle = interface.getCycle
 
       otherSram.updateToReadBuffer(otherSram.writeBuffer)
-      otherSram.swapBuffers()
+      otherSram.executeBufferSwap()
       otherSram.isFirstFillUpDone = true
       otherSram.firstFillUpCycle = interface.getCycle
 
@@ -311,11 +304,11 @@ class DoubleBufferSram(
       if(unscheduledTiles.nonEmpty){
         val bufferIds = (readBuffer.map(_.id.asInstanceOf[(Int, Int)]) ++ writeBuffer.map(_.id.asInstanceOf[(Int, Int)])).toSet
         if(!unscheduledTiles.subsetOf(bufferIds)){
-          totalDramAccessCount += tileSizeA
+          totalDramAccessCount += 1.0
           if(writePendingBuffer.nonEmpty){
-            totalDramHitCount += tileSizeA
+            totalDramHitCount += 1.0
           } else {
-            totalDramMissCount += tileSizeA
+            totalDramMissCount += 1.0
           }
         }
       }
