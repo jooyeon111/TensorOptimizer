@@ -235,43 +235,72 @@ final class Array(
   }
 
   private def setRequestedTilesToSRAM(interface: Interface): Unit = {
-    def handleTileRequest(sram: DoubleBufferSram, tileId: (Int, Int), dataType: DataType.Value, bandwidth: Int): Unit = {
-      if (sram.hasThisTileForArray(tileId, dataType) && tileId != (-1, -1)) {
-        if (getCapacityLeft(dataType) >= bandwidth) {
+//    def handleTileRequest(sram: DoubleBufferSram, tileId: (Int, Int), dataType: DataType.Value, bandwidth: Int): Unit = {
+//      if (sram.hasThisTileForArray(tileId, dataType) && tileId != (-1, -1)) {
+//        if (getCapacityLeft(dataType) >= bandwidth) {
+//          sram.setTileIdToSend(tileId)
+//        } else if (getCapacityLeft(dataType) == 0) {
+//          val canSendTile = calculatingOperation.find(op => {
+//            val tile = if (dataType == DataType.A) op.getTileA else op.getTileB
+//            tile.memoryOccupiedByArray > 0
+//          }).exists(op => {
+//            if(dataType == DataType.A){
+//              op.canBeColoredTileA
+//            } else {
+//              op.canBeColoredTileB
+//            }
+//
+//          })
+//
+//          if (canSendTile) {
+//            sram.setTileIdToSend(tileId)
+//          }
+//        }
+//      }
+//    }
+//    def getCapacityLeft(dataType: DataType.Value): Int = {
+//      dataType match {
+//        case DataType.A => capacityLeftTileA()
+//        case DataType.B => capacityLeftTileB()
+//        case _ =>
+//          Console.err.println("[error] Not Valid Type of SRAM")
+//          sys.exit(1)
+//      }
+//    }
+
+    def handleTileARequest(sram: DoubleBufferSram, tileId: (Int, Int), bandwidth: Int): Unit = {
+      if (sram.hasThisTileForArray(tileId, DataType.A) && tileId != (-1, -1)) {
+        if (capacityLeftTileA() >= bandwidth) {
           sram.setTileIdToSend(tileId)
-        } else if (getCapacityLeft(dataType) == 0) {
-          val canSendTile = calculatingOperation.find(op => {
-            val tile = if (dataType == DataType.A) op.getTileA else op.getTileB
-            tile.memoryOccupiedByArray > 0
-          }).exists(op => {
-//            val isExpired = if (dataType == DataType.A) op.isInputATileGoneTimerExpired else op.isInputBTileGoneTimerExpired
-//            val isNotUsedNext = if (dataType == DataType.A) !op.isTileAUsedInNextOp else !op.isTileBUsedInNextOp
-//            isExpired && isNotUsedNext
-            if(dataType == DataType.A){
-              op.canBeColoredTileA
-            } else {
-              op.canBeColoredTileB
-            }
-
-          })
-
+        } else if (capacityLeftTileA() == 0) {
+          val canSendTile = calculatingOperation.exists(op =>
+            op.getTileA.memoryOccupiedByArray > 0 && op.canBeColoredTileA
+          )
           if (canSendTile) {
             sram.setTileIdToSend(tileId)
           }
         }
       }
     }
-    def getCapacityLeft(dataType: DataType.Value): Int = {
-      dataType match {
-        case DataType.A => capacityLeftTileA()
-        case DataType.B => capacityLeftTileB()
-        case _ =>
-          Console.err.println("[error] Not Valid Type of SRAM")
-          sys.exit(1)
+
+    def handleTileBRequest(sram: DoubleBufferSram, tileId: (Int, Int), bandwidth: Int): Unit = {
+      if (sram.hasThisTileForArray(tileId, DataType.B) && tileId != (-1, -1)) {
+        if (capacityLeftTileB() >= bandwidth) {
+          sram.setTileIdToSend(tileId)
+        } else if (capacityLeftTileB() == 0) {
+          val canSendTile = calculatingOperation.exists(op =>
+            op.getTileB.memoryOccupiedByArray > 0 && op.canBeColoredTileB
+          )
+          if (canSendTile) {
+            sram.setTileIdToSend(tileId)
+          }
+        }
       }
     }
-    handleTileRequest(interface.sramA, tileIdToReceiveA, DataType.A, arrayConfig.bandwidthOfInputA)
-    handleTileRequest(interface.sramB, tileIdToReceiveB, DataType.B, arrayConfig.bandwidthOfInputB)
+
+    handleTileARequest(interface.sramA, tileIdToReceiveA, arrayConfig.bandwidthOfInputA)
+    handleTileBRequest(interface.sramB, tileIdToReceiveB, arrayConfig.bandwidthOfInputB)
+
   }
 
 
