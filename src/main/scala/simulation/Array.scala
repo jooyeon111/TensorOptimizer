@@ -64,6 +64,8 @@ final class Array(
         op.generateTileC,
         isTileAUsedInNextOp = isTileAUsedInNext,
         isTileBUsedInNextOp = isTileBUsedInNext,
+        arrayConfig.capacityOfTileA,
+        arrayConfig.capacityOfTileB,
         loggerOption
       )
     }
@@ -197,10 +199,7 @@ final class Array(
       totalMemoryAccessCountA += 1.0
       if(interface.sramA.hasThisTileForArray(tileIdToReceiveA, DataType.A) &&
         (capacityLeftTileA() >= arrayConfig.bandwidthOfInputA ||
-          (capacityLeftTileA() == 0 && calculatingOperation.exists(op =>
-            op.getTileA.memoryOccupiedByArray > 0 &&
-              op.isInputATileGoneTimerExpired &&
-              !op.isTileAUsedInNextOp))) &&
+          (capacityLeftTileA() == 0 && calculatingOperation.exists(_.canBeColoredTileA))) &&
         nextTileQueueTypeA.exists(_.id == tileIdToReceiveA)) {
         totalMemoryHitCountA += 1.0
       } else {
@@ -212,10 +211,7 @@ final class Array(
       totalMemoryAccessCountB += 1.0
       if(interface.sramB.hasThisTileForArray(tileIdToReceiveB, DataType.B) &&
         (capacityLeftTileB() >= arrayConfig.bandwidthOfInputB ||
-          (capacityLeftTileB() == 0 && calculatingOperation.exists(op =>
-            op.getTileB.memoryOccupiedByArray > 0 &&
-              op.isInputBTileGoneTimerExpired &&
-              !op.isTileBUsedInNextOp))) &&
+          (capacityLeftTileB() == 0 && calculatingOperation.exists(_.canBeColoredTileB))) &&
         nextTileQueueTypeB.exists(_.id == tileIdToReceiveB)) {
         totalMemoryHitCountB += 1.0
       } else {
@@ -238,7 +234,6 @@ final class Array(
 
   }
 
-  //TODO merge with count SRAM Access function name handleSramAccess
   private def setRequestedTilesToSRAM(interface: Interface): Unit = {
     def handleTileRequest(sram: DoubleBufferSram, tileId: (Int, Int), dataType: DataType.Value, bandwidth: Int): Unit = {
       if (sram.hasThisTileForArray(tileId, dataType) && tileId != (-1, -1)) {
@@ -249,9 +244,15 @@ final class Array(
             val tile = if (dataType == DataType.A) op.getTileA else op.getTileB
             tile.memoryOccupiedByArray > 0
           }).exists(op => {
-            val isExpired = if (dataType == DataType.A) op.isInputATileGoneTimerExpired else op.isInputBTileGoneTimerExpired
-            val isNotUsedNext = if (dataType == DataType.A) !op.isTileAUsedInNextOp else !op.isTileBUsedInNextOp
-            isExpired && isNotUsedNext
+//            val isExpired = if (dataType == DataType.A) op.isInputATileGoneTimerExpired else op.isInputBTileGoneTimerExpired
+//            val isNotUsedNext = if (dataType == DataType.A) !op.isTileAUsedInNextOp else !op.isTileBUsedInNextOp
+//            isExpired && isNotUsedNext
+            if(dataType == DataType.A){
+              op.canBeColoredTileA
+            } else {
+              op.canBeColoredTileB
+            }
+
           })
 
           if (canSendTile) {
@@ -296,17 +297,29 @@ final class Array(
       }
     }
 
-    calculatingOperation.find(op => op.getTileA.memoryOccupiedByArray > 0) match {
-      case Some(op) if op.isInputATileGoneTimerExpired && !op.isTileAUsedInNextOp =>
+//    calculatingOperation.find(op => op.getTileA.memoryOccupiedByArray > 0) match {
+//      case Some(op) if op.isInputATileGoneTimerExpired && !op.isTileAUsedInNextOp =>
+//        coloringTileAorB(op.getTileA, arrayConfig.bandwidthOfInputA)
+//      case _ =>
+//    }
+//    calculatingOperation.find(op => op.getTileB.memoryOccupiedByArray > 0 ) match {
+//      case Some(op) if op.isInputBTileGoneTimerExpired && !op.isTileBUsedInNextOp =>
+//        coloringTileAorB(op.getTileB, arrayConfig.bandwidthOfInputB)
+//      case _ =>
+//    }
+
+    calculatingOperation.find(_.canBeColoredTileA) match {
+      case Some(op) =>
         coloringTileAorB(op.getTileA, arrayConfig.bandwidthOfInputA)
       case _ =>
     }
 
-    calculatingOperation.find(op => op.getTileB.memoryOccupiedByArray > 0 ) match {
-      case Some(op) if op.isInputBTileGoneTimerExpired && !op.isTileBUsedInNextOp =>
+    calculatingOperation.find(_.canBeColoredTileB) match {
+      case Some(op) =>
         coloringTileAorB(op.getTileB, arrayConfig.bandwidthOfInputB)
       case _ =>
     }
+
 
     val outputTileC = calculatingOperation.front
     val tileC = outputTileC.getTileC
@@ -340,12 +353,14 @@ final class Array(
 
         )
 
-        operation.completeCalculation()
-
         assert(targetTileB.ownedByArray, s"[error] Array dose not have this tile completely" +
           s" Operation ID: ${operation.operationId} Tile B Id: ${targetTileB.printTile()}" +
           s" Dataflow: ${arrayConfig.dataflow}"
         )
+
+        operation.completeCalculation()
+
+
         val tileAIndex: Int = currentTileQueueTypeA.indexWhere(tile => tile.id == targetTileA.id)
         val tileBIndex: Int = currentTileQueueTypeB.indexWhere(tile => tile.id == targetTileB.id)
 
@@ -602,10 +617,10 @@ final class Array(
     else {
       calculatingOperation.foreach { op =>
         op.getTileC.printTile()
-        if (op.isInputATileGoneTimerExpired)
-          log(s"\t\tIs A Expired? ${op.isInputATileGoneTimerExpired}")
-        if (op.isInputBTileGoneTimerExpired)
-          log(s"\t\tIs B Expired? ${op.isInputBTileGoneTimerExpired}")
+        if (op.canBeColoredTileA)
+          log(s"\t\tCan Tile A be released? ${op.canBeColoredTileA}")
+        if (op.canBeColoredTileB)
+          log(s"\t\tCan Tile B be released? ${op.canBeColoredTileB}")
         if (op.isTileAUsedInNextOp)
           log(s"\t\tIs A Used in Next Op ${op.isTileAUsedInNextOp}")
         if (op.isTileBUsedInNextOp)
