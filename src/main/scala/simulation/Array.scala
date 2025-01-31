@@ -11,14 +11,12 @@ final class Array(
 
   setMode(loggerOption)
 
-  private var isArrayOutputStall = false
-  var arrayInputStallCount = 0
-  var arrayOutputStallCount = 0
+  var isArrayStall = false
 
   private var tileIdToReceiveA: (Int,Int) = (-1, -1)
   private var tileIdToReceiveB: (Int,Int) = (-1, -1)
 
-  private var schedule: Vector[ScheduledOperation] = _
+  var schedule: Vector[ScheduledOperation] = _
 
   private val currentTileQueueTypeA: mutable.Queue[TileA] = mutable.Queue.empty[TileA]
   private val nextTileQueueTypeA: mutable.Queue[TileA] = mutable.Queue.empty[TileA]
@@ -38,7 +36,6 @@ final class Array(
   private var totalMemoryMissCountB: Double = 0
 
   private var arrayActiveCount: Int = 0
-  private var hasSuccessfullySwapped: Boolean = false
 
   //Functions called by compiler
   def getMemoryAccessCountA: Double = totalMemoryAccessCountA
@@ -60,7 +57,7 @@ final class Array(
       isTileAUsedInNext: Boolean = false,
       isTileBUsedInNext: Boolean = false
     ) = {
-      ScheduledOperation(
+      new ScheduledOperation(
         arrayConfig.dataflow,
         op.layerName,
         op.operationId,
@@ -128,49 +125,65 @@ final class Array(
 
   }
 
-  //Functions called by Output Double buffer SRAM
-  def stop(): Unit = {
-    isArrayOutputStall = true
-  }
-
-  def go(): Unit = {
-    isArrayOutputStall = false
-  }
 
   override def update(interface: Interface) : Unit = {
 
-    //TODO consider output double buffer SRAM capacity
-    if (calculatingOperation.nonEmpty && !isArrayOutputStall) {
-      prepareTileForSend()
-      send(interface)
-    } else
+//    if (calculatingOperation.nonEmpty && !isArrayStall) {
+//      prepareTileForSend()
+//      send(interface)
+//    } else
+//      stuck = true
+//
+//    countSramAccess(interface)
+//    updateState()
+//    changeOperationState(interface)
+//
+//    resetTileIdToReceive()
+//    setTileIdToReceive()
+//
+//    if(!isArrayStall) {
+//
+//      calculatingOperation.foreach(op => op.updateTimer())
+//      countArrayActiveState()
+//      judgeSramDoubleBufferLogic(interface)
+//      setRequestedTilesToSRAM(interface)
+//
+//    } else {
+//      arrayOutputStallCount += 1
+//    }
+//
+//    if(isAllCalculated){
+//      interface.sramA.clearBuffer()
+//      interface.sramB.clearBuffer()
+//    }
+//
+//    stuck = stuck && !hasSuccessfullySwapped
+
+    if(isArrayStall){
       stuck = true
+    } else {
 
-    countSramAccess(interface)
-    updateState()
+      if (calculatingOperation.nonEmpty && !isArrayStall) {
+        prepareTileForSend()
+        send(interface)
+      }
 
-    changeOperationState(interface)
-
-    resetTileIdToReceive()
-    setTileIdToReceive()
-
-    if(!isArrayOutputStall) {
-
+      countSramAccess(interface)
+      updateState()
+      changeOperationState(interface)
+      resetTileIdToReceive()
+      setTileIdToReceive()
       calculatingOperation.foreach(op => op.updateTimer())
       countArrayActiveState()
       judgeSramDoubleBufferLogic(interface)
       setRequestedTilesToSRAM(interface)
 
-    } else {
-      arrayOutputStallCount += 1
-    }
+      if(isAllCalculated){
+        interface.sramA.clearBuffer()
+        interface.sramB.clearBuffer()
+      }
 
-    if(isAllCalculated){
-      interface.sramA.clearBuffer()
-      interface.sramB.clearBuffer()
     }
-
-    stuck = stuck && !hasSuccessfullySwapped
 
   }
 
@@ -179,17 +192,18 @@ final class Array(
       arrayActiveCount += 1
   }
 
-  //TODO change code below see double buffer sram countDramAccess
   private def countSramAccess(interface: Interface): Unit = {
-
     if(tileIdToReceiveA != (-1, -1) && interface.sramA.isFirstFillUpDone) {
       totalMemoryAccessCountA += 1.0
       if(interface.sramA.hasThisTileForArray(tileIdToReceiveA, DataType.A) &&
-        capacityLeftTileA() >= arrayConfig.bandwidthOfInputA &&
-        nextTileQueueTypeA.exists(_.id == tileIdToReceiveA)){
+        (capacityLeftTileA() >= arrayConfig.bandwidthOfInputA ||
+          (capacityLeftTileA() == 0 && calculatingOperation.exists(op =>
+            op.getTileA.memoryOccupiedByArray > 0 &&
+              op.isInputATileGoneTimerExpired &&
+              !op.isTileAUsedInNextOp))) &&
+        nextTileQueueTypeA.exists(_.id == tileIdToReceiveA)) {
         totalMemoryHitCountA += 1.0
       } else {
-        arrayInputStallCount += 1
         totalMemoryMissCountA += 1.0
       }
     }
@@ -197,59 +211,90 @@ final class Array(
     if(tileIdToReceiveB != (-1, -1) && interface.sramB.isFirstFillUpDone) {
       totalMemoryAccessCountB += 1.0
       if(interface.sramB.hasThisTileForArray(tileIdToReceiveB, DataType.B) &&
-        capacityLeftTileB() >= arrayConfig.bandwidthOfInputB &&
-        nextTileQueueTypeB.exists(_.id == tileIdToReceiveB)){
+        (capacityLeftTileB() >= arrayConfig.bandwidthOfInputB ||
+          (capacityLeftTileB() == 0 && calculatingOperation.exists(op =>
+            op.getTileB.memoryOccupiedByArray > 0 &&
+              op.isInputBTileGoneTimerExpired &&
+              !op.isTileBUsedInNextOp))) &&
+        nextTileQueueTypeB.exists(_.id == tileIdToReceiveB)) {
         totalMemoryHitCountB += 1.0
       } else {
-        arrayInputStallCount += 1
         totalMemoryMissCountB += 1.0
       }
     }
-
   }
 
   private def judgeSramDoubleBufferLogic(interface: Interface): Unit = {
 
     if(tileIdToReceiveA != (-1, -1))
-      if(!interface.sramA.hasThisTileForArray(tileIdToReceiveA, DataType.A))
-        hasSuccessfullySwapped = interface.sramA.canSwapBuffers
+      if(!interface.sramA.hasThisTileForArray(tileIdToReceiveA, DataType.A)) {
+        interface.sramA.canSwapBuffers
+      }
 
     if(tileIdToReceiveB != (-1, -1))
-      if(!interface.sramB.hasThisTileForArray(tileIdToReceiveB, DataType.B))
-        hasSuccessfullySwapped = interface.sramB.canSwapBuffers
+      if(!interface.sramB.hasThisTileForArray(tileIdToReceiveB, DataType.B)) {
+        interface.sramB.canSwapBuffers
+      }
 
   }
 
+  //TODO merge with count SRAM Access function name handleSramAccess
   private def setRequestedTilesToSRAM(interface: Interface): Unit = {
+    def handleTileRequest(sram: DoubleBufferSram, tileId: (Int, Int), dataType: DataType.Value, bandwidth: Int): Unit = {
+      if (sram.hasThisTileForArray(tileId, dataType) && tileId != (-1, -1)) {
+        if (getCapacityLeft(dataType) >= bandwidth) {
+          sram.setTileIdToSend(tileId)
+        } else if (getCapacityLeft(dataType) == 0) {
+          val canSendTile = calculatingOperation.find(op => {
+            val tile = if (dataType == DataType.A) op.getTileA else op.getTileB
+            tile.memoryOccupiedByArray > 0
+          }).exists(op => {
+            val isExpired = if (dataType == DataType.A) op.isInputATileGoneTimerExpired else op.isInputBTileGoneTimerExpired
+            val isNotUsedNext = if (dataType == DataType.A) !op.isTileAUsedInNextOp else !op.isTileBUsedInNextOp
+            isExpired && isNotUsedNext
+          })
 
-    if(interface.sramA.hasThisTileForArray(tileIdToReceiveA, DataType.A) && tileIdToReceiveA != (-1, -1)) {
-      if ( capacityLeftTileA() >= arrayConfig.bandwidthOfInputA ) {
-        interface.sramA.setTileIdToSend(tileIdToReceiveA)
-      } else if (capacityLeftTileA() == 0) {
-        calculatingOperation.find(op => op.getTileA.memoryOccupiedByArray > 0) match {
-          case Some(op) if op.isInputATileGoneTimerExpired && !op.isTileAUsedInNextOp=>
-            interface.sramA.setTileIdToSend(tileIdToReceiveA)
-          case _ =>
+          if (canSendTile) {
+            sram.setTileIdToSend(tileId)
+          }
         }
       }
     }
-
-    if(interface.sramB.hasThisTileForArray(tileIdToReceiveB, DataType.B) && tileIdToReceiveB != (-1, -1)) {
-      if ( capacityLeftTileB() >= arrayConfig.bandwidthOfInputB) {
-        interface.sramB.setTileIdToSend(tileIdToReceiveB)
-      } else if (capacityLeftTileB() == 0){
-        //TODO split logic by dataflow
-        calculatingOperation.find(op =>op.getTileB.memoryOccupiedByArray > 0) match {
-          case Some(op) if op.isInputBTileGoneTimerExpired && !op.isTileBUsedInNextOp =>
-            interface.sramB.setTileIdToSend(tileIdToReceiveB)
-          case _ =>
-        }
+    def getCapacityLeft(dataType: DataType.Value): Int = {
+      dataType match {
+        case DataType.A => capacityLeftTileA()
+        case DataType.B => capacityLeftTileB()
+        case _ =>
+          Console.err.println("[error] Not Valid Type of SRAM")
+          sys.exit(1)
       }
     }
-
+    handleTileRequest(interface.sramA, tileIdToReceiveA, DataType.A, arrayConfig.bandwidthOfInputA)
+    handleTileRequest(interface.sramB, tileIdToReceiveB, DataType.B, arrayConfig.bandwidthOfInputB)
   }
+
 
   override def prepareTileForSend(): Unit = {
+
+    def coloringTileAorB(targetTile: Tile, bandwidth: Int): Unit = {
+      if(targetTile.memoryOccupiedByArray - bandwidth >= 0 ){
+        targetTile.memoryCalculatedByArray = targetTile.memoryCalculatedByArray + bandwidth
+        targetTile.memoryOccupiedByArray = targetTile.memoryOccupiedByArray - bandwidth
+      } else {
+        targetTile.memoryCalculatedByArray = targetTile.memoryCalculatedByArray + targetTile.memoryOccupiedByArray
+        targetTile.memoryOccupiedByArray = 0
+      }
+    }
+
+    def coloringTileC(targetTileC: Tile): Unit = {
+      if(arrayConfig.outputBandwidth - targetTileC.memoryOccupiedByArray >= 0){
+        targetTileC.memoryOccupiedBySram = targetTileC.dims.memorySize
+        targetTileC.memoryOccupiedByArray = 0
+      } else {
+        targetTileC.memoryOccupiedBySram += arrayConfig.outputBandwidth
+        targetTileC.memoryOccupiedByArray = targetTileC.dims.memorySize - targetTileC.memoryOccupiedBySram
+      }
+    }
 
     calculatingOperation.find(op => op.getTileA.memoryOccupiedByArray > 0) match {
       case Some(op) if op.isInputATileGoneTimerExpired && !op.isTileAUsedInNextOp =>
@@ -270,25 +315,7 @@ final class Array(
 
   }
 
-  private def coloringTileAorB(targetTile: Tile, bandwidth: Int): Unit = {
-    if(targetTile.memoryOccupiedByArray - bandwidth >= 0 ){
-      targetTile.memoryCalculatedByArray = targetTile.memoryCalculatedByArray + bandwidth
-      targetTile.memoryOccupiedByArray = targetTile.memoryOccupiedByArray - bandwidth
-    } else {
-      targetTile.memoryCalculatedByArray = targetTile.memoryCalculatedByArray + targetTile.memoryOccupiedByArray
-      targetTile.memoryOccupiedByArray = 0
-    }
-  }
 
-  private def coloringTileC(targetTileC: Tile): Unit = {
-    if(arrayConfig.outputBandwidth - targetTileC.memoryOccupiedByArray >= 0){
-      targetTileC.memoryOccupiedBySram = targetTileC.dims.memorySize
-      targetTileC.memoryOccupiedByArray = 0
-    } else {
-      targetTileC.memoryOccupiedBySram += arrayConfig.outputBandwidth
-      targetTileC.memoryOccupiedByArray = targetTileC.dims.memorySize - targetTileC.memoryOccupiedBySram
-    }
-  }
 
   override def send(interface: Interface) : Unit = {
 
@@ -464,9 +491,8 @@ final class Array(
           calculatingOperation += op
         }
       case Some(op) if op.isWaiting =>
-        if(capacityLeftTileA() >= arrayConfig.bandwidthOfInputA && capacityLeftTileB() >= arrayConfig.bandwidthOfInputB){
-          schedule.find(op => op.isWaiting).get.willCalculateTile()
-        }
+        schedule.find(op => op.isWaiting).get.willCalculateTile()
+
       case _ =>
         //Do nothing
     }
@@ -538,12 +564,6 @@ final class Array(
       tileIdToReceiveB = operation.getRequiredTileBId
     }
   }
-
-  override def restoreTrafficState(): Unit = {
-    super.restoreTrafficState()
-    hasSuccessfullySwapped = false
-  }
-
 
   //Util
   private def generateOperationId(tileAId: (Int, Int) , tileBId: (Int, Int) ): (Int, Int, Int) = {

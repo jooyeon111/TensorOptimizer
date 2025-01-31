@@ -58,7 +58,7 @@ case class ArrayConfig(
 
   val capacityOfTileA: Int =
     dataflow match {
-      case Dataflow.Is => groupPeRow * vectorPeRow * groupPeCol * vectorPeCol * numMultiplier * portBitWidth.typeA
+      case Dataflow.Is => totalNumberOfMultipliers * portBitWidth.typeA
       case Dataflow.Os => bandwidthOfInputA * ( 2 + ceil(log10(numMultiplier)/log10(2.0)).toInt)// * portBitWidth.typeA
       case Dataflow.Ws => bandwidthOfInputA * ( 2 + ceil(log10(numMultiplier)/log10(2.0)).toInt)// * portBitWidth.typeA
       case _ =>
@@ -70,7 +70,7 @@ case class ArrayConfig(
     dataflow match {
       case Dataflow.Is => bandwidthOfInputB * ( 2 + ceil(log10(numMultiplier)/log10(2.0)).toInt)// * portBitWidth.typeB
       case Dataflow.Os => bandwidthOfInputB * ( 2 + ceil(log10(numMultiplier)/log10(2.0)).toInt)// * portBitWidth.typeB
-      case Dataflow.Ws => groupPeRow * vectorPeRow * groupPeCol * vectorPeCol * numMultiplier * portBitWidth.typeB
+      case Dataflow.Ws => totalNumberOfMultipliers * portBitWidth.typeB
       case _ =>
         Console.err.println(s"[error] Invalid dataflow")
         sys.exit(1)

@@ -3,8 +3,11 @@
 ########################################################################################################################
 
 # Layer info
-LAYER := input/simulation/layer/swin/swin_b_stage4_final_linear_projection.cfg
-TEST_LAYER := input/simulation/layer/etc/middle_k.cfg
+LAYER := input/simulation/layer/etc/square.cfg
+TEST_IS := input/simulation/layer/etc/large_n.cfg
+TEST_OS := input/simulation/layer/etc/large_k.cfg
+TEST_WS := input/simulation/layer/etc/large_m.cfg
+
 
 TEST_OPTION_SRAM_REF := input/simulation/hardware_reference/nvsim/sram.cfg
 TEST_OPTION_DRAM_REF := input/simulation/hardware_reference/cacti/ddr4_dram.cfg
@@ -20,6 +23,15 @@ TEST_OPTION_IS_SD_2 = $(BASE_CONFIG_PATH)/oneLayer/is_{4x4}x{1x1}x1_sd_2.cfg
 TEST_OPTION_IS_SD_4 = $(BASE_CONFIG_PATH)/oneLayer/is_{4x4}x{1x1}x1_sd_4.cfg
 TEST_OPTION_IS_SD_8 = $(BASE_CONFIG_PATH)/oneLayer/is_{4x4}x{1x1}x1_sd_8.cfg
 
+TEST_OPTION_OS_SD_2 = $(BASE_CONFIG_PATH)/oneLayer/os_{4x4}x{1x1}x1_sd_2.cfg
+TEST_OPTION_OS_SD_4 = $(BASE_CONFIG_PATH)/oneLayer/os_{4x4}x{1x1}x1_sd_4.cfg
+TEST_OPTION_OS_SD_8 = $(BASE_CONFIG_PATH)/oneLayer/os_{4x4}x{1x1}x1_sd_8.cfg
+
+TEST_OPTION_WS_SD_2 = $(BASE_CONFIG_PATH)/oneLayer/ws_{4x4}x{1x1}x1_sd_2.cfg
+TEST_OPTION_WS_SD_4 = $(BASE_CONFIG_PATH)/oneLayer/ws_{4x4}x{1x1}x1_sd_4.cfg
+TEST_OPTION_WS_SD_8 = $(BASE_CONFIG_PATH)/oneLayer/ws_{4x4}x{1x1}x1_sd_8.cfg
+
+TEST_OPTION_IS_SD_16 = $(BASE_CONFIG_PATH)/oneLayer/is_{32x32}x{1x1}x1_sd_16.cfg
 TEST_OPTION_IS_SD_32 = $(BASE_CONFIG_PATH)/oneLayer/is_{32x32}x{1x1}x1_sd_32.cfg
 TEST_OPTION_IS_SD_48 = $(BASE_CONFIG_PATH)/oneLayer/is_{32x32}x{1x1}x1_sd_48.cfg
 TEST_OPTION_IS_SD_64 = $(BASE_CONFIG_PATH)/oneLayer/is_{32x32}x{1x1}x1_sd_64.cfg
@@ -57,18 +69,28 @@ TEST_OPTION_MULT_16384 = $(BASE_CONFIG_PATH)/bandwidth/multiplier_16384.cfg
 
 .PHONY: test
 test:
-	sbt "runMain simulation.AnalyzerMain ${TEST_LAYER} ${TEST_OPTION_IS_SD_2}"
-	sbt "runMain simulation.AnalyzerMain ${TEST_LAYER} ${TEST_OPTION_IS_SD_4}"
-	sbt "runMain simulation.AnalyzerMain ${TEST_LAYER} ${TEST_OPTION_IS_SD_8}"
+	sbt "runMain simulation.AnalyzerMain ${TEST_IS} ${TEST_OPTION_IS_SD_2}"
+	sbt "runMain simulation.AnalyzerMain ${TEST_IS} ${TEST_OPTION_IS_SD_4}"
+	sbt "runMain simulation.AnalyzerMain ${TEST_IS} ${TEST_OPTION_IS_SD_8}"
+
+	sbt "runMain simulation.AnalyzerMain ${TEST_OS} ${TEST_OPTION_OS_SD_2}"
+	sbt "runMain simulation.AnalyzerMain ${TEST_OS} ${TEST_OPTION_OS_SD_4}"
+	sbt "runMain simulation.AnalyzerMain ${TEST_OS} ${TEST_OPTION_OS_SD_8}"
+
+	sbt "runMain simulation.AnalyzerMain ${TEST_WS} ${TEST_OPTION_WS_SD_2}"
+	sbt "runMain simulation.AnalyzerMain ${TEST_WS} ${TEST_OPTION_WS_SD_4}"
+	sbt "runMain simulation.AnalyzerMain ${TEST_WS} ${TEST_OPTION_WS_SD_8}"
 
 .PHONY: sd_is
 sd_is:
-	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_32}"
-	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_64}"
-	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_128}"
-	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_256}"
+	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_16}"
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_32}"
+	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_48}"
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_64}"
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_128}"
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_256}"
 	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_512}"
-	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_1024}"
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_IS_SD_1024}"
 
 .PHONY: sd_os
 sd_os:
@@ -81,12 +103,12 @@ sd_os:
 
 .PHONY: sd_ws
 sd_ws:
-	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_32}"
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_32}"
 	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_64}"
-	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_128}"
-	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_256}"
-	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_512}"
-	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_1024}"
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_128}"
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_256}"
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_512}"
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_1024}"
 
 
 .PHONY: sram

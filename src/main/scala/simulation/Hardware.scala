@@ -1,6 +1,7 @@
 package simulation
 
 trait Hardware {
+  //TODO modify stuck logic
   protected var stuck: Boolean = false
 //  protected var readAccessCount = 0
 //  protected var writeAccessCount = 0

@@ -134,16 +134,28 @@ class OutputDoubleBufferSram(
       if(writeBuffer.forall(tile => tile.ownedBySram)){
         executeBufferSwap()
         increaseBufferSwapCount()
-        interface.array.go()
+//        interface.array.go()
+//        interface.array.isArrayStall = false
+//        interface.sramA.isSramStall = false
+//        interface.sramB.isSramStall = false
+        resumeHardware(interface)
       } else {
         increaseBufferSwapStallCount()
       }
     } else {
       if(writeBuffer.forall(tile => tile.ownedBySram)) {
         if(writeBuffer.length == singleBufferTileCapacity){
-          interface.array.stop()
+//          interface.array.stop()
+//          interface.array.isArrayStall = true
+//          interface.sramA.isSramStall = true
+//          interface.sramB.isSramStall = true
+          stallHardware(interface)
         } else {
-          interface.array.go()
+//          interface.array.go()
+//          interface.array.isArrayStall = false
+//          interface.sramA.isSramStall = false
+//          interface.sramB.isSramStall = false
+          resumeHardware(interface)
         }
       }
     }
@@ -155,6 +167,18 @@ class OutputDoubleBufferSram(
       }
     }
 
+  }
+
+  private def stallHardware(interface: Interface): Unit = {
+    interface.array.isArrayStall = true
+    interface.sramA.isSramStall = true
+    interface.sramB.isSramStall = true
+  }
+
+  private def resumeHardware(interface: Interface): Unit = {
+    interface.array.isArrayStall = false
+    interface.sramA.isSramStall = false
+    interface.sramB.isSramStall = false
   }
 
   private def judgeDramReadWriteState(interface: Interface): Unit = {

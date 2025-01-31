@@ -28,6 +28,8 @@ class DoubleBufferSram(
   require(singleBufferTileCapacity >=  1, "[error] Tile capacity must be at least 1")
   setMode(loggerOption)
 
+  var isSramStall = false
+
   private var tileIdToSend: (Int, Int) = (-1, -1)
   private val tileOperationOrder: mutable.ListBuffer[TileScheduleEntry] = mutable.ListBuffer.empty[TileScheduleEntry]
   private var availableOutputBandwidth: Int = outputBandwidth
@@ -166,22 +168,20 @@ class DoubleBufferSram(
 
   override def update(interface: Interface) : Unit = {
 
-    if(isGoodStateToGo){
+    if(isGoodStateToGo && !isSramStall){
       prepareTileForSend()
       send(interface)
+      resetTileIdToSend()
     } else
       stuck = true
 
     countDramAccess()
-
     updateState()
 
     if(!isFirstFillUpDone)
       checkFirstFillUp(interface)
 
-    resetTileIdToSend()
     updateMemoryMonitor()
-
 
   }
 
@@ -299,17 +299,15 @@ class DoubleBufferSram(
   }
 
   private def countDramAccess(): Unit = {
-    if(isFirstFillUpDone){
-      val unscheduledTiles = tileOperationOrder.filter(!_.isScheduled).map(_.id).toSet
-      if(unscheduledTiles.nonEmpty){
-        val bufferIds = (readBuffer.map(_.id.asInstanceOf[(Int, Int)]) ++ writeBuffer.map(_.id.asInstanceOf[(Int, Int)])).toSet
-        if(!unscheduledTiles.subsetOf(bufferIds)){
-          totalDramAccessCount += 1.0
-          if(writePendingBuffer.nonEmpty){
-            totalDramHitCount += 1.0
-          } else {
-            totalDramMissCount += 1.0
-          }
+    val unscheduledTiles = tileOperationOrder.filter(!_.isScheduled).map(_.id).toSet
+    if(unscheduledTiles.nonEmpty){
+      val bufferIds = (readBuffer.map(_.id.asInstanceOf[(Int, Int)]) ++ writeBuffer.map(_.id.asInstanceOf[(Int, Int)])).toSet
+      if(!unscheduledTiles.subsetOf(bufferIds)){
+        totalDramAccessCount += 1.0
+        if(writePendingBuffer.nonEmpty){
+          totalDramHitCount += 1.0
+        } else {
+          totalDramMissCount += 1.0
         }
       }
     }

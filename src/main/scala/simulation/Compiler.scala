@@ -66,13 +66,11 @@ class Compiler(
 
     var cycle: Long = 0
 
-//    dram.uploadInitialTiles(layer.operationVector, array.arrayConfig.dataflow)
     require(layer.operationVector.nonEmpty, "Empty operation vector function is called in wrong place")
     dram.initDram(layer.operationVector, array.arrayConfig.dataflow)
     array.uploadOperationVector(layer.operationVector)
     sramA.initTileSchedule(layer.operationVector)
     sramB.initTileSchedule(layer.operationVector)
-
 
     breakable {
       while(!areAllHardwareQueueEmpty) {
@@ -109,13 +107,13 @@ class Compiler(
         }
 
         if(array.capacityLeftTileA <0) {
-          println(" CApacity a is minus")
+          println("Capacity is a negative value")
           printCompilationState(cycle)
           break()
         }
 
         if(array.capacityLeftTileB() < 0 ) {
-          println(" CApacity a is minus")
+          println("Capacity is a negative value")
           printCompilationState(cycle)
           break()
         }
@@ -123,7 +121,10 @@ class Compiler(
 
       }
     }
-//    printCompilationState(cycle)
+//
+//    println(s"Dim Size A: ${array.schedule.map(_.getTileA.dims.memorySize).sum}")
+//    println(s"Dim Size B: ${array.schedule.map(_.getTileB.dims.memorySize).sum}")
+//    println(s"Dim Size C: ${array.schedule.map(_.getTileC.dims.memorySize).sum}")
     cycle
 
   }
@@ -163,8 +164,8 @@ class Compiler(
   def getBufferSwapCountB: Int = sramB.getBufferSwapCount
   def getBufferSwapCountC: Int = sramC.getBufferSwapCount
 
-  def getArrayInputStallCount: Int = array.arrayInputStallCount
-  def getArrayOutputStallCount: Int = array.arrayOutputStallCount
+//  def getArrayInputStallCount: Int = array.arrayInputStallCount
+//  def getArrayOutputStallCount: Int = array.arrayOutputStallCount
 
   def getBufferSwapStallCountA: Int = sramA.getBufferSwapStallCount
   def getBufferSwapStallCountB: Int = sramB.getBufferSwapStallCount

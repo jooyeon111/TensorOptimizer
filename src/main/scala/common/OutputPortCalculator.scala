@@ -27,6 +27,7 @@ trait OutputPortCalculator {
 
     dataflow match {
       case Dataflow.Is =>
+        println(s"IS Output Port Bitwidth: ${adBitWidth + ceil(log( groupPeCol * vectorPeCol )/ log(2)).toInt}")
         adBitWidth + ceil(log( groupPeCol * vectorPeCol )/ log(2)).toInt
 
       case Dataflow.Os =>
@@ -41,7 +42,7 @@ trait OutputPortCalculator {
             originalDimensionSize / arrayRowDimension + 1
           }
 
-          adBitWidth + additionalAdditionNumber
+          adBitWidth + ceil(log(additionalAdditionNumber)/log(2)).toInt
         } else {
           Console.err.println("Output stationary must need output port bandwidth")
           sys.exit(1)
@@ -49,6 +50,7 @@ trait OutputPortCalculator {
 
 
       case Dataflow.Ws =>
+        println(s"WS Output Port Bitwidth: ${adBitWidth + ceil(log( groupPeRow * vectorPeRow )/ log(2)).toInt}")
         adBitWidth + ceil(log( groupPeRow * vectorPeRow )/ log(2)).toInt
     }
   }

@@ -54,8 +54,8 @@ case class SimulationResult(
   bufferSwapCountA: Int,
   bufferSwapStallCountA: Int,
 
-  arrayInputStallCount: Int,
-  arrayOutputStallCount: Int,
+//  arrayInputStallCount: Int,
+//  arrayOutputStallCount: Int,
 
   firstFillUpCycleB: Long,
   bufferSwapCountB: Int,
@@ -162,8 +162,8 @@ case class SimulationResult(
     log(s"\t\tSRAM B Buffer swap Success Count: $bufferSwapCountB")
     log(s"\t\tSRAM B Buffer Swap Stall Count: $bufferSwapStallCountB")
     log(s"")
-    log(s"\t\tArray Input Stall Count: $arrayInputStallCount")
-    log(s"\t\tArray Output Stall Count: $arrayOutputStallCount")
+//    log(s"\t\tArray Input Stall Count: $arrayInputStallCount")
+//    log(s"\t\tArray Output Stall Count: $arrayOutputStallCount")
     log(s"")
     log(s"\t\tSRAM C First Fill Up Cycle: $firstFillUpCycleC")
     log(s"\t\tSRAM C Buffer swap Success Count: $bufferSwapCountC")
@@ -283,8 +283,8 @@ object SimulationResult {
     bufferSwapCountB = -1,
     bufferSwapStallCountB = -1,
 
-    arrayInputStallCount = -1,
-    arrayOutputStallCount = -1,
+//    arrayInputStallCount = -1,
+//    arrayOutputStallCount = -1,
 
     firstFillUpCycleC = -1,
     bufferSwapCountC = -1,

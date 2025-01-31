@@ -430,9 +430,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     val capacityB = (simConfig.singleBufferLimitKbB * 8 * 1024)/ sizeTileB
     val capacityC = (simConfig.singleBufferLimitKbC * 8 * 1024)/ sizeTileC
 
-    println(s"Capacity A = ${capacityA}")
-    println(s"Capacity B = ${capacityB}")
-    println(s"Capacity C = ${capacityC}")
+//    println(s"Capacity A = ${capacityA}")
+//    println(s"Capacity B = ${capacityB}")
+//    println(s"Capacity C = ${capacityC}")
 
 
     if(!(capacityA > 0 && capacityB > 0 && capacityC > 0 ))
@@ -541,8 +541,8 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
         bufferSwapCountB = compiler.getBufferSwapCountB,
         bufferSwapStallCountB = compiler.getBufferSwapStallCountB,
 
-        arrayInputStallCount = compiler.getArrayInputStallCount,
-        arrayOutputStallCount = compiler.getArrayOutputStallCount,
+//        arrayInputStallCount = compiler.getArrayInputStallCount,
+//        arrayOutputStallCount = compiler.getArrayOutputStallCount,
 
         firstFillUpCycleC = compiler.getFirstFillUptCycleC,
         bufferSwapCountC = compiler.getBufferSwapCountC,

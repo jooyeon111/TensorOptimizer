@@ -1,18 +1,16 @@
 package simulation
 
 import common.Dataflow
-import common.Dataflow.Dataflow
-
 import scala.math.{ceil, log10}
 
-case class ScheduledOperation(
-  dataflow: Dataflow.Value,
-  layerName: String,
-  operationId:(Int, Int, Int),
+class ScheduledOperation(
+  val dataflow: Dataflow.Value,
+  val layerName: String,
+  val operationId:(Int, Int, Int),
   private val tileC: TileC,
-  isTileAUsedInNextOp: Boolean,
-  isTileBUsedInNextOp: Boolean,
-  loggerOption: LoggerOption
+  val isTileAUsedInNextOp: Boolean,
+  val isTileBUsedInNextOp: Boolean,
+  val loggerOption: LoggerOption
 ) extends Logger {
 
   setMode(loggerOption)
@@ -109,111 +107,6 @@ case class ScheduledOperation(
   def getTileAId: (Int, Int) = (operationId._1, operationId._3)
 
   def getTileBId: (Int, Int) = (operationId._3, operationId._2)
-//
-//  def getRequiredTileAId: (Int, Int) =
-//    dataflow match {
-//      case Dataflow.Is =>
-//
-//      if(isNextCalculation){
-//        getTileAId
-//      } else if (isLoading){
-//        if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize)
-//          tileA.id
-//        else
-//          (-1, -1)
-//
-//      } else
-//        (-1, -1)
-//
-//      case Dataflow.Os =>
-//        assert(!isLoading, "[error] output stationary cannot have this state")
-//        assert(!isCalculated, "[error] right now this stat cannot happen")
-//
-//        if(isNextCalculation){
-//          getTileAId
-//        } else if(isCalculating){
-//          if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize)
-//            tileA.id
-//          else
-//            (-1, -1)
-//        } else {
-//          Console.err.println(s"This state dose not exist")
-//          sys.exit(1)
-//        }
-//
-//
-//      case Dataflow.Ws =>
-//
-//        if(isLoaded){
-//          getTileAId
-//        } else if (isCalculating){
-//          if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize)
-//            getTileAId
-//          else
-//            (-1, -1)
-//        } else
-//          (-1, -1)
-//
-//      case _ =>
-//        Console.err.println(
-//          s"[error] This type of dataflow cannot use start loading function Current Dataflow: $dataflow")
-//        sys.exit(1)
-//    }
-//
-//
-//  def getRequiredTileBId: (Int, Int) =
-//    dataflow match {
-//      case Dataflow.Is =>
-//      if(isLoaded){
-//        getTileBId
-//      } else if(isCalculating){
-//
-//        if(tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
-//          getTileBId
-//        else
-//          (-1, -1)
-//
-//      } else
-//        (-1, -1)
-//
-//      case Dataflow.Os =>
-//        assert(!isLoading, "[error] output stationary cannot have this state")
-//        assert(!isLoaded, "[error] output stationary cannot have this state")
-//        assert(!isCalculated, "[error] right now this stat cannot happen")
-//
-//        if(isNextCalculation){
-//          getTileBId
-//        } else if (isCalculating){
-//          if(tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
-//            tileB.id
-//          else
-//            (-1, -1)
-//        } else {
-//          Console.err.println(s"This state dose not exist")
-//          sys.exit(1)
-//        }
-//
-//      case Dataflow.Ws =>
-//
-//        if(isNextCalculation){
-//          getTileBId
-//        } else if (isLoading){
-//
-//          if(tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
-//            tileB.id
-//          else
-//            (-1, -1)
-//
-//        } else {
-//          (-1, -1)
-//        }
-//
-//      case _ =>
-//        Console.err.println(
-//          s"[error] This type of dataflow cannot use start loading function Current Dataflow: $dataflow")
-//        sys.exit(1)
-//    }
-//
 
 def getRequiredTileAId: (Int, Int) = {
   def needMemorySpace(tile: Tile): Boolean =
@@ -313,77 +206,6 @@ def getRequiredTileAId: (Int, Int) = {
 
   }
 
-//  def needTile: Boolean = {
-//
-//    dataflow match {
-//      case Dataflow.Is =>
-//        if(isNextCalculation){
-//          true
-//        } else if(isLoading){
-//
-//          if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize)
-//            true
-//          else
-//            false
-//
-//        } else if(isLoaded){
-//          true
-//        } else if(isCalculating){
-//
-//          if(tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
-//            true
-//          else
-//            false
-//
-//        } else {
-//          false
-//        }
-//
-//
-//      case Dataflow.Os =>
-//        assert(!isLoading, "[error] output stationary cannot have this state")
-//        assert(!isLoaded, "[error] output stationary cannot have this state")
-//
-//        if(isNextCalculation) {
-//          true
-//        } else if(isCalculating) {
-//
-//          if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize || tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
-//            true
-//          else
-//            false
-//
-//        } else {
-//          false
-//        }
-//
-//      case Dataflow.Ws =>
-//
-//        if(isNextCalculation){
-//          true
-//        } else if(isLoading){
-//
-//          if(tileB.totalMemoryUsedByArray < tileB.dims.memorySize)
-//            true
-//          else
-//            false
-//
-//        } else if(isLoaded){
-//          true
-//        } else if(isCalculating){
-//
-//          if(tileA.totalMemoryUsedByArray < tileA.dims.memorySize)
-//            true
-//          else
-//            false
-//
-//        } else {
-//          false
-//        }
-//
-//    }
-//  }
-
   //State convert
   def startLoading(): Unit = {
     require(dataflow != Dataflow.Os, "[error] Output stationary systolic tensor array cannot call this function")
@@ -458,7 +280,6 @@ def getRequiredTileAId: (Int, Int) = {
         assert(tileA.dims.col == tileB.dims.row, s"Tile A and Tile B dimension is wrong")
         assert(tileA.dims.memorySize / arrayConfig.bandwidthOfInputA == tileB.dims.memorySize / arrayConfig.bandwidthOfInputB,
           s"Tile A and Tile B dimension is wrong")
-
 
         tileA.startCalculation()
         tileB.startCalculation()
