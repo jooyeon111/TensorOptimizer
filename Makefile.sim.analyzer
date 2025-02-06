@@ -3,7 +3,7 @@
 ########################################################################################################################
 
 # Layer info
-LAYER := input/simulation/layer/etc/square.cfg
+LAYER := input/simulation/layer/swin/swin_t_stage3_final_linear_projection.cfg
 TEST_IS := input/simulation/layer/etc/large_n.cfg
 TEST_OS := input/simulation/layer/etc/large_k.cfg
 TEST_WS := input/simulation/layer/etc/large_m.cfg
@@ -98,8 +98,8 @@ sd_os:
 	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_OS_SD_64}"
 	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_OS_SD_128}"
 	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_OS_SD_256}"
-	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_OS_SD_512}"
-	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_OS_SD_1024}"
+	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_OS_SD_512}"
+	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_OS_SD_1024}"
 
 .PHONY: sd_ws
 sd_ws:
@@ -107,8 +107,8 @@ sd_ws:
 	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_64}"
 	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_128}"
 	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_256}"
-	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_512}"
-	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_1024}"
+	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_512}"
+	#sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_1024}"
 
 
 .PHONY: sram

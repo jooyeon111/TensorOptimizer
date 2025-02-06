@@ -2,10 +2,7 @@ package simulation
 
 import simulation.DataType.DataType
 import simulation.TileState.TileState
-
-import scala.annotation.tailrec
 import scala.collection.mutable
-
 
 class DoubleBufferSram(
   override val dataType: DataType,
@@ -13,22 +10,15 @@ class DoubleBufferSram(
   override val singleBufferTileCapacity: Int,
   override val singleBufferLimitKb: Int,
   val loggerOption: LoggerOption,
-) extends Sram with AccessCounter{
+) extends Sram with PatternMatcher with AccessCounter{
 
-  private case class TileScheduleEntry(
-    id: (Int,Int),
-    var isScheduled: Boolean = false,
-  ) {
-    def markAsScheduled(): Unit = {
-      isScheduled = true
-    }
-  }
 
   require(outputBandwidth >= 1, "[error] Output bandwidth must be at least 1")
   require(singleBufferTileCapacity >=  1, "[error] Tile capacity must be at least 1")
   setMode(loggerOption)
 
   var isSramStall = false
+  var swapCount = 0
 
   private var tileIdToSend: (Int, Int) = (-1, -1)
   private val tileOperationOrder: mutable.ListBuffer[TileScheduleEntry] = mutable.ListBuffer.empty[TileScheduleEntry]
@@ -41,7 +31,6 @@ class DoubleBufferSram(
   def getDramAccessCount: Double = totalDramAccessCount
   def getDramHitCount: Double = totalDramHitCount
   def getDramMissCount: Double = totalDramMissCount
-
 
   def getReadBufferIDs: mutable.Queue[(Int, Int)] = {
     readBuffer.map(tile =>tile.id.asInstanceOf[(Int,Int)])
@@ -129,6 +118,7 @@ class DoubleBufferSram(
         updateToWriteBuffer(readBuffer)
         executeBufferSwap()
         increaseBufferSwapCount()
+        swapCount += 1
         true
       } else {
         increaseBufferSwapStallCount()
@@ -284,11 +274,13 @@ class DoubleBufferSram(
     if (shouldSwitch) {
 
       updateToReadBuffer(writeBuffer)
+      assert(readBuffer.isEmpty,"Read buffer is not empty in check first fill up")
       executeBufferSwap()
       isFirstFillUpDone = true
       firstFillUpCycle = interface.getCycle
 
       otherSram.updateToReadBuffer(otherSram.writeBuffer)
+      assert(otherSram.readBuffer.isEmpty,"Read buffer is not empty in check first fill up")
       otherSram.executeBufferSwap()
       otherSram.isFirstFillUpDone = true
       otherSram.firstFillUpCycle = interface.getCycle
@@ -313,64 +305,7 @@ class DoubleBufferSram(
     }
   }
 
-//  private def updateToReadBuffer(writeBuffer: ArrayBuffer[Tile]): Unit = {
-//
-//    if(writeBuffer.isEmpty) return
-//
-//    val writeBufferPattern = mutable.Queue[(Int,Int)]()
-//    writeBufferPattern ++= writeBuffer.map(tile => tile.id.asInstanceOf[(Int,Int)])
-//
-//    while(writeBufferPattern.nonEmpty){
-//
-//      val startIndex = tileOperationOrder.indexWhere(!_.isScheduled)
-//      var index = startIndex
-//      if(index < 0) return
-//
-//      if ( writeBufferPattern.head == tileOperationOrder(index).id ) {
-//        var patternIndex = 0
-//
-//        while(patternIndex < writeBufferPattern.size){
-//          val tileId = writeBufferPattern(patternIndex)
-//          while(tileId == tileOperationOrder(index).id){
-//            tileOperationOrder(index).markAsScheduled()
-//            index +=1
-//          }
-//          patternIndex +=1
-//        }
-//
-//      } else {
-//        Console.err.println(s"[error] Change write buffer to read buffer malfunction")
-//        sys.exit(1)
-//      }
-//
-//      val schedulePattern = mutable.Queue[(Int, Int)]()
-//      schedulePattern ++= tileOperationOrder.slice(startIndex, index).map(_.id)
-//      val patternSize = schedulePattern.size
-//      index = startIndex + patternSize
-//
-//      @tailrec
-//      def findAndMarkPattern(index: Int): Unit = {
-//        if(index + patternSize <= tileOperationOrder.length){
-//          val isMatched = (0 until patternSize).forall{ i =>
-//            tileOperationOrder(index + i).id == tileOperationOrder(startIndex+i).id
-//          }
-//          if(isMatched){
-//            (0 until patternSize).foreach{ i =>
-//              tileOperationOrder(index+i).markAsScheduled()
-//            }
-//            findAndMarkPattern(index+ patternSize)
-//          }
-//        }
-//      }
-//
-//      findAndMarkPattern(index)
-//      (0 until schedulePattern.toSet.size).foreach( _ => writeBufferPattern.dequeue())
-//
-//    }
-//
-//  }
-
-  private def updateToReadBuffer(writeBuffer: mutable.Queue[Tile]): Unit = {
+  private def updateToReadBuffer2(writeBuffer: mutable.Queue[Tile]): Unit = {
     if(writeBuffer.isEmpty) return
 
     val writeBufferPattern = mutable.Queue[(Int,Int)]()
@@ -381,8 +316,7 @@ class DoubleBufferSram(
       if(startIndex < 0) return
 
       if(writeBufferPattern.head != tileOperationOrder(startIndex).id) {
-        Console.err.println(s"[error] Change write buffer to read buffer malfunction")
-        sys.exit(1)
+        return
       }
 
       var index = startIndex
@@ -402,7 +336,7 @@ class DoubleBufferSram(
       schedulePattern ++= patternRange.map(i => tileOperationOrder(i).id)
       val patternSize = schedulePattern.size
 
-      @tailrec
+      @scala.annotation.tailrec
       def findAndMarkPattern(currentIndex: Int): Unit = {
         if(currentIndex + patternSize <= tileOperationOrder.length) {
           val isMatched = (0 until patternSize).forall(i =>
@@ -423,17 +357,73 @@ class DoubleBufferSram(
     }
   }
 
-  private def updateToWriteBuffer(readBuffer: mutable.Queue[Tile]): Unit = {
-    tileOperationOrder.find(!_.isScheduled).foreach { startTileId =>
-      val indexToKeep = readBuffer.indexWhere(_.id == startTileId.id)
-      if(indexToKeep >= 0){
-        readBuffer.remove(0, indexToKeep)
-      } else {
-        readBuffer.clear()
-      }
+  private def updateToReadBuffer(writeBuffer: mutable.Queue[Tile]): Unit = {
+    if(writeBuffer.isEmpty) return
+//    var isFirstLoop = true
+//    var loopCount = 0
+
+    while(tileOperationOrder.exists(!_.isScheduled)){
+//      println(s"SRAM $dataType")
+//      println(s"? : ${isFirstLoop}")
+
+      val unScheduledTileId = tileOperationOrder.find(!_.isScheduled).get.id
+      val startIdx = writeBuffer.indexWhere(_.id == unScheduledTileId)
+
+//      if(isFirstLoop){
+//
+//        if(startIdx <0){
+//          Console.err.println("[error] update to read buffer malfunction")
+//          sys.exit(1)
+//        } else {
+//          isFirstLoop = false
+//        }
+//
+//      } else {
+//        if(startIdx < 0 ) return
+//      }
+
+      if(startIdx < 0 ) return
+
+      val writeBufferPattern = mutable.Queue[(Int, Int)]()
+      writeBufferPattern ++= writeBuffer.slice(startIdx, writeBuffer.size).map(_.id.asInstanceOf[(Int, Int)])
+
+//      println(s" start pattern matching : $loopCount")
+      matchPatterns(writeBufferPattern, tileOperationOrder)
+//      println(" end pattern matching")
+//      loopCount += 1
     }
+
   }
 
+//  private def updateToWriteBuffer(readBuffer: mutable.Queue[Tile]): Unit = {
+//    tileOperationOrder.find(!_.isScheduled).foreach { startTileId =>
+//      val indexToKeep = readBuffer.indexWhere(_.id == startTileId.id)
+//      if(indexToKeep >= 0){
+//        readBuffer.remove(0, indexToKeep)
+//      } else {
+//        readBuffer.clear()
+//      }
+//    }
+//  }
+
+  private def updateToWriteBuffer(readBuffer: mutable.Queue[Tile]): Unit = {
+
+    val readBufferIds = readBuffer.map(_.id).toSet
+    val unscheduledNeededTiles = tileOperationOrder
+      .filter(!_.isScheduled)
+      .map(_.id)
+      .filter(readBufferIds.contains)
+      .toSet
+
+    val indicesToKeep = readBuffer.indices
+      .filter(i => unscheduledNeededTiles.contains(readBuffer(i).id.asInstanceOf[(Int, Int)]))
+      .toSet
+
+    for (i <- readBuffer.indices.reverse if !indicesToKeep.contains(i)) {
+      readBuffer.remove(i)
+    }
+
+  }
 
   //Utility function
   def printTiles(): Unit = {
@@ -450,13 +440,5 @@ class DoubleBufferSram(
     }
     log(s"")
   }
-
-//  def printReceivingOrder(): Unit = {
-//    log(s"\t[SRAM $dataType]")
-//    tileReceivingOrder.foreach { entry =>
-//      log(s"\t\tID: ${entry.id} Status: ${entry.isReceived}")
-//    }
-//    log(s"")
-//  }
 
 }

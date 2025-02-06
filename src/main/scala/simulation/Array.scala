@@ -130,37 +130,6 @@ final class Array(
 
   override def update(interface: Interface) : Unit = {
 
-//    if (calculatingOperation.nonEmpty && !isArrayStall) {
-//      prepareTileForSend()
-//      send(interface)
-//    } else
-//      stuck = true
-//
-//    countSramAccess(interface)
-//    updateState()
-//    changeOperationState(interface)
-//
-//    resetTileIdToReceive()
-//    setTileIdToReceive()
-//
-//    if(!isArrayStall) {
-//
-//      calculatingOperation.foreach(op => op.updateTimer())
-//      countArrayActiveState()
-//      judgeSramDoubleBufferLogic(interface)
-//      setRequestedTilesToSRAM(interface)
-//
-//    } else {
-//      arrayOutputStallCount += 1
-//    }
-//
-//    if(isAllCalculated){
-//      interface.sramA.clearBuffer()
-//      interface.sramB.clearBuffer()
-//    }
-//
-//    stuck = stuck && !hasSuccessfullySwapped
-
     if(isArrayStall){
       stuck = true
     } else {
@@ -235,38 +204,6 @@ final class Array(
   }
 
   private def setRequestedTilesToSRAM(interface: Interface): Unit = {
-//    def handleTileRequest(sram: DoubleBufferSram, tileId: (Int, Int), dataType: DataType.Value, bandwidth: Int): Unit = {
-//      if (sram.hasThisTileForArray(tileId, dataType) && tileId != (-1, -1)) {
-//        if (getCapacityLeft(dataType) >= bandwidth) {
-//          sram.setTileIdToSend(tileId)
-//        } else if (getCapacityLeft(dataType) == 0) {
-//          val canSendTile = calculatingOperation.find(op => {
-//            val tile = if (dataType == DataType.A) op.getTileA else op.getTileB
-//            tile.memoryOccupiedByArray > 0
-//          }).exists(op => {
-//            if(dataType == DataType.A){
-//              op.canBeColoredTileA
-//            } else {
-//              op.canBeColoredTileB
-//            }
-//
-//          })
-//
-//          if (canSendTile) {
-//            sram.setTileIdToSend(tileId)
-//          }
-//        }
-//      }
-//    }
-//    def getCapacityLeft(dataType: DataType.Value): Int = {
-//      dataType match {
-//        case DataType.A => capacityLeftTileA()
-//        case DataType.B => capacityLeftTileB()
-//        case _ =>
-//          Console.err.println("[error] Not Valid Type of SRAM")
-//          sys.exit(1)
-//      }
-//    }
 
     def handleTileARequest(sram: DoubleBufferSram, tileId: (Int, Int), bandwidth: Int): Unit = {
       if (sram.hasThisTileForArray(tileId, DataType.A) && tileId != (-1, -1)) {
@@ -298,8 +235,32 @@ final class Array(
       }
     }
 
-    handleTileARequest(interface.sramA, tileIdToReceiveA, arrayConfig.bandwidthOfInputA)
-    handleTileBRequest(interface.sramB, tileIdToReceiveB, arrayConfig.bandwidthOfInputB)
+    arrayConfig.dataflow match {
+      case Dataflow.Is | Dataflow.Ws =>
+        handleTileARequest(interface.sramA, tileIdToReceiveA, arrayConfig.bandwidthOfInputA)
+        handleTileBRequest(interface.sramB, tileIdToReceiveB, arrayConfig.bandwidthOfInputB)
+      case Dataflow.Os =>
+        if(interface.sramA.hasThisTileForArray(tileIdToReceiveA, DataType.A) &&
+          interface.sramB.hasThisTileForArray(tileIdToReceiveB, DataType.B) &&
+          tileIdToReceiveA != (-1, -1) &&
+          tileIdToReceiveB != (-1, -1)){
+
+          val canRequestA = capacityLeftTileA() >= arrayConfig.bandwidthOfInputA |
+            (capacityLeftTileA() == 0 && calculatingOperation.exists(_.canBeColoredTileA))
+
+          val canRequestB = capacityLeftTileB() >= arrayConfig.bandwidthOfInputB |
+            (capacityLeftTileB() == 0 && calculatingOperation.exists(_.canBeColoredTileB))
+
+          if(canRequestA && canRequestB){
+            interface.sramA.setTileIdToSend(tileIdToReceiveA)
+            interface.sramB.setTileIdToSend(tileIdToReceiveB)
+          }
+        }
+
+    }
+
+//    handleTileARequest(interface.sramA, tileIdToReceiveA, arrayConfig.bandwidthOfInputA)
+//    handleTileBRequest(interface.sramB, tileIdToReceiveB, arrayConfig.bandwidthOfInputB)
 
   }
 
@@ -352,7 +313,7 @@ final class Array(
 
     val outputTileC = calculatingOperation.front
     val tileC = outputTileC.getTileC
-    if(outputTileC.isOutputTileGenerationTimerExpired)
+    if(outputTileC.canGenerateOutputTile)
       coloringTileC(tileC)
 
   }
@@ -374,17 +335,11 @@ final class Array(
       if(targetTileC.ownedBySram) {
 
         assert(targetTileA.ownedByArray, s"[error] Array dose not have this tile completely" +
-          s" Operation ID: ${operation.operationId} Tile A Id: ${operation.getTileAId}" +
-          s"DRAM: ${operation.getTileA.memoryOccupiedByDram} SRAM: ${operation.getTileA.memoryOccupiedBySram}" +
-          s" Array: ${operation.getTileA.memoryOccupiedByArray}" +
-          s" Calculated: ${operation.getTileA.memoryCalculatedByArray}" +
-          s" tile A col"
-
+          s" Operation ID: ${operation.operationId} Tile A Id: ${operation.getTileAId}" //+
         )
 
         assert(targetTileB.ownedByArray, s"[error] Array dose not have this tile completely" +
-          s" Operation ID: ${operation.operationId} Tile B Id: ${targetTileB.printTile()}" +
-          s" Dataflow: ${arrayConfig.dataflow}"
+          s" Operation ID: ${operation.operationId} Tile B Id: ${targetTileB.printTile()}" //+
         )
 
         operation.completeCalculation()
@@ -421,32 +376,21 @@ final class Array(
 
 
   override def updateState(): Unit = {
-
-    while(nextTileQueueTypeA.nonEmpty){
-      if(currentTileQueueTypeA.isEmpty){
-        currentTileQueueTypeA.enqueue(nextTileQueueTypeA.dequeue())
-      } else {
-        if(currentTileQueueTypeA.last.id == nextTileQueueTypeA.head.id && !currentTileQueueTypeA.last.ownedByArray){
-          currentTileQueueTypeA.last.copyDataTransferData(nextTileQueueTypeA.head)
-          nextTileQueueTypeA.dequeue()
+    def processQueueUpdates[T <: Tile](nextQueue: mutable.Queue[T], currentQueue: mutable.Queue[T]): Unit = {
+      while(nextQueue.nonEmpty) {
+        if (currentQueue.isEmpty) {
+          currentQueue.enqueue(nextQueue.dequeue())
+        } else if (currentQueue.last.id == nextQueue.head.id && !currentQueue.last.ownedByArray) {
+          currentQueue.last.copyDataTransferData(nextQueue.head)
+          nextQueue.dequeue()
         } else {
-          currentTileQueueTypeA.enqueue(nextTileQueueTypeA.dequeue())
+          currentQueue.enqueue(nextQueue.dequeue())
         }
       }
     }
 
-    while(nextTileQueueTypeB.nonEmpty){
-      if(currentTileQueueTypeB.isEmpty){
-        currentTileQueueTypeB.enqueue(nextTileQueueTypeB.dequeue())
-      } else {
-        if(currentTileQueueTypeB.last.id == nextTileQueueTypeB.head.id && !currentTileQueueTypeB.last.ownedByArray){
-          currentTileQueueTypeB.last.copyDataTransferData(nextTileQueueTypeB.head)
-          nextTileQueueTypeB.dequeue()
-        } else {
-          currentTileQueueTypeB.enqueue(nextTileQueueTypeB.dequeue())
-        }
-      }
-    }
+    processQueueUpdates(nextTileQueueTypeA, currentTileQueueTypeA)
+    processQueueUpdates(nextTileQueueTypeB, currentTileQueueTypeB)
 
   }
 

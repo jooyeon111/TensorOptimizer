@@ -13,78 +13,25 @@ class ScheduledOperation(
   val capacityTileA: Int,
   val capacityTileB: Int,
   val loggerOption: LoggerOption
-) extends Logger {
+) extends PeLatencyCalculator with Logger {
 
   setMode(loggerOption)
 
   private var tileA: Option[TileA] = None
   private var tileB: Option[TileB] = None
+  private var outputReadyCount: Int = -1
 
-//  private var inputATileGoneTimer: Int = -1
-//  private var inputBTileGoneTimer: Int = - 1
-  private var outputTileGenerationTimer: Int = -1
-
-  //Output outputTileGenerationTimer setting
+  //Output outputReadyCount setting
   def updateTimer(): Unit = {
-//    require(inputATileGoneTimer != -1, s"[error] Input tile gone timer is not set Input Timer A: $inputATileGoneTimer")
-//    require(inputBTileGoneTimer != -1 , s"[error] Input tile gone timer is not set Input Timer B: $inputBTileGoneTimer")
-    require(outputTileGenerationTimer != -1, "[error] Output tile generation timer is not set")
 
-//    inputATileGoneTimer -= 1
-//    if(inputATileGoneTimer < 0){
-//      inputATileGoneTimer = 0
-//    }
+    require(outputReadyCount != -1, "[error] Output tile generation timer is not set")
 
-//    inputBTileGoneTimer -= 1
-//    if(inputBTileGoneTimer < 0){
-//      inputBTileGoneTimer = 0
-//    }
-
-    outputTileGenerationTimer -= 1
-    if(outputTileGenerationTimer < 0){
-      outputTileGenerationTimer = 0
+    outputReadyCount -= 1
+    if(outputReadyCount < 0){
+      outputReadyCount = 0
     }
   }
 
-//  def isInputATileGoneTimerExpired: Boolean = {
-//
-//    dataflow match {
-//      case Dataflow.Is =>
-//        tileB.get.totalMemoryUsedByArray == tileB.get.dims.memorySize
-//
-//      case Dataflow.Os =>
-//        inputATileGoneTimer == 0
-//
-//      case Dataflow.Ws =>
-//        inputATileGoneTimer == 0
-//
-//      case _=>
-//        Console.err.println(s"[error] Invalid dataflow")
-//        sys.exit(1)
-//    }
-//
-//
-//  }
-//
-//  def isInputBTileGoneTimerExpired: Boolean = {
-//
-//    dataflow match {
-//      case Dataflow.Is =>
-//        inputBTileGoneTimer == 0
-//
-//      case Dataflow.Os =>
-//        inputBTileGoneTimer == 0
-//
-//      case Dataflow.Ws =>
-//        tileA.get.totalMemoryUsedByArray == tileA.get.dims.memorySize
-//
-//      case _=>
-//        Console.err.println(s"[error] Invalid dataflow")
-//        sys.exit(1)
-//    }
-//
-//
-//  }
 
   private def canReleaseTileA: Boolean = {
 
@@ -113,24 +60,12 @@ class ScheduledOperation(
   }
 
 
-  def canBeColoredTileA: Boolean = {
-//    tileA.get.memoryOccupiedByArray > 0 &&
-//      isInputATileGoneTimerExpired &&
-//      !isTileAUsedInNextOp
-    canReleaseTileA && !isTileAUsedInNextOp
-  }
+  def canBeColoredTileA: Boolean = canReleaseTileA && !isTileAUsedInNextOp
 
-  def canBeColoredTileB: Boolean = {
-//    tileB.get.memoryOccupiedByArray > 0 &&
-//      isInputBTileGoneTimerExpired &&
-//      !isTileBUsedInNextOp
+  def canBeColoredTileB: Boolean = canReleaseTileB && !isTileBUsedInNextOp
 
-    canReleaseTileB && !isTileBUsedInNextOp
-
-  }
-
-  def isOutputTileGenerationTimerExpired: Boolean =
-    outputTileGenerationTimer == 0
+  def canGenerateOutputTile: Boolean =
+    outputReadyCount == 0
 
   //Set and get
   def setTileA(tileA: TileA): Unit = {
@@ -293,21 +228,16 @@ def getRequiredTileAId: (Int, Int) = {
   //TODO split function
   def startCalculation(arrayConfig: ArrayConfig): Unit = {
     //Is or Ws
-    //array col * block col or array row * block row: skew buffer(pre processor)
-    //ceil(log10(arrayConfig.multiplierPerPe)/log10(2.0)).toInt: Adder tree height
-    //1: one register inside ofPE
-    //1: block PE register
-    //array row or array col: deskew buffer(post processor)
+    //array col * block col or array row * block row: output forwarding register
+    // array row or array column: deskew buffer
 
     //OS
     //tiling size
-    //ceil(log10(arrayConfig.multiplierPerPe)/log10(2.0)).toInt: Adder tree height
-    //2: two register inside of PE
-    //1: block PE register
-    //array config.array - 1: deskew buffer stage
+    //+1 output forwarding
+    //array config.array - 1: deskew buffer
     //1: railway module register
 
-    val peBasicDelay = 2 + ceil(log10(arrayConfig.numMultiplier)/log10(2.0)).toInt
+    val peBasicDelay = calculatePeBasicLatency(arrayConfig.numMultiplier)//2 + ceil(log10(arrayConfig.numMultiplier)/log10(2.0)).toInt
 
     arrayConfig.dataflow match {
       case Dataflow.Is =>
@@ -318,10 +248,7 @@ def getRequiredTileAId: (Int, Int) = {
         tileB.get.startCalculation()
         tileC.startCalculation()
 
-//        inputATileGoneTimer = 0
-//        if(inputBTileGoneTimer == -1)
-//          inputBTileGoneTimer = peBasicDelay
-        outputTileGenerationTimer = (arrayConfig.groupPeCol * arrayConfig.vectorPeCol) + peBasicDelay + 1 + arrayConfig.groupPeRow
+        outputReadyCount = peBasicDelay + (arrayConfig.groupPeCol * arrayConfig.vectorPeCol) + arrayConfig.groupPeRow - 1
 
       case Dataflow.Os =>
 
@@ -336,13 +263,7 @@ def getRequiredTileAId: (Int, Int) = {
         tileB.get.startCalculation()
         tileC.startCalculation()
 
-//        inputATileGoneTimer = peBasicDelay
-//        inputBTileGoneTimer = peBasicDelay
-        outputTileGenerationTimer = tileA.get.dims.memorySize / arrayConfig.bandwidthOfInputA + peBasicDelay + 1 + (arrayConfig.groupPeRow - 1) + 1
-
-//        assert(outputTileGenerationTimer > inputATileGoneTimer, "[error] Input gone timer is must be faster than output tile generation timer")
-//        assert(outputTileGenerationTimer > inputBTileGoneTimer, "[error] Input gone timer is must be faster than output tile generation timer")
-//        assert(inputATileGoneTimer == inputBTileGoneTimer, "[error] input A perish timer and weight B perish timer must be same")
+        outputReadyCount = tileA.get.dims.memorySize / arrayConfig.bandwidthOfInputA + peBasicDelay + 1 + (arrayConfig.groupPeRow - 1) + 1
 
       case Dataflow.Ws =>
 
@@ -352,11 +273,7 @@ def getRequiredTileAId: (Int, Int) = {
 
         tileC.startCalculation()
 
-//        inputATileGoneTimer = peBasicDelay
-//        inputBTileGoneTimer = 0
-        outputTileGenerationTimer = (arrayConfig.groupPeRow * arrayConfig.vectorPeRow) + peBasicDelay + 1 + arrayConfig.groupPeCol
-
-//        assert()
+        outputReadyCount = peBasicDelay + (arrayConfig.groupPeRow * arrayConfig.vectorPeRow) + arrayConfig.groupPeCol - 1
 
       case  _ =>
         Console.err.println(s"[error] Invalid dataflow")

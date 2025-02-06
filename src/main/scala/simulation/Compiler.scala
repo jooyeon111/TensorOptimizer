@@ -74,6 +74,7 @@ class Compiler(
 
     breakable {
       while(!areAllHardwareQueueEmpty) {
+//        println(s"Cycle: $cycle")
         interface.updateCycle(cycle)
 
         if(debugMode)
@@ -107,24 +108,33 @@ class Compiler(
         }
 
         if(array.capacityLeftTileA <0) {
-          println("Capacity is a negative value")
+          Console.err.println("Capacity is a negative value")
           printCompilationState(cycle)
           break()
         }
 
         if(array.capacityLeftTileB() < 0 ) {
-          println("Capacity is a negative value")
+          Console.err.println("Capacity is a negative value")
           printCompilationState(cycle)
           break()
         }
+
+//        if(sramA.swapCount == 5){
+//          Console.err.println("SEX")
+//          log(s"Swap Count: ${sramA.swapCount}")
+//          printCompilationState(cycle)
+//          break()
+//        }
+
         cycle += 1
 
       }
     }
-//
+
 //    println(s"Dim Size A: ${array.schedule.map(_.getTileA.dims.memorySize).sum}")
 //    println(s"Dim Size B: ${array.schedule.map(_.getTileB.dims.memorySize).sum}")
 //    println(s"Dim Size C: ${array.schedule.map(_.getTileC.dims.memorySize).sum}")
+//    printCompilationState(cycle)
     cycle
 
   }
@@ -286,10 +296,9 @@ class Compiler(
     array.printTiles()
     sramC.printTiles()
     array.printSchedule()
-//    sramA.printSchedule()
-//    sramB.printSchedule()
-//    sramA.printReceivingOrder()
-//    sramB.printReceivingOrder()
+    sramA.printSchedule()
+    sramB.printSchedule()
+
     log("")
   }
 }

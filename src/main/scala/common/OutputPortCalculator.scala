@@ -27,7 +27,7 @@ trait OutputPortCalculator {
 
     dataflow match {
       case Dataflow.Is =>
-        println(s"IS Output Port Bitwidth: ${adBitWidth + ceil(log( groupPeCol * vectorPeCol )/ log(2)).toInt}")
+//        println(s"IS Output Port Bitwidth: ${adBitWidth + ceil(log( groupPeCol * vectorPeCol )/ log(2)).toInt}")
         adBitWidth + ceil(log( groupPeCol * vectorPeCol )/ log(2)).toInt
 
       case Dataflow.Os =>
@@ -36,6 +36,7 @@ trait OutputPortCalculator {
           val arrayRowDimension = groupPeRow * vectorPeRow * numMultiplier
           val originalDimensionSize = groupPeRow * vectorPeRow * streamingDimensionSize
 
+          //TODO fix code below when streaming dimension is larger than dimension input dimension K
           val additionalAdditionNumber = if(originalDimensionSize % arrayRowDimension == 0){
             streamingDimensionSize
           } else {
@@ -50,7 +51,7 @@ trait OutputPortCalculator {
 
 
       case Dataflow.Ws =>
-        println(s"WS Output Port Bitwidth: ${adBitWidth + ceil(log( groupPeRow * vectorPeRow )/ log(2)).toInt}")
+//        println(s"WS Output Port Bitwidth: ${adBitWidth + ceil(log( groupPeRow * vectorPeRow )/ log(2)).toInt}")
         adBitWidth + ceil(log( groupPeRow * vectorPeRow )/ log(2)).toInt
     }
   }

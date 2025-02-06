@@ -32,18 +32,18 @@ case class ArrayConfig(
   vectorPeRow,
   vectorPeCol,
   numMultiplier
-) with Logger {
+) with PeLatencyCalculator with Logger {
 
   require(dataflow == Dataflow.Is || dataflow == Dataflow.Os || dataflow == Dataflow.Ws,
     "[error] Currently only 3 dataflow are supported input, weight and output")
 
   val asArrayDimension: ArrayDimension = this
   val arrayConfigString: String = s"${dataflow.toString.toLowerCase}_$arrayDimensionString"
-  val totalNumberOfMultipliers: Int = groupPeRow * groupPeCol * vectorPeRow * vectorPeCol * numMultiplier
+  private val totalNumberOfMultipliers: Int = groupPeRow * groupPeCol * vectorPeRow * vectorPeCol * numMultiplier
 
-  val dimensionOfInputA: Int = groupPeRow * vectorPeRow * numMultiplier
-  val dimensionOfInputB: Int = groupPeCol * vectorPeCol * numMultiplier
-  val dimensionOfOutput: Int = dataflow match {
+  private val dimensionOfInputA: Int = groupPeRow * vectorPeRow * numMultiplier
+  private val dimensionOfInputB: Int = groupPeCol * vectorPeCol * numMultiplier
+  private val dimensionOfOutput: Int = dataflow match {
     case Dataflow.Is => groupPeRow * vectorPeRow
     case Dataflow.Os => groupPeRow * vectorPeRow * vectorPeCol
     case Dataflow.Ws => groupPeCol * vectorPeCol
@@ -59,8 +59,8 @@ case class ArrayConfig(
   val capacityOfTileA: Int =
     dataflow match {
       case Dataflow.Is => totalNumberOfMultipliers * portBitWidth.typeA
-      case Dataflow.Os => bandwidthOfInputA * ( 2 + ceil(log10(numMultiplier)/log10(2.0)).toInt)// * portBitWidth.typeA
-      case Dataflow.Ws => bandwidthOfInputA * ( 2 + ceil(log10(numMultiplier)/log10(2.0)).toInt)// * portBitWidth.typeA
+      case Dataflow.Os => bandwidthOfInputA * calculatePeBasicLatency(numMultiplier) //( 2 + ceil(log10(numMultiplier)/log10(2.0)).toInt)
+      case Dataflow.Ws => bandwidthOfInputA * calculatePeBasicLatency(numMultiplier)//( 2 + ceil(log10(numMultiplier)/log10(2.0)).toInt)
       case _ =>
         Console.err.println(s"[error] Invalid dataflow")
         sys.exit(1)
@@ -68,8 +68,8 @@ case class ArrayConfig(
 
   val capacityOfTileB: Int =
     dataflow match {
-      case Dataflow.Is => bandwidthOfInputB * ( 2 + ceil(log10(numMultiplier)/log10(2.0)).toInt)// * portBitWidth.typeB
-      case Dataflow.Os => bandwidthOfInputB * ( 2 + ceil(log10(numMultiplier)/log10(2.0)).toInt)// * portBitWidth.typeB
+      case Dataflow.Is => bandwidthOfInputB * calculatePeBasicLatency(numMultiplier)//( 2 + ceil(log10(numMultiplier)/log10(2.0)).toInt)
+      case Dataflow.Os => bandwidthOfInputB * calculatePeBasicLatency(numMultiplier)//( 2 + ceil(log10(numMultiplier)/log10(2.0)).toInt)
       case Dataflow.Ws => totalNumberOfMultipliers * portBitWidth.typeB
       case _ =>
         Console.err.println(s"[error] Invalid dataflow")
