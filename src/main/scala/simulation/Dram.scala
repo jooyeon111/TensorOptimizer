@@ -13,8 +13,6 @@ final class Dram(
   //TODO parameterize it to include HBM
   private val ddr4CapacityBit: Long = 68719476736L
 
-
-  private val dramLogs: mutable.Queue[DramLog] = mutable.Queue.empty[DramLog]
   private val currentTileQueue: mutable.Queue[Tile] = mutable.Queue.empty[Tile]
   private val nextTileQueue: mutable.Queue[Tile] = mutable.Queue.empty[Tile]
 
@@ -71,7 +69,6 @@ final class Dram(
     checkCapacity()
   }
 
-  def getDramLogs: mutable.Queue[DramLog] = dramLogs
 
   //Function called by Output Double Buffer SRAM
   def onWriteEnable(): Unit = {
@@ -85,7 +82,6 @@ final class Dram(
   //Function called by array
   def receive(interface: Interface): Unit = {
     incrementWriteAccessCount()
-    dramLogs += DramLog(interface.getCycle, DramAccessState.Write)
   }
 
   //Function called by interface
@@ -255,7 +251,6 @@ final class Dram(
   override def send(interface: Interface) : Unit = {
 
     if(sendingTileQueueA.nonEmpty || sendingTileQueueB.nonEmpty) {
-      dramLogs += DramLog(interface.getCycle, DramAccessState.Read)
       incrementReadAccessCount()
     }
 

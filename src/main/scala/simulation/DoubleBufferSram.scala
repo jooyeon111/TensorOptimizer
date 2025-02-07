@@ -387,14 +387,11 @@ class DoubleBufferSram(
       val writeBufferPattern = mutable.Queue[(Int, Int)]()
       writeBufferPattern ++= writeBuffer.slice(startIdx, writeBuffer.size).map(_.id.asInstanceOf[(Int, Int)])
 
-//      println(s" start pattern matching : $loopCount")
       matchPatterns(writeBufferPattern, tileOperationOrder)
-//      println(" end pattern matching")
 //      loopCount += 1
     }
 
   }
-
 //  private def updateToWriteBuffer(readBuffer: mutable.Queue[Tile]): Unit = {
 //    tileOperationOrder.find(!_.isScheduled).foreach { startTileId =>
 //      val indexToKeep = readBuffer.indexWhere(_.id == startTileId.id)

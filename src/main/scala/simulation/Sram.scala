@@ -9,7 +9,7 @@ trait Sram extends Hardware with Logger {
   //TODO unify name toggle or swap
   //Abstract members
   val dataType: DataType
-  protected val singleBufferLimitKb: Int
+  val singleBufferLimitKb: Int
   protected val singleBufferTileCapacity: Int
 
   //Memory configuration

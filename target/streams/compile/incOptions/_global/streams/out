@@ -1,8 +1,41 @@
 [0m[[0m[0mdebug[0m] [0m[0mCreated transactional ClassFileManager with tempDir = /home/jooyeon/aigis/target/scala-2.13/classes.bak[0m
 [0m[[0m[0mdebug[0m] [0m[0mAbout to delete class files:[0m
-[0m[[0m[0mdebug[0m] [0m[0m	DoubleBufferSram.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$delayedInit$body.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$SingleBufferLimitKbs$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$Result.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$SingleBufferLimitKbs.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$OptimizationMetric$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$Result$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$Architecture.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$SimulationConfig$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$SimulationConfig.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$Architecture$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0mWe backup class files:[0m
-[0m[[0m[0mdebug[0m] [0m[0m	DoubleBufferSram.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$delayedInit$body.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$SingleBufferLimitKbs$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$Result.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$SingleBufferLimitKbs.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$OptimizationMetric$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$Result$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$Architecture.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$SimulationConfig$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$SimulationConfig.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$Architecture$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0mRegistering generated classes:[0m
-[0m[[0m[0mdebug[0m] [0m[0m	DoubleBufferSram.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$delayedInit$body.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$SingleBufferLimitKbs$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$Result.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$SingleBufferLimitKbs.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$OptimizationMetric$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$Result$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$Architecture.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$SimulationConfig$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$SimulationConfig.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DesignExplorerMain$Architecture$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0mRemoving the temporary directory used for backing up class files: /home/jooyeon/aigis/target/scala-2.13/classes.bak[0m

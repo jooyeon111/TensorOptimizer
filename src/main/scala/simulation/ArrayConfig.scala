@@ -1,7 +1,6 @@
 package simulation
 
 import common.{Dataflow, ArrayDimension}
-import scala.math.{ceil, log10}
 
 object ArrayConfig {
   def apply(arrayDimension: ArrayDimension, dataflow: Dataflow.Value, portBitWidth: PortBitWidth): ArrayConfig = {

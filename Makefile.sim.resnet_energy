@@ -1,0 +1,39 @@
+########################################################################################################################
+#												   Analyzer                                                        #
+########################################################################################################################
+
+BASE_CONFIG_PATH := input/simulation/configs/analyzer
+
+# Layer info
+LAYER_RESNET50_CONV2_1x1 := input/simulation/layer/resnet/resnet50_conv2_1x1.cfg
+LAYER_RESNET50_CONV2_3x3 := input/simulation/layer/resnet/resnet50_conv2_3x3.cfg
+LAYER_RESNET50_CONV3_1x1 := input/simulation/layer/resnet/resnet50_conv3_1x1.cfg
+LAYER_RESNET50_CONV3_3x3 := input/simulation/layer/resnet/resnet50_conv3_3x3.cfg
+LAYER_RESNET50_CONV4_1x1 := input/simulation/layer/resnet/resnet50_conv4_1x1.cfg
+LAYER_RESNET50_CONV4_3x3 := input/simulation/layer/resnet/resnet50_conv4_3x3.cfg
+LAYER_RESNET50_CONV5_1x1 := input/simulation/layer/resnet/resnet50_conv5_1x1.cfg
+LAYER_RESNET50_CONV5_3x3 := input/simulation/layer/resnet/resnet50_conv5_3x3.cfg
+
+#TEST OPTION
+TEST_OPTION_OS_SD_32 = $(BASE_CONFIG_PATH)/oneLayer/os_{32x32}x{1x1}x1_sd_32.cfg
+TEST_OPTION_OS_SD_64 = $(BASE_CONFIG_PATH)/oneLayer/os_{32x32}x{1x1}x1_sd_64.cfg
+TEST_OPTION_OS_SD_256 = $(BASE_CONFIG_PATH)/oneLayer/os_{32x32}x{1x1}x1_sd_256.cfg
+
+TEST_OPTION_WS_SD_32 = $(BASE_CONFIG_PATH)/oneLayer/ws_{32x32}x{1x1}x1_sd_32.cfg
+TEST_OPTION_WS_SD_256 = $(BASE_CONFIG_PATH)/oneLayer/ws_{32x32}x{1x1}x1_sd_256.cfg
+
+#ENERGY REPORT
+TEST_OPTION_DRAM_REF := input/simulation/hardware_reference/cacti/ddr4_dram.cfg
+TEST_OPTION_SRAM_REF := input/simulation/hardware_reference/nvsim/sram.cfg
+TEST_OPTION_RTL_RESULT_REF := input/simulation/hardware_reference/design_compiler/array.cfg
+
+.PHONY : all
+all: conv2_1x1 \
+
+
+.PHONY: conv2_1x1
+conv2_1x1:
+	#Square
+	sbt "runMain simulation.AnalyzerMain ${LAYER_RESNET50_CONV2_1x1} ${TEST_OPTION_OS_SD_32} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+
+
