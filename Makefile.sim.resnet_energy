@@ -23,7 +23,7 @@ TEST_OPTION_WS_SD_32 = $(BASE_CONFIG_PATH)/oneLayer/ws_{32x32}x{1x1}x1_sd_32.cfg
 TEST_OPTION_WS_SD_256 = $(BASE_CONFIG_PATH)/oneLayer/ws_{32x32}x{1x1}x1_sd_256.cfg
 
 #ENERGY REPORT
-TEST_OPTION_DRAM_REF := input/simulation/hardware_reference/cacti/ddr4_dram.cfg
+TEST_OPTION_DRAM_REF := input/simulation/hardware_reference/DRAMsim3/ddr4_dram.cfg
 TEST_OPTION_SRAM_REF := input/simulation/hardware_reference/nvsim/sram.cfg
 TEST_OPTION_RTL_RESULT_REF := input/simulation/hardware_reference/design_compiler/array.cfg
 

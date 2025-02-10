@@ -3,7 +3,7 @@ BASE_CONFIG_PATH := input/simulation/configs/designExplorer
 LAYER_RESNET50_CONV2_1x1 := input/simulation/layer/resnet/resnet50_conv2_1x1.cfg
 TEST_OPTION_1024 = $(BASE_CONFIG_PATH)/ddr4_total_multiplier_1024.cfg
 
-TEST_OPTION_DRAM_REF := input/simulation/hardware_reference/cacti/ddr4_dram.cfg
+TEST_OPTION_DRAM_REF := input/simulation/hardware_reference/DRAMsim3/ddr4_dram.cfg
 TEST_OPTION_SRAM_REF := input/simulation/hardware_reference/nvsim/sram.cfg
 TEST_OPTION_RTL_RESULT_REF := input/simulation/hardware_reference/design_compiler/array.cfg
 

@@ -1,0 +1,4 @@
+Layer Name: bert_large_final
+M: 3072
+N: 1024
+K: 3072

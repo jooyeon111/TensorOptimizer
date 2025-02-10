@@ -1,0 +1,4 @@
+Layer Name: bert_large_qktv
+M: 1024
+N: 3072
+K: 1024

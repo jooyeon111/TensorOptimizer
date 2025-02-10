@@ -9,7 +9,7 @@ TEST_OS := input/simulation/layer/etc/large_k.cfg
 TEST_WS := input/simulation/layer/etc/large_m.cfg
 
 
-TEST_OPTION_SRAM_REF := input/simulation/hardware_reference/nvsim/sram.cfg
+TEST_OPTION_SRAM_REF := input/simulation/hardware_reference/DRAMsim3/sram.cfg
 TEST_OPTION_DRAM_REF := input/simulation/hardware_reference/cacti/ddr4_dram.cfg
 TEST_OPTION_RTL_RESULT_REF := input/simulation/hardware_reference/design_compiler/array.cfg
 

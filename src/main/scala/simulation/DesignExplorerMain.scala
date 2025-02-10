@@ -469,20 +469,6 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
     }
   }
 
-//  private def filterArchitectureByCycleThreshold(
-//    results: ArrayBuffer[Result],
-//    marginPercent: Double = 20.0,
-//  ): ArrayBuffer[Result] = {
-//
-//    val minCycle = results.map(result => result.simulationResult.cycle).min
-//    val cycleThreshold = (minCycle * (1 + marginPercent/100)).toLong
-//
-//    results.filter{ result =>
-//      (result.simulationResult.cycle <= cycleThreshold) && (result.simulationResult.cycle != Long.MaxValue)
-//    }
-//
-//  }
-
   private def filterArchitectureByMetric(
     results: ArrayBuffer[Result],
     metric: OptimizationMetric.Value,
@@ -710,12 +696,11 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
     // Take top 3 configurations
     val topThree = sortedResults.take(3)
 
-    log(s"\nOptimization Metric: ${simConfig.metric}")
-    log("=" * 80)
+    log(s"Optimization Metric: ${simConfig.metric}")
 
+    log(s"")
     topThree.zipWithIndex.foreach { case (result, index) =>
-      log(s"\n[Rank ${index + 1}]")
-      log("-" * 40 )
+      log(s"\t[Rank ${index + 1}]")
 
       // Configuration details
       val config = result.architecture.arrayConfig
@@ -744,8 +729,7 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
       simResult.areaMm.foreach { area =>
         log(s"\t\tTotal Area: ${String.format("%.2f", area)} mm²")
       }
-
-      log("=" * 80)
+      log(s"")
     }
   }
 
