@@ -2,25 +2,25 @@ package simulation
 
 trait BandWidthFilter {
 
-  def mean(data: Vector[Double]): Double =
+  private def mean(data: Vector[Double]): Double =
     data.sum / data.length
 
-  def standardDeviation(data: Vector[Double]): Double = {
+  private def standardDeviation(data: Vector[Double]): Double = {
     val m = mean(data)
     math.sqrt(data.map( x=> math.pow( x - m , 2)).sum / data.length)
   }
 
-  def calculateScoreZ(value: Double, mean: Double, std: Double): Double =
+  private def calculateScoreZ(value: Double, mean: Double, std: Double): Double =
     (value - mean) / std
 
 
-  def isWithinOneSigma(scoreZ: Double):Boolean = math.abs(scoreZ) <= 1.0
+  private def isWithinOneSigma(scoreZ: Double):Boolean = math.abs(scoreZ) <= 1.0
 
-  def isWithinTwoSigma(scoreZ: Double):Boolean = math.abs(scoreZ) <= 2.0
+  private def isWithinTwoSigma(scoreZ: Double):Boolean = math.abs(scoreZ) <= 2.0
 
-  def isWithinThreeSigma(scoreZ: Double):Boolean = math.abs(scoreZ) <= 3.0
+  private def isWithinThreeSigma(scoreZ: Double):Boolean = math.abs(scoreZ) <= 3.0
 
-  def calculateStats(bandwidths: Vector[Double]): (Double, Double) = {
+  private def calculateStats(bandwidths: Vector[Double]): (Double, Double) = {
     val m = mean(bandwidths)
     val std = standardDeviation(bandwidths)
     (m, std)
@@ -65,7 +65,6 @@ trait BandWidthFilter {
       isWithinTwoSigma(scoreA) && isWithinTwoSigma(scoreB) && isWithinTwoSigma(scoreOut)
 
     }
-
 
   }
 

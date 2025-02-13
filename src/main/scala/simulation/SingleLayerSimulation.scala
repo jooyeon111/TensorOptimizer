@@ -231,9 +231,35 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
         throw ParseError("Invalid dataflow")
     }
 
-    val streamingDimensionSize = testConfig.
-      getInt("Streaming Dimension Size").
-      getOrElse(getMaximumStreamingDimension(gemmDimension, dataflow))
+//    val streamingDimensionSize = testConfig.
+//      getInt("Streaming Dimension Size").
+//      getOrElse(getMaximumStreamingDimension(gemmDimension, dataflow))
+
+    val streamingDimensionSize = dataflow match {
+      case Dataflow.Is =>
+        testConfig
+          .getInt("Streaming Dimension Size")
+          .getOrElse(throw ParseError("Streaming Dimension Not Found"))
+
+      case Dataflow.Os =>
+        val sDim = testConfig
+          .getInt("Streaming Dimension Size")
+          .getOrElse(throw ParseError("Streaming Dimension Not Found"))
+
+        if(sDim >= dimensionK){
+          println("Streaming Dimension is Equal or Larger in output stationary")
+          println(s"Streaming dimension in configuration file is $sDim")
+          println(s"Streaming dimension is changed into $dimensionK")
+          dimensionK
+        } else {
+          sDim
+        }
+
+      case Dataflow.Ws =>
+        testConfig
+          .getInt("Streaming Dimension Size")
+          .getOrElse(throw ParseError("Streaming Dimension Not Found"))
+    }
 
     val dramUploadOrder = dataflow match {
       case Dataflow.Is => DramUploadOrder.mkn
@@ -292,9 +318,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     val singleBufferLimitKbC = testConfig.getInt("SRAM C Single Buffer Limit (KB)").getOrElse(
       throw ParseError("SRAM C Single Buffer Limit (KB)")
     )
-    dramReferenceData.foreach(println(_))
-    println(sramReferenceData)
-    println(arrayReferenceData)
+//    dramReferenceData.foreach(println(_))
+//    println(sramReferenceData)
+//    println(arrayReferenceData)
 
     SimulationConfig(
       debugPrint = debugPrint,

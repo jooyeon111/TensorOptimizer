@@ -241,165 +241,20 @@ case class SimulationResult(
     log(s"")
   }
 
-  def showSummary(loggerOption: LoggerOption, arrayConfigString: String): Unit = {
-    setMode(loggerOption)
+//  def showSummary(loggerOption: LoggerOption, arrayConfigString: String): Unit = {
+//    setMode(loggerOption)
+//
+//    if(isEnergyReportValid && isAreaReportValid){
+//      log(s"\t[$arrayConfigString Performance] Cycle: $cycle," +
+//        s" Area: ${String.format("%.2f", arrayAreaMm.get)} mm^2," +
+//        s" Energy: ${String.format("%.2f", energyPj.get)} pJ")
+//    } else {
+//      log(s"\t[$arrayConfigString Performance] Cycle: $cycle")
+//    }
+//
+//  }
 
-//    if(sramReadEnergyPjA.isDefined) {
-//      println("SRAM READ Energy PJ A is Valid")
-//    } else {
-//      println("SRAM READ Energy PJ A is not Valid")
-//    }
-//
-//    if(sramWriteEnergyPjA.isDefined) {
-//      println("SRAM Write Energy PJ A is Valid")
-//    } else {
-//      println("SRAM Write Energy PJ A is not Valid")
-//    }
-//
-//    if(sramLeakageEnergyPjA.isDefined) {
-//      println("SRAM Leakage Energy PJ A is Valid")
-//    } else {
-//      println("SRAM Leakage Energy PJ A is not Valid")
-//    }
-//
-//    if(sramEnergyPjA.isDefined) {
-//      println("SRAM Total Energy PJ A is Valid")
-//    } else {
-//      println("SRAM Total Energy PJ A is not Valid")
-//    }
-//
-//    if(sramReadEnergyPjB.isDefined) {
-//      println("SRAM READ Energy PJ B is Valid")
-//    } else {
-//      println("SRAM READ Energy PJ B is not Valid")
-//    }
-//
-//    if(sramWriteEnergyPjB.isDefined) {
-//      println("SRAM Write Energy PJ B is Valid")
-//    } else {
-//      println("SRAM Write Energy PJ B is not Valid")
-//    }
-//
-//    if(sramLeakageEnergyPjB.isDefined) {
-//      println("SRAM Leakage Energy PJ B is Valid")
-//    } else {
-//      println("SRAM Leakage Energy PJ B is not Valid")
-//    }
-//
-//    if(sramEnergyPjB.isDefined) {
-//      println("SRAM Total Energy PJ B is Valid")
-//    } else {
-//      println("SRAM Total Energy PJ B is not Valid")
-//    }
-//
-//    if(sramReadEnergyPjC.isDefined) {
-//      println("SRAM READ Energy PJ C is Valid")
-//    } else {
-//      println("SRAM READ Energy PJ C is not Valid")
-//    }
-//
-//    if(sramWriteEnergyPjC.isDefined) {
-//      println("SRAM Write Energy PJ C is Valid")
-//    } else {
-//      println("SRAM Write Energy PJ C is not Valid")
-//    }
-//
-//    if(sramLeakageEnergyPjC.isDefined) {
-//      println("SRAM Leakage Energy PJ C is Valid")
-//    } else {
-//      println("SRAM Leakage Energy PJ C is not Valid")
-//    }
-//
-//    if(sramEnergyPjC.isDefined) {
-//      println("SRAM Total Energy PJ C is Valid")
-//    } else {
-//      println("SRAM Total Energy PJ C is not Valid")
-//    }
-//
-//    if(dramReadEnergyPj.isDefined) {
-//      println("DRAM Read Energy PJ is Valid")
-//    } else {
-//      println("DRAM Read Energy PJ is not Valid")
-//    }
-//
-//    if(dramWriteEnergyPj.isDefined) {
-//      println("DRAM Write Energy PJ is Valid")
-//    } else {
-//      println("DRAM Write Energy PJ is not Valid")
-//    }
-//
-//    if(dramEnergyPj.isDefined) {
-//      println("DRAM Total Energy PJ is Valid")
-//    } else {
-//      println("DRAM Total Energy PJ is not Valid")
-//    }
-//
-//    if(arrayDynamicEnergyPj.isDefined) {
-//      println("Array Dynamic Energy PJ is Valid")
-//    } else {
-//      println("Array Dynamic Energy PJ is not Valid")
-//    }
-//
-//    if(arrayLeakageEnergyPj.isDefined) {
-//      println("Array Leakage Energy PJ is Valid")
-//    } else {
-//      println("Array Leakage Energy PJ is not Valid")
-//    }
-//
-//    if(arrayEnergy.isDefined) {
-//      println("Array Total Energy PJ is Valid")
-//    } else {
-//      println("Array Total Energy PJ is not Valid")
-//    }
-//
-//    if(energyPj.isDefined) {
-//      println("Total Energy PJ is Valid")
-//    } else {
-//      println("Total Energy PJ is not Valid")
-//    }
-//
-//    if(sramAreaMmA.isDefined) {
-//      println("SRAM Area MM A is Valid")
-//    } else {
-//      println("SRAM Area MM A is not Valid")
-//    }
-//
-//    if(sramAreaMmB.isDefined) {
-//      println("SRAM Area MM B is Valid")
-//    } else {
-//      println("SRAM Area MM B is not Valid")
-//    }
-//
-//    if(sramAreaMmC.isDefined) {
-//      println("SRAM Area MM C is Valid")
-//    } else {
-//      println("SRAM Area MM C is not Valid")
-//    }
-//
-//    if(arrayAreaMm.isDefined) {
-//      println("Array Area MM is Valid")
-//    } else {
-//      println("Array Area MM is not Valid")
-//    }
-//
-//    if(areaMm.isDefined) {
-//      println("Total Area MM is Valid")
-//    } else {
-//      println("Total Area MM is not Valid")
-//    }
-
-
-    if(isEnergyReportValid && isAreaReportValid){
-      log(s"\t[$arrayConfigString] Cycle: $cycle," +
-        s" Area: ${String.format("%.2f", arrayAreaMm.get)} mm^2," +
-        s" Energy: ${String.format("%.2f", energyPj.get)} pJ")
-    } else {
-      log(s"\tCycle: $cycle")
-    }
-
-  }
-
-  private def isEnergyReportValid: Boolean = {
+  def isEnergyReportValid: Boolean = {
     sramReadEnergyPjA.isDefined &&
       sramWriteEnergyPjA.isDefined &&
       sramLeakageEnergyPjA.isDefined &&
@@ -421,7 +276,7 @@ case class SimulationResult(
       energyPj.isDefined
   }
 
-  private def isAreaReportValid: Boolean = {
+  def isAreaReportValid: Boolean = {
     sramAreaMmA.isDefined &&
       sramAreaMmB.isDefined &&
       sramAreaMmC.isDefined &&

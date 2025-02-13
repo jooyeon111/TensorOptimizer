@@ -23,7 +23,7 @@ object AnalyzerMain extends App
     sys.exit(1)
   }
 
-  println("Analyzer Main START")
+  println("=" * 30 + "Analyzer Main START" + "=" * 30)
 
   Try {
 
@@ -51,7 +51,7 @@ object AnalyzerMain extends App
 
   } match {
     case Success(_) =>
-      println("Analyzer Main End")
+      println("=" * 30 + "Analyzer Main END" + "="*30)
     case Failure(e) =>
       Console.err.println(s"Error: ${e.getMessage}")
       sys.exit(1)

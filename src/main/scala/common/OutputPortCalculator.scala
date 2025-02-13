@@ -4,10 +4,10 @@ import scala.math.{ceil, log}
 
 trait OutputPortCalculator {
 
-  protected def multiplierOutputBitWidth(bitWidthPortA: Int, bitWidthPortB: Int): Int =
+  private def multiplierOutputBitWidth(bitWidthPortA: Int, bitWidthPortB: Int): Int =
     bitWidthPortA + bitWidthPortB
 
-  protected def adderTreeOutputBitWidth(multiplierOutputBitWidth: Int, numMultiplier: Int): Int =
+  private def adderTreeOutputBitWidth(multiplierOutputBitWidth: Int, numMultiplier: Int): Int =
     multiplierOutputBitWidth + ceil(log(numMultiplier)/ log(2)).toInt
 
   protected def calculateOutputPort(
@@ -27,7 +27,6 @@ trait OutputPortCalculator {
 
     dataflow match {
       case Dataflow.Is =>
-//        println(s"IS Output Port Bitwidth: ${adBitWidth + ceil(log( groupPeCol * vectorPeCol )/ log(2)).toInt}")
         adBitWidth + ceil(log( groupPeCol * vectorPeCol )/ log(2)).toInt
 
       case Dataflow.Os =>
@@ -51,7 +50,6 @@ trait OutputPortCalculator {
 
 
       case Dataflow.Ws =>
-//        println(s"WS Output Port Bitwidth: ${adBitWidth + ceil(log( groupPeRow * vectorPeRow )/ log(2)).toInt}")
         adBitWidth + ceil(log( groupPeRow * vectorPeRow )/ log(2)).toInt
     }
   }

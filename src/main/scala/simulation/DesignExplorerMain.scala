@@ -85,7 +85,7 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
       singleBufferLimitKbs = SingleBufferLimitKbs(nextSize, nextSize, nextSize)
     )
 
-    def updatesingleBufferLimitKb(nextSize: Int, sramType: DataType.Value): Architecture = {
+    def updateSingleBufferLimitKb(nextSize: Int, sramType: DataType.Value): Architecture = {
       sramType match {
         case DataType.A =>
           copy(
@@ -118,10 +118,30 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
 
   }
 
-  private case class Result(
+  private case class ArchitectureEvaluation(
     architecture: Architecture,
     simulationResult: SimulationResult
-  )
+  ) {
+    def showSummary(): Unit = {
+      if(simulationResult.isEnergyReportValid && simulationResult.isAreaReportValid){
+        log(s"\t[${architecture.arrayConfig.arrayConfigString}]")
+        log(s"\t\tCycle: ${simulationResult.cycle}")
+        log(s"\t\tArea: ${String.format("%.2f", simulationResult.arrayAreaMm.get)} mm^2")
+        log(s"\t\tEnergy: ${String.format("%.2f", simulationResult.energyPj.get)} pJ")
+        log(s"\t\tStreaming Dimension Size: ${architecture.streamingDimensionSize}")
+        log(s"\t\tSingleBuffer A: ${architecture.singleBufferLimitKbs.limitA} KB")
+        log(s"\t\tSingleBuffer B: ${architecture.singleBufferLimitKbs.limitB} KB")
+        log(s"\t\tSingleBuffer C: ${architecture.singleBufferLimitKbs.limitC} KB\n")
+      } else {
+        log(s"\t[$architecture.arrayConfig.arrayConfigString]")
+        log(s"\t\tCycle: ${simulationResult.cycle},")
+        log(s"\t\tStreaming Dimension Size: ${architecture.streamingDimensionSize}")
+        log(s"\t\tSingleBuffer A: ${architecture.singleBufferLimitKbs.limitA} KB")
+        log(s"\t\tSingleBuffer B: ${architecture.singleBufferLimitKbs.limitB} KB")
+        log(s"\t\tSingleBuffer C: ${architecture.singleBufferLimitKbs.limitC} KB\n")
+      }
+    }
+  }
 
   private val help = """
    |First argument is target MNK layer
@@ -131,9 +151,11 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
    |Fifth argument is Array Reference Data (Option)
   """.stripMargin
 
-  val marginPercent = 50
-  val maximumsingleBufferLimitKb = 512
-  val minimumsingleBufferLimitKb = 32
+  private val marginPercent: Int = 10
+  private val maximumSingleBufferLimitKb: Int = 512
+  private val minimumSingleBufferLimitKb: Int = 32
+
+  println("=" * 30 + "Design Explorer Main START" + "=" * 30)
 
   Try {
     if(args.length == 2){
@@ -160,7 +182,7 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
 
   } match {
     case Success(_) =>
-      log("Design Explorer Main End")
+      println("=" * 30 + "Design Explorer Main END" + "=" * 30)
     case Failure(e) =>
       Console.err.println(s"Error: ${e.getMessage}")
       sys.exit(1)
@@ -180,6 +202,8 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
     val sramDataParser = sramDataPath.map(new ConfigManager(_))
     val dramDataParser = dramDataPath.map(new ConfigManager(_))
     val arrayDataParser = arrayDataPath.map(new ConfigManager(_))
+
+    println("Parsing START")
 
     if(!layerConfigParser.parse()) {
       throw ParseError("Layer parsing failed" + help)
@@ -277,6 +301,8 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
       )
     }
 
+    println("Parsing END")
+
     val simulationConfig = buildSimulationConfig(
       layerConfig, testConfig, dramReferenceData, sramReferenceData, arrayReferenceData
     )
@@ -289,7 +315,8 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
     val loggerOption = setLoggerOption(simulationConfig)
     logSimulation(simulationConfig)
 
-    log("[Simulation START]")
+    //PHASE1
+    log("[Finding Optimal Array Configs]")
 
     val optimizedArrayConfigResults = findOptimalArrayConfig(
       simConfig = simulationConfig,
@@ -302,47 +329,36 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
       throw RunTimeError("There is no available optimal array configuration candidates...")
     }
 
-    log("\t[Optimal Config Results]")
     log(s"\tTotal ${optimizedArrayConfigResults.length} have survived")
+    log("\t[Optimal Config Results]")
 
-    optimizedArrayConfigResults.foreach( config => config.simulationResult.showSummary(loggerOption, config.architecture.arrayConfig.arrayConfigString))
+    optimizedArrayConfigResults.foreach{ config =>
+      config.showSummary()
+    }
 
-    val optimizedStreamingDimensionResults = findOptimalStreamingSize(
+
+    val optimizedResults = findOptimalArchitectureIteratively(
       simConfig = simulationConfig,
       resultBuffer = optimizedArrayConfigResults,
       marginPercent = marginPercent,
       loggerOption = loggerOption
     )
 
-    if(optimizedStreamingDimensionResults.isEmpty){
-      throw RunTimeError("There is no available optimal streaming dimension candidates...")
-    }
-    log(s"")
-
-    log("\t[Optimal Streaming Dimension Results]")
-    log(s"\tTotal ${optimizedStreamingDimensionResults.length} have survived")
-
-    optimizedStreamingDimensionResults.foreach( config => config.simulationResult.showSummary(loggerOption, config.architecture.arrayConfig.arrayConfigString))
-
-    val optimizedSramArchitectures = findOptimalSramSize(
-      simConfig = simulationConfig,
-      resultBuffer = optimizedStreamingDimensionResults,
-      marginPercent = marginPercent,
-      loggerOption = loggerOption
-    )
-
-    if(optimizedSramArchitectures.isEmpty){
+    if(optimizedResults.isEmpty){
       throw RunTimeError("There is no available SRAM candidates...")
     }
 
-    log("\t[Optimal SRAM Size Results]")
-    log(s"\tTotal ${optimizedSramArchitectures.length} have survived")
+    log("\n\t[Results After Iterations]")
+    log(s"\tTotal ${optimizedResults.length} have survived")
 
-    optimizedSramArchitectures.foreach( config => config.simulationResult.showSummary(loggerOption, config.architecture.arrayConfig.arrayConfigString))
+    optimizedResults.foreach{ config =>
+      config.showSummary()
+    }
 
+    //PHASE4
     val optimizedSingleSramResults = findOptimalSingleSramSize(
       simConfig = simulationConfig,
-      resultBuffer = optimizedSramArchitectures,
+      resultBuffer = optimizedResults,
       marginPercent = marginPercent,
       loggerOption = loggerOption
     )
@@ -351,13 +367,15 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
       throw RunTimeError("There is no available single SRAM candidates...")
     }
     log(s"")
-    log("\t[Optimal Single SRAM Size Results]")
+    log("[Optimal Single SRAM Size Results]")
     log(s"\tTotal ${optimizedSingleSramResults.length} have survived")
+    log("\t[Optimal Config Results]")
 
-    optimizedSingleSramResults.foreach( config => config.simulationResult.showSummary(loggerOption, config.architecture.arrayConfig.arrayConfigString))
+    optimizedSingleSramResults.foreach{ config =>
+      config.showSummary()
+    }
 
     reportTopConfigurations(optimizedSingleSramResults, simulationConfig)
-
     log(s"")
   }
 
@@ -464,16 +482,16 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
       Architecture(
         arrayConfig,
         getMaximumStreamingDimension(simConfig.layerGemmDimension, arrayConfig.dataflow),
-        SingleBufferLimitKbs(maximumsingleBufferLimitKb, maximumsingleBufferLimitKb, maximumsingleBufferLimitKb)
+        SingleBufferLimitKbs(maximumSingleBufferLimitKb, maximumSingleBufferLimitKb, maximumSingleBufferLimitKb)
       )
     }
   }
 
   private def filterArchitectureByMetric(
-    results: ArrayBuffer[Result],
+    results: ArrayBuffer[ArchitectureEvaluation],
     metric: OptimizationMetric.Value,
     marginPercent: Double = 20.0
-  ): ArrayBuffer[Result] = {
+  ): ArrayBuffer[ArchitectureEvaluation] = {
 
     val threshold = metric match {
       case OptimizationMetric.Cycle =>
@@ -508,32 +526,28 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
     architectureBuffer: ArrayBuffer[Architecture],
     marginPercent: Double = 20.0,
     loggerOption: LoggerOption
-  ): ArrayBuffer[Result] = {
+  ): ArrayBuffer[ArchitectureEvaluation] = {
     val result = architectureBuffer.map{ architecture =>
-
       buildHardwareComponents(simConfig = simConfig, architecture = architecture, loggerOption = loggerOption) match {
         case Right(components) =>
-          Result(architecture, runSimulation(simConfig, components, loggerOption))
-
+          ArchitectureEvaluation(architecture, runSimulation(simConfig, components, loggerOption))
         case Left(_) =>
-          Result(architecture, SimulationResult(wrongCycle = Long.MaxValue))
+          ArchitectureEvaluation(architecture, SimulationResult(wrongCycle = Long.MaxValue))
       }
-
     }
-
     filterArchitectureByMetric(result, simConfig.metric ,marginPercent)
   }
 
 
   private def findOptimalStreamingSize(
     simConfig: SimulationConfig,
-    resultBuffer: ArrayBuffer[Result],
+    resultBuffer: ArrayBuffer[ArchitectureEvaluation],
     marginPercent: Double = 20.0,
     loggerOption: LoggerOption,
-  ): ArrayBuffer[Result] = {
+  ): ArrayBuffer[ArchitectureEvaluation] = {
 
     @tailrec
-    def searchStreamingDimensionSizeForArchitecture(result: Result): Result= {
+    def searchStreamingDimensionSizeForArchitecture(result: ArchitectureEvaluation): ArchitectureEvaluation= {
 
       val currentArchitecture = result.architecture
       val currentStreamingDimensionSize = result.architecture.streamingDimensionSize
@@ -545,13 +559,11 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
       val nextSimulationResult = buildHardwareComponents(simConfig, nextArchitecture, loggerOption) match {
         case Right(components) =>
           runSimulation(simConfig, components, loggerOption)
-
         case Left(_) =>
           SimulationResult(wrongCycle = Long.MaxValue)
-
       }
 
-      val newResult = Result(nextArchitecture, nextSimulationResult)
+      val newResult = ArchitectureEvaluation(nextArchitecture, nextSimulationResult)
 
       if (nextSimulationResult.cycle <= currentSimulationResult.cycle) {
         searchStreamingDimensionSizeForArchitecture(newResult)
@@ -570,13 +582,13 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
 
   private def findOptimalSramSize(
     simConfig: SimulationConfig,
-    resultBuffer: ArrayBuffer[Result],
+    resultBuffer: ArrayBuffer[ArchitectureEvaluation],
     marginPercent: Double = 20.0,
     loggerOption: LoggerOption,
-  ): ArrayBuffer[Result] = {
+  ): ArrayBuffer[ArchitectureEvaluation] = {
 
     @tailrec
-    def searchSramForArchitecture(result: Result): Result = {
+    def searchSramForArchitecture(result: ArchitectureEvaluation): ArchitectureEvaluation = {
 
       val currentArchitecture = result.architecture
       val currentSramSize = result.architecture.singleBufferLimitKbs.limitA
@@ -587,7 +599,7 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
 
       val nextSramSize = currentSramSize / 2
 
-      if(nextSramSize < minimumsingleBufferLimitKb){
+      if(nextSramSize < minimumSingleBufferLimitKb){
         result
       } else {
 
@@ -599,7 +611,7 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
             SimulationResult(wrongCycle = Long.MaxValue)
         }
 
-        val newResult = Result(nextArchitecture, nextSimulationResult)
+        val newResult = ArchitectureEvaluation(nextArchitecture, nextSimulationResult)
 
         if (nextSimulationResult.cycle <= currentSimulationResult.cycle)
           searchSramForArchitecture(newResult)
@@ -615,16 +627,143 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
 
   }
 
+  private def findOptimalArchitectureIteratively(
+    simConfig: SimulationConfig,
+    resultBuffer: ArrayBuffer[ArchitectureEvaluation],
+    marginPercent: Double = 20.0,
+    loggerOption: LoggerOption,
+    maxIterations: Int = 10,
+    convergenceThreshold: Double = 0.01 // 1% improvement threshold
+  ): ArrayBuffer[ArchitectureEvaluation] = {
+
+    if (resultBuffer.isEmpty) {
+      log("Warning: Empty initial result buffer")
+      return resultBuffer
+    }
+
+    var currentResults = resultBuffer
+    var bestResults = resultBuffer // Track best results seen so far
+    var iteration = 0
+    var hasConverged = false
+    var bestMetricValue = getBestMetric(currentResults, simConfig.metric)
+
+    val metricValueWithUnit = simConfig.metric match {
+      case OptimizationMetric.Cycle =>
+        s"$bestMetricValue cycles"
+      case OptimizationMetric.Energy =>
+        s"$bestMetricValue pJ"
+      case OptimizationMetric.Area =>
+        s"$bestMetricValue mm²"
+    }
+
+
+    log("\n[Starting Iterative Optimization]")
+    log(s"\tInitial best metric value: $metricValueWithUnit")
+
+    while (iteration < maxIterations && !hasConverged) {
+      log(s"\n\t[Iteration ${iteration + 1}]")
+      log(s"\t\tCurrent results size: ${currentResults.length}")
+
+      // Optimize streaming dimension
+      val streamingResults = findOptimalStreamingSize(
+        simConfig = simConfig,
+        resultBuffer = currentResults,
+        marginPercent = marginPercent,
+        loggerOption = loggerOption
+      )
+
+      if (streamingResults.isEmpty) {
+        log("Warning: No valid streaming dimension results found")
+        return bestResults // Return best results seen so far
+      }
+
+      // Optimize SRAM size
+      val sramResults = findOptimalSramSize(
+        simConfig = simConfig,
+        resultBuffer = streamingResults,
+        marginPercent = marginPercent,
+        loggerOption = loggerOption
+      )
+
+      if (sramResults.isEmpty) {
+        log("Warning: No valid SRAM size results found")
+        return bestResults // Return best results seen so far
+      }
+
+      // Get current best performance
+      val currentMetricValue = getBestMetric(sramResults, simConfig.metric)
+      val currentMetricValueWithUnit = simConfig.metric match {
+        case OptimizationMetric.Cycle =>
+          s"$bestMetricValue cycles"
+        case OptimizationMetric.Energy =>
+          s"$currentMetricValue pJ"
+        case OptimizationMetric.Area =>
+          s"$currentMetricValue mm²"
+      }
+
+      // Calculate improvement (negative means improvement since we're minimizing)
+      val improvement = (bestMetricValue - currentMetricValue) / bestMetricValue
+
+      log(s"\t\tPrevious best metric: $metricValueWithUnit")
+      log(s"\t\tCurrent best metric: $currentMetricValueWithUnit")
+      log(s"\t\tImprovement: ${improvement * 100}%")
+
+      // Update best results if we found better ones
+      if (currentMetricValue < bestMetricValue) {
+        bestMetricValue = currentMetricValue
+        bestResults = sramResults
+        log("\t\tFound new best results!")
+      }
+
+      // Check convergence - if improvement is less than threshold
+      hasConverged = math.abs(improvement) < convergenceThreshold
+
+      if (hasConverged) {
+        log(s"")
+        log("\tOptimization has converged!")
+      }
+
+      currentResults = sramResults
+      iteration += 1
+
+      // Safety check - if results are empty or invalid
+      if (currentResults.isEmpty) {
+        log("Warning: Current results became empty")
+        return bestResults
+      }
+    }
+
+    if(iteration >= maxIterations){
+      log(s"\tReached maximum iterations")
+    }
+
+    log(s"\tOptimization completed after $iteration iterations")
+    log(s"\tFina best metric: $bestMetricValue")
+    bestResults
+  }
+
+  private def getBestMetric(results: ArrayBuffer[ArchitectureEvaluation], metric: OptimizationMetric.Value): Double = {
+    if (results.isEmpty) return Double.MaxValue
+
+    metric match {
+      case OptimizationMetric.Cycle =>
+        results.map(_.simulationResult.cycle.toDouble).min
+      case OptimizationMetric.Energy =>
+        results.flatMap(_.simulationResult.energyPj).min
+      case OptimizationMetric.Area =>
+        results.flatMap(_.simulationResult.areaMm).min
+    }
+  }
 
   private def findOptimalSingleSramSize(
     simConfig: SimulationConfig,
-    resultBuffer: ArrayBuffer[Result],
+    resultBuffer: ArrayBuffer[ArchitectureEvaluation],
     marginPercent: Double = 20.0,
     loggerOption: LoggerOption,
-  ): ArrayBuffer[Result] = {
+  ): ArrayBuffer[ArchitectureEvaluation] = {
 
     @tailrec
-    def searchSingleSramForArchitecture(result: Result): Result = {
+    def searchSingleSramForArchitecture(result: ArchitectureEvaluation): ArchitectureEvaluation = {
 
       val currentArchitecture = result.architecture
 
@@ -640,17 +779,17 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
       val currentResult = result.simulationResult
       val nextSramSize = currentSramSize / 2
 
-      if(nextSramSize < minimumsingleBufferLimitKb){
+      if(nextSramSize < minimumSingleBufferLimitKb){
         result
       } else {
 
         val nextArchitecture = currentArchitecture.arrayConfig.dataflow match {
           case Dataflow.Is =>
-            currentArchitecture.updatesingleBufferLimitKb(nextSramSize, DataType.A)
+            currentArchitecture.updateSingleBufferLimitKb(nextSramSize, DataType.A)
           case Dataflow.Os =>
-            currentArchitecture.updatesingleBufferLimitKb(nextSramSize, DataType.C)
+            currentArchitecture.updateSingleBufferLimitKb(nextSramSize, DataType.C)
           case Dataflow.Ws =>
-            currentArchitecture.updatesingleBufferLimitKb(nextSramSize, DataType.B)
+            currentArchitecture.updateSingleBufferLimitKb(nextSramSize, DataType.B)
         }
 
         val newResult = buildHardwareComponents(simConfig, nextArchitecture, loggerOption) match {
@@ -661,7 +800,7 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
             SimulationResult(wrongCycle = Long.MaxValue)
         }
 
-        val newArchitectureResult = Result(nextArchitecture, newResult)
+        val newArchitectureResult = ArchitectureEvaluation(nextArchitecture, newResult)
 
         if (newResult.cycle <= currentResult.cycle)
           searchSingleSramForArchitecture(newArchitectureResult)
@@ -678,10 +817,10 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
   }
 
   private def reportTopConfigurations(
-    optimizedResults: ArrayBuffer[Result],
+    optimizedResults: ArrayBuffer[ArchitectureEvaluation],
     simConfig: SimulationConfig,
   ): Unit = {
-    log("\n[Top 3 Hardware Configurations Report]")
+    log("\n\t[Top 3 Hardware Configurations Report]")
 
     // Sort results based on optimization metric
     val sortedResults = simConfig.metric match {
@@ -696,26 +835,25 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
     // Take top 3 configurations
     val topThree = sortedResults.take(3)
 
-    log(s"Optimization Metric: ${simConfig.metric}")
+    log(s"\tOptimization Metric: ${simConfig.metric}")
 
     log(s"")
     topThree.zipWithIndex.foreach { case (result, index) =>
-      log(s"\t[Rank ${index + 1}]")
+      log(s"\t[Rank ${index + 1}: ${result.architecture.arrayConfig.arrayConfigString}]")
 
       // Configuration details
       val config = result.architecture.arrayConfig
-      log(s"\tArray Configuration: ${config.arrayConfigString}")
-      log(s"\tGroup PE (Row x Col): ${config.groupPeRow} x ${config.groupPeCol}")
-      log(s"\tVector PE (Row x Col): ${config.vectorPeRow} x ${config.vectorPeCol}")
-      log(s"\tNumber of Multipliers: ${config.numMultiplier}")
-      log(s"\tStreaming Dimension Size: ${result.architecture.streamingDimensionSize}")
+      log(s"\t\tGroup PE (Row x Col): ${config.groupPeRow} x ${config.groupPeCol}")
+      log(s"\t\tVector PE (Row x Col): ${config.vectorPeRow} x ${config.vectorPeCol}")
+      log(s"\t\tNumber of Multipliers: ${config.numMultiplier}")
+      log(s"\t\tStreaming Dimension Size: ${result.architecture.streamingDimensionSize}")
 
       // Buffer sizes
       val bufferLimits = result.architecture.singleBufferLimitKbs
-      log(s"\tBuffer Sizes (KB):")
-      log(s"\t\tSRAM A: ${bufferLimits.limitA}")
-      log(s"\t\tSRAM B: ${bufferLimits.limitB}")
-      log(s"\t\tSRAM C: ${bufferLimits.limitC}")
+      log(s"\t\tBuffer Sizes (KB):")
+      log(s"\t\t\tSRAM A: ${bufferLimits.limitA}")
+      log(s"\t\t\tSRAM B: ${bufferLimits.limitB}")
+      log(s"\t\t\tSRAM C: ${bufferLimits.limitC}")
 
       // Performance metrics
       val simResult = result.simulationResult
@@ -992,3 +1130,46 @@ object DesignExplorerMain extends App with Logger with StreamingDimensionCalcula
 
 }
 
+
+//PHASE2
+//    val optimizedStreamingDimensionResults = findOptimalStreamingSize(
+//      simConfig = simulationConfig,
+//      resultBuffer = optimizedArrayConfigResults,
+//      marginPercent = marginPercent,
+//      loggerOption = loggerOption
+//    )
+//
+//    if(optimizedStreamingDimensionResults.isEmpty){
+//      throw RunTimeError("There is no available optimal streaming dimension candidates...")
+//    }
+//    log(s"")
+//
+//    log("\t[Optimal Streaming Dimension Results]")
+//    log(s"\tTotal ${optimizedStreamingDimensionResults.length} have survived")
+//
+//    optimizedStreamingDimensionResults.foreach{ config =>
+//      config
+//        .simulationResult
+//        .showSummary(loggerOption, config.architecture.arrayConfig.arrayConfigString)
+//    }
+
+//PHASE3
+//    val optimizedSramArchitectures = findOptimalSramSize(
+//      simConfig = simulationConfig,
+//      resultBuffer = optimizedStreamingDimensionResults,
+//      marginPercent = marginPercent,
+//      loggerOption = loggerOption
+//    )
+//
+//    if(optimizedSramArchitectures.isEmpty){
+//      throw RunTimeError("There is no available SRAM candidates...")
+//    }
+//
+//    log("\t[Optimal SRAM Size Results]")
+//    log(s"\tTotal ${optimizedSramArchitectures.length} have survived")
+//
+//    optimizedSramArchitectures.foreach{ config =>
+//      config
+//        .simulationResult
+//        .showSummary(loggerOption, config.architecture.arrayConfig.arrayConfigString)
+//    }

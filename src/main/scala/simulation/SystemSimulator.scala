@@ -23,13 +23,15 @@ class SystemSimulator(
   setMode(loggerOption)
 
   private var cycle: Long = -1
+  private val showProgress = true
+  private var lastProgressPercent: Int = -1
   private val clockPeriod: Double = 2e-9
 
   def startSimulation(): Unit = {
     cycle = runSimulationLoop()
   }
 
-  private def runSimulationLoop() : Long  = {
+  private def runSimulationLoop(): Long = {
 
     var cycle: Long = 0
 
@@ -40,14 +42,23 @@ class SystemSimulator(
     sramB.initTileSchedule(layer.operationVector)
 
     breakable {
-      while(!areAllHardwareQueueEmpty) {
+      while (!areAllHardwareQueueEmpty) {
 //        println(s"Cycle: $cycle")
         interface.updateCycle(cycle)
 
-        if(debugMode)
-          if( debugStartCycle <= cycle && cycle < debugEndCycle )
+//        if (showProgress) {
+//          val currentProgress = (array.schedule.count(_.isCalculated) * 100) / layer.operationVector.size
+//          if (currentProgress > lastProgressPercent) {
+//            println(s"Progress: $currentProgress")
+//            lastProgressPercent = currentProgress
+//          }
+//        }
+
+
+        if (debugMode)
+          if (debugStartCycle <= cycle && cycle < debugEndCycle)
             printCompilationState(cycle)
-          else if( debugEndCycle == cycle )
+          else if (debugEndCycle == cycle)
             break()
 
         dram.update(interface)
@@ -74,22 +85,21 @@ class SystemSimulator(
 
         }
 
-        if(array.capacityLeftTileA <0) {
+        if (array.capacityLeftTileA < 0) {
           Console.err.println("Capacity is a negative value")
           printCompilationState(cycle)
           break()
         }
 
-        if(array.capacityLeftTileB() < 0 ) {
+        if (array.capacityLeftTileB() < 0) {
           Console.err.println("Capacity is a negative value")
           printCompilationState(cycle)
           break()
         }
 
-//        if(sramA.swapCount == 5){
+//        if(sramA.isFirstFillUpDone){
 //          Console.err.println("SEX")
-//          log(s"Swap Count: ${sramA.swapCount}")
-//          printCompilationState(cycle)
+//          Console.err.println(s"Cycle: $cycle")
 //          break()
 //        }
 
@@ -98,10 +108,6 @@ class SystemSimulator(
       }
     }
 
-//    println(s"Dim Size A: ${array.schedule.map(_.getTileA.dims.memorySize).sum}")
-//    println(s"Dim Size B: ${array.schedule.map(_.getTileB.dims.memorySize).sum}")
-//    println(s"Dim Size C: ${array.schedule.map(_.getTileC.dims.memorySize).sum}")
-//    printCompilationState(cycle)
     cycle
 
   }
@@ -109,49 +115,71 @@ class SystemSimulator(
   //TODO DELETE!!!! Useless METRIC!!!!
   //1. Initial Workload Metrics
   def getTotalOperationNumber: Int = layer.operationVector.size
+
   def getTileSizeA: Int = layer.operationVector.head.generateTileA.dims.memorySize
+
   def getTileSizeB: Int = layer.operationVector.head.generateTileB.dims.memorySize
+
   def getTileSizeC: Int = layer.operationVector.head.generateTileC.dims.memorySize
+
   def getSingleBufferTileCapacityA: Int = sramA.singleBufferTileCapacity
+
   def getSingleBufferTileCapacityB: Int = sramB.singleBufferTileCapacity
+
   def getSingleBufferTileCapacityC: Int = sramC.singleBufferTileCapacity
+
   def getTrimTileCountA: Int = dram.trimTileCountA
+
   def getTrimTileCountB: Int = dram.trimTileCountB
 
   //2. Bandwidth info
   def getArrayInputBandwidthA: Int = array.arrayConfig.bandwidthOfInputA
+
   def getArrayInputBandwidthB: Int = array.arrayConfig.bandwidthOfInputB
+
   def getArrayOutputBandwidthC: Int = array.arrayConfig.outputBandwidth
+
   def getArrayCapacityA: Int = array.arrayConfig.capacityOfTileA
+
   def getArrayCapacityB: Int = array.arrayConfig.capacityOfTileB
 
   //3. Performance Metrics
   def getTotalCycle: Long = cycle
+
   def getArrayActiveCount: Int = array.getArrayActiveCount
 
   //Pipeline state
   def getDramStallCount: Int = dram.dramStall
 
   def getFirstFillUptCycleA: Long = sramA.getFirstFillUpCycle
+
   def getFirstFillUptCycleB: Long = sramB.getFirstFillUpCycle
+
   def getFirstFillUptCycleC: Long = sramC.getFirstFillUpCycle
 
   def getBufferSwapCountA: Int = sramA.getBufferSwapCount
+
   def getBufferSwapCountB: Int = sramB.getBufferSwapCount
+
   def getBufferSwapCountC: Int = sramC.getBufferSwapCount
 
   def getBufferSwapStallCountA: Int = sramA.getBufferSwapStallCount
+
   def getBufferSwapStallCountB: Int = sramB.getBufferSwapStallCount
+
   def getBufferSwapStallCountC: Int = sramC.getBufferSwapStallCount
 
   //Read write log
   def getDramReadAccessCount: Long = dram.getReadAccessCount
+
   def getDramWriteAccessCount: Long = dram.getWriteAccessCount
 
   def getSramReadAccessCountA: Long = sramA.getReadAccessCount
+
   def getSramWriteAccessCountA: Long = sramA.getWriteAccessCount
 
   def getSramReadAccessCountB: Long = sramB.getReadAccessCount
+
   def getSramWriteAccessCountB: Long = sramB.getWriteAccessCount
 
   //DRAM hit miss ratio
@@ -168,19 +196,26 @@ class SystemSimulator(
   def getTotalSramMissRatio: Double = (array.getMemoryMissCountA + array.getMemoryMissCountB) /
     (array.getMemoryAccessCountA + array.getMemoryAccessCountB)
 
-  def getSramHitRatioA: Double =  array.getMemoryHitCountA / array.getMemoryAccessCountA
+  def getSramHitRatioA: Double = array.getMemoryHitCountA / array.getMemoryAccessCountA
+
   def getSramMissRatioA: Double = array.getMemoryMissCountA / array.getMemoryAccessCountA
-  def getSramHitRatioB: Double =  array.getMemoryHitCountB / array.getMemoryAccessCountB
+
+  def getSramHitRatioB: Double = array.getMemoryHitCountB / array.getMemoryAccessCountB
+
   def getSramMissRatioB: Double = array.getMemoryMissCountB / array.getMemoryAccessCountB
 
   //4. Memory Utilization
 
-  def getAverageMemoryUsageKbA: Double = (sramA.getAccumulatedMemoryUsage / 8.0 / 1024.0)/ cycle.toDouble
-  def getAverageMemoryUsageKbB: Double = (sramB.getAccumulatedMemoryUsage / 8.0 / 1024.0)/ cycle.toDouble
-  def getAverageMemoryUsageKbC: Double = (sramC.getAccumulatedMemoryUsage / 8.0 / 1024.0)/ cycle.toDouble
+  def getAverageMemoryUsageKbA: Double = (sramA.getAccumulatedMemoryUsage / 8.0 / 1024.0) / cycle.toDouble
+
+  def getAverageMemoryUsageKbB: Double = (sramB.getAccumulatedMemoryUsage / 8.0 / 1024.0) / cycle.toDouble
+
+  def getAverageMemoryUsageKbC: Double = (sramC.getAccumulatedMemoryUsage / 8.0 / 1024.0) / cycle.toDouble
 
   def getAverageMemoryUtilizationA: Double = sramA.getAccumulateMemoryUtilization / cycle.toDouble
+
   def getAverageMemoryUtilizationB: Double = sramB.getAccumulateMemoryUtilization / cycle.toDouble
+
   def getAverageMemoryUtilizationC: Double = sramC.getAccumulateMemoryUtilization / cycle.toDouble
 
   //5. Energy Report
@@ -271,23 +306,23 @@ class SystemSimulator(
 
   //6. Area Report
   def getSramAreaA: Option[Double] =
-    if(sramDataReferenceVector.isEmpty) None
+    if (sramDataReferenceVector.isEmpty) None
     else Some(findMatchingSramData(sramA, array.arrayConfig.bandwidthOfInputA).areaUm2)
 
   def getSramAreaB: Option[Double] =
-    if(sramDataReferenceVector.isEmpty) None
+    if (sramDataReferenceVector.isEmpty) None
     else Some(findMatchingSramData(sramB, array.arrayConfig.bandwidthOfInputB).areaUm2)
 
   def getSramAreaC: Option[Double] =
-    if(sramDataReferenceVector.isEmpty) None
+    if (sramDataReferenceVector.isEmpty) None
     else Some(findMatchingSramData(sramC, array.arrayConfig.outputBandwidth).areaUm2)
 
   def getArrayArea: Option[Double] =
-    if(sramDataReferenceVector.isEmpty) None
+    if (sramDataReferenceVector.isEmpty) None
     else Some(findMatchingSramData(sramC, array.arrayConfig.outputBandwidth).areaUm2)
 
   def getArea: Option[Double] =
-    if(arrayReferenceData.isEmpty) None
+    if (arrayReferenceData.isEmpty) None
     else Some(computeArrayArea(arrayReferenceData.get))
 
   // Helper Function
@@ -316,7 +351,7 @@ class SystemSimulator(
       array.arrayConfig.numMultiplier * data.leakagePowerNumMultiplierPw
   }
 
-  private def computeArrayArea(data:ArrayReferenceData): Double = {
+  private def computeArrayArea(data: ArrayReferenceData): Double = {
     array.arrayConfig.groupPeRow * data.areaPowerGroupPeRowUm2 +
       array.arrayConfig.groupPeCol * data.areaPowerGroupPeColUm2 +
       array.arrayConfig.vectorPeRow * data.areaPowerVectorPeRowUm2 +
@@ -348,5 +383,6 @@ class SystemSimulator(
     log("")
   }
 }
+
 
 
