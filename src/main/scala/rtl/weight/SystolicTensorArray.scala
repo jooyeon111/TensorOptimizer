@@ -30,10 +30,10 @@ class SystolicTensorArray[T <: Data](
 
   val numInputA: Int = groupPeRow * vectorPeRow * numMultiplier
   val numInputB: Int = groupPeCol * vectorPeCol * numMultiplier
-  val numPropagateB: Int = groupPeRow * vectorPeRow
+//  val numPropagateB: Int = groupPeRow * vectorPeRow
+  val numPropagateB: Int = groupPeRow * groupPeCol * vectorPeRow
   val numOutput : Int = groupPeCol * vectorPeCol
   val outputTypeC: T = portConfig.getStaOutputTypeC
-
   val processingElementVector = Vector.tabulate(groupPeRow, groupPeCol){ (rowIndex, colIndex) =>
 
     val isFirstRow = rowIndex == 0
@@ -100,17 +100,17 @@ class SystolicTensorArray[T <: Data](
 
   for( r <- 0 until groupPeRow )
     for( c <- 0 until groupPeCol ) {
-      val pe = processingElementVector(r)(c)
-      pe.io.propagateB match {
+      processingElementVector(r)(c).io.propagateB match {
         case vec: Vec[_] =>
-          for( a <- 0 until vectorPeRow)
-            vec(a) := io.propagateB(a + r * vectorPeRow)
-
+          for( a <- 0 until vectorPeRow) {
+            val index = (r * groupPeCol* vectorPeRow) + (c* vectorPeRow) + a
+            vec(a) := io.propagateB(index)
+          }
         case bool: Bool =>
-          bool := io.propagateB(r)
+          val index = r * groupPeCol + c
+          bool := io.propagateB(index)
       }
     }
-
 
 
   for( r <- 0 until groupPeRow )

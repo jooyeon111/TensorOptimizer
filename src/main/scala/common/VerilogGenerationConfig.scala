@@ -5,5 +5,6 @@ case class VerilogGenerationConfig (
   dataflow: Dataflow.Value,
   arrayDimension: ArrayDimension,
   integerType: IntegerType.Value,
-  portBitWidthInfo: PortBitWidthInfo
+  portBitWidthInfo: PortBitWidthInfo,
+  streamingDimensionSize: Int = -1,
 )

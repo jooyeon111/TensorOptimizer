@@ -30,8 +30,11 @@ class DimensionAlignedSystolicTensorArray[T <: Data](
 
   val numInputA: Int = groupPeRow * vectorPeRow * numMultiplier
   val numInputB: Int = groupPeCol * vectorPeCol * numMultiplier
-  val numPartialSumReset = groupPeRow + groupPeCol - 1
-  val numPropagateOutput: Int = groupPeCol - 1
+//  val numPartialSumReset = groupPeRow + groupPeCol - 1
+//  val numPropagateOutput: Int = groupPeCol - 1
+  val numPartialSumReset = groupPeRow * groupPeCol
+  val numPropagateOutput = (groupPeRow - 1) * (groupPeCol - 1)
+
   val numOutput: Int = (groupPeCol + groupPeRow - 1)* vectorPeRow * vectorPeCol
   val outputTypeC = portConfig.getStaOutputTypeC
 
@@ -61,13 +64,13 @@ class DimensionAlignedSystolicTensorArray[T <: Data](
     numMultiplier,
     portConfig))
 
-  val postProcessor = Module (new DeskewBuffer(
-    groupPeRow,
-    groupPeCol,
-    vectorPeRow,
-    vectorPeCol,
-    outputTypeC
-  ))
+//  val postProcessor = Module (new DeskewBuffer(
+//    groupPeRow,
+//    groupPeCol,
+//    vectorPeRow,
+//    vectorPeCol,
+//    outputTypeC
+//  ))
 
   val io = IO(new Bundle {
     val inputA = Input(Vec(numInputA, portConfig.inputTypeA))
@@ -82,7 +85,7 @@ class DimensionAlignedSystolicTensorArray[T <: Data](
   preProcessorInputB.io.input := io.inputB
   systolicTensorArray.io.inputA := preProcessorInputA.io.output
   systolicTensorArray.io.inputB := preProcessorInputB.io.output
-  postProcessor.io.input := systolicTensorArray.io.outputC
+//  postProcessor.io.input := systolicTensorArray.io.outputC
 
   //Wiring propagate signal
   systolicTensorArray.io.partialSumReset := RegNext(io.partialSumReset, VecInit.fill(numPartialSumReset)(false.B))
@@ -90,7 +93,9 @@ class DimensionAlignedSystolicTensorArray[T <: Data](
   //Wiring partial sum signals
   systolicTensorArray.io.propagateOutput := RegNext( io.propagateOutput, VecInit.fill(numPropagateOutput)(false.B))
 
+
   //Wiring Output
-  io.outputC := postProcessor.io.output
+//  io.outputC := postProcessor.io.output
+   io.outputC := systolicTensorArray.io.outputC
 
 }

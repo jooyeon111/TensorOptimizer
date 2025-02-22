@@ -33,13 +33,12 @@ trait OutputPortCalculator {
 
         if(streamingDimensionSize != -1){
           val arrayRowDimension = groupPeRow * vectorPeRow * numMultiplier
-          val originalDimensionSize = groupPeRow * vectorPeRow * streamingDimensionSize
+          val mappedDimensionSize = groupPeRow * vectorPeRow * streamingDimensionSize
 
-          //TODO fix code below when streaming dimension is larger than dimension input dimension K
-          val additionalAdditionNumber = if(originalDimensionSize % arrayRowDimension == 0){
+          val additionalAdditionNumber = if(mappedDimensionSize % arrayRowDimension == 0){
             streamingDimensionSize
           } else {
-            originalDimensionSize / arrayRowDimension + 1
+            mappedDimensionSize / arrayRowDimension + 1
           }
 
           adBitWidth + ceil(log(additionalAdditionNumber)/log(2)).toInt
@@ -84,6 +83,14 @@ trait OutputPortCalculator {
         streamingDimensionSize,
       )
     }
+//    println()
+//    println(s"Group PE row * PE Col: ($groupPeRow * $groupPeCol)")
+//    println(s"Vector PE row * PE Col: ($vectorPeRow * $vectorPeCol)")
+//    println(s"Multipliers per PE: ${numMultiplier}")
+//    println(s"SD size: $streamingDimensionSize")
+//    println(s"Multiplier output bitwidth: $bitWidthMultiplierOutput")
+//    println(s"Adder tree output bitwidth: $bitWidthAdderTreeOutput")
+//    println(s"PE output bit width: $bitWidthPortC")
 
     PortBitWidthInfo(
       bitWidthPortA,

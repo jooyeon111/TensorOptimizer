@@ -1,5 +1,6 @@
 package simulation
 
+//TODO delete it
 trait BandWidthFilter {
 
   private def mean(data: Vector[Double]): Double =
@@ -7,11 +8,11 @@ trait BandWidthFilter {
 
   private def standardDeviation(data: Vector[Double]): Double = {
     val m = mean(data)
-    math.sqrt(data.map( x=> math.pow( x - m , 2)).sum / data.length)
+    math.sqrt(data.map( x=> math.pow( x - m , 2)).sum / (data.length-1))
   }
 
   private def calculateScoreZ(value: Double, mean: Double, std: Double): Double =
-    (value - mean) / std
+    if( std == 0.0) 0.0 else (value - mean) / std
 
 
   private def isWithinOneSigma(scoreZ: Double):Boolean = math.abs(scoreZ) <= 1.0
@@ -25,7 +26,6 @@ trait BandWidthFilter {
     val std = standardDeviation(bandwidths)
     (m, std)
   }
-
 
   def filterConfigsWithOneSigma(configs: Vector[ArrayConfig]): Vector[ArrayConfig] = {
 

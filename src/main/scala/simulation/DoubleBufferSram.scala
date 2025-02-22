@@ -82,7 +82,6 @@ class DoubleBufferSram(
       assert(tiles.front.memoryOccupiedBySram > 0, s"[error] SRAM $dataType cannot take this tile ${tiles.front.id}")
       assert(tiles.front.dataType == dataType, s"[error] SRAM $dataType data type and tile data type do not match")
 
-
       writePendingBuffer += tiles.dequeue()
 
     }

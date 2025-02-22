@@ -8,7 +8,6 @@ TEST_IS := input/simulation/layer/etc/large_n.cfg
 TEST_OS := input/simulation/layer/etc/large_k.cfg
 TEST_WS := input/simulation/layer/etc/large_m.cfg
 
-
 TEST_OPTION_SRAM_REF := input/simulation/hardware_reference/DRAMsim3/sram.cfg
 TEST_OPTION_DRAM_REF := input/simulation/hardware_reference/cacti/ddr4_dram.cfg
 TEST_OPTION_RTL_RESULT_REF := input/simulation/hardware_reference/design_compiler/array.cfg
@@ -61,11 +60,46 @@ TEST_OPTION_SRAM_256 = $(BASE_CONFIG_PATH)/oneLayer/is_{32x32}x{1x1}x1_sd_64_sra
 TEST_OPTION_SRAM_512 = $(BASE_CONFIG_PATH)/oneLayer/is_{32x32}x{1x1}x1_sd_64_sram_512.cfg
 TEST_OPTION_SRAM_1024 = $(BASE_CONFIG_PATH)/oneLayer/is_{32x32}x{1x1}x1_sd_64_sram_1024.cfg
 
-TEST_OPTION_MULT_1024 = $(BASE_CONFIG_PATH)/bandwidth/multiplier_1024.cfg
-TEST_OPTION_MULT_2048 = $(BASE_CONFIG_PATH)/bandwidth/multiplier_2048.cfg
-TEST_OPTION_MULT_4096 = $(BASE_CONFIG_PATH)/bandwidth/multiplier_4096.cfg
-TEST_OPTION_MULT_8192 = $(BASE_CONFIG_PATH)/bandwidth/multiplier_8192.cfg
-TEST_OPTION_MULT_16384 = $(BASE_CONFIG_PATH)/bandwidth/multiplier_16384.cfg
+#mult 64
+TEST_OPTION_MULT_64_SD_32 = $(BASE_CONFIG_PATH)/bandwidth/multiplier64_sd32.cfg
+TEST_OPTION_MULT_64_SD_64 = $(BASE_CONFIG_PATH)/bandwidth/multiplier64_sd64.cfg
+TEST_OPTION_MULT_64_SD_128 = $(BASE_CONFIG_PATH)/bandwidth/multiplier64_sd128.cfg
+TEST_OPTION_MULT_64_SD_256 = $(BASE_CONFIG_PATH)/bandwidth/multiplier64_sd256.cfg
+TEST_OPTION_MULT_64_SD_512 = $(BASE_CONFIG_PATH)/bandwidth/multiplier64_sd512.cfg
+TEST_OPTION_MULT_64_SD_1024 = $(BASE_CONFIG_PATH)/bandwidth/multiplier64_sd1024.cfg
+
+#mult 128
+TEST_OPTION_MULT_128_SD_32 = $(BASE_CONFIG_PATH)/bandwidth/multiplier128_sd32.cfg
+TEST_OPTION_MULT_128_SD_64 = $(BASE_CONFIG_PATH)/bandwidth/multiplier128_sd64.cfg
+TEST_OPTION_MULT_128_SD_128 = $(BASE_CONFIG_PATH)/bandwidth/multiplier128_sd128.cfg
+TEST_OPTION_MULT_128_SD_256 = $(BASE_CONFIG_PATH)/bandwidth/multiplier128_sd256.cfg
+TEST_OPTION_MULT_128_SD_512 = $(BASE_CONFIG_PATH)/bandwidth/multiplier128_sd512.cfg
+TEST_OPTION_MULT_128_SD_1024 = $(BASE_CONFIG_PATH)/bandwidth/multiplier128_sd1024.cfg
+
+
+#mult 256
+TEST_OPTION_MULT_256_SD_32 = $(BASE_CONFIG_PATH)/bandwidth/multiplier256_sd32.cfg
+TEST_OPTION_MULT_256_SD_64 = $(BASE_CONFIG_PATH)/bandwidth/multiplier256_sd64.cfg
+TEST_OPTION_MULT_256_SD_128 = $(BASE_CONFIG_PATH)/bandwidth/multiplier256_sd128.cfg
+TEST_OPTION_MULT_256_SD_256 = $(BASE_CONFIG_PATH)/bandwidth/multiplier256_sd256.cfg
+TEST_OPTION_MULT_256_SD_512 = $(BASE_CONFIG_PATH)/bandwidth/multiplier256_sd512.cfg
+TEST_OPTION_MULT_256_SD_1024 = $(BASE_CONFIG_PATH)/bandwidth/multiplier256_sd1024.cfg
+
+#mult 512
+TEST_OPTION_MULT_512_SD_32 = $(BASE_CONFIG_PATH)/bandwidth/multiplier512_sd32.cfg
+TEST_OPTION_MULT_512_SD_64 = $(BASE_CONFIG_PATH)/bandwidth/multiplier512_sd64.cfg
+TEST_OPTION_MULT_512_SD_128 = $(BASE_CONFIG_PATH)/bandwidth/multiplier512_sd128.cfg
+TEST_OPTION_MULT_512_SD_256 = $(BASE_CONFIG_PATH)/bandwidth/multiplier512_sd256.cfg
+TEST_OPTION_MULT_512_SD_512 = $(BASE_CONFIG_PATH)/bandwidth/multiplier512_sd512.cfg
+TEST_OPTION_MULT_512_SD_1024 = $(BASE_CONFIG_PATH)/bandwidth/multiplier512_sd1024.cfg
+
+#mult 1024
+TEST_OPTION_MULT_1024_SD_32 = $(BASE_CONFIG_PATH)/bandwidth/multiplier1024_sd32.cfg
+TEST_OPTION_MULT_1024_SD_64 = $(BASE_CONFIG_PATH)/bandwidth/multiplier1024_sd64.cfg
+TEST_OPTION_MULT_1024_SD_128 = $(BASE_CONFIG_PATH)/bandwidth/multiplier1024_sd128.cfg
+TEST_OPTION_MULT_1024_SD_256 = $(BASE_CONFIG_PATH)/bandwidth/multiplier1024_sd256.cfg
+TEST_OPTION_MULT_1024_SD_512 = $(BASE_CONFIG_PATH)/bandwidth/multiplier1024_sd512.cfg
+TEST_OPTION_MULT_1024_SD_1024 = $(BASE_CONFIG_PATH)/bandwidth/multiplier1024_sd1024.cfg
 
 .PHONY: test
 test:
@@ -103,7 +137,7 @@ sd_os:
 
 .PHONY: sd_ws
 sd_ws:
-	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_32}"
+	sbt "runMain simulation.AnalyzverMain ${LAYER} ${TEST_OPTION_WS_SD_32}"
 	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_64}"
 	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_128}"
 	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_256}"
@@ -121,9 +155,28 @@ sram:
 
 .PHONY: bandwidth
 bandwidth:
-	sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024}"
-	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_2048}"
-	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_4096}"
-	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_8192}"
-	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_16384}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_64_SD_32}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_64_SD_64}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_64_SD_128}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_64_SD_256}"
 
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_128_SD_32}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_128_SD_64}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_128_SD_128}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_128_SD_256}"
+
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_256_SD_32}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_256_SD_64}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_256_SD_128}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_256_SD_256}"
+
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_512_SD_32}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_512_SD_64}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_512_SD_128}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_512_SD_256}"
+
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_32}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_64}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_128}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_256}"
+	sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_1024}"

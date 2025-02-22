@@ -7,7 +7,7 @@ import scala.collection.mutable
 final class Array(
   val arrayConfig: ArrayConfig,
   val loggerOption: LoggerOption,
-)extends Hardware with Logger with AccessCounter{
+)extends Hardware with Logger {
 
   setMode(loggerOption)
 
@@ -123,7 +123,7 @@ final class Array(
         sys.exit(1)
     }
 
-    incrementWriteAccessCount()
+//    incrementWriteAccessCount()
 
   }
 
@@ -368,7 +368,7 @@ final class Array(
       } else
         interface.sramC.receive(targetTileC.copyTile())
 
-      incrementReadAccessCount()
+//      incrementReadAccessCount()
     }
 
 

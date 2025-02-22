@@ -27,7 +27,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
 
     dramReferenceData: Option[DramReferenceData],
     sramReferenceDataVector: Option[Vector[SramReferenceData]],
-    arrayReferenceData: Option[ArrayReferenceData],
+    arraySynthesisData: Option[ArraySynthesisData]
 
   ) {
     def validate: Boolean = {
@@ -44,7 +44,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
         portBitWidth.validate &&
         layerGemmDimension.validate
 
-      val energyValidation = (dramReferenceData, sramReferenceDataVector, arrayReferenceData) match {
+      val energyValidation = (dramReferenceData, sramReferenceDataVector, arraySynthesisData) match {
         case (Some(dram), Some(sram), Some(array)) =>
           dram.validate && sram.forall(_.validate) && array.validate
         case (None, None, None) =>
@@ -95,8 +95,8 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     )
 
     arrayDataParser.foreach(parser =>
-      if(!parser.parse()) {
-        throw ParseError("Array Energy configuration parsing failed" + help)
+      if(!parser.parse()){
+        throw ParseError("Array Synthesis dat parsing failed" + help)
       }
     )
 
@@ -120,52 +120,19 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
 
     val sramReferenceData = sramDataParser.flatMap(_.getConfig).map(_.sramReferenceDataVector)
 
-    val arrayReferenceData = arrayDataParser.flatMap(_.getConfig).map { config =>
-      ArrayReferenceData(
-        leakagePowerGroupPeRowMw = config.getDouble("Leakage Power Group PE Row").getOrElse(
-          throw ParseError("Array Data Not found")
+    val arraySynthesisData = arrayDataParser.flatMap(_.getConfig).map { config =>
+      ArraySynthesisData(
+        areaUm2 = config.getDouble("Area").getOrElse(
+          throw ParseError("Array Area not found")
         ),
-        leakagePowerGroupPeColMw = config.getDouble("Leakage Power Group PE Column").getOrElse(
-          throw ParseError("Array Data Not found")
+        switchPowerMw = config.getDouble("Switch Power").getOrElse(
+          throw ParseError("Switch Power Not found")
         ),
-        leakagePowerVectorPeRowMw = config.getDouble("Leakage Power Vector PE Row").getOrElse(
-          throw ParseError("Array Data Not found")
+        internalPowerMw = config.getDouble("Internal Power").getOrElse(
+          throw ParseError("Internal Power Not found")
         ),
-        leakagePowerVectorPeColMw = config.getDouble("Leakage Power Vector PE Column").getOrElse(
-          throw ParseError("Array Data Not found")
-        ),
-        leakagePowerNumMultiplierMw = config.getDouble("Leakage Power Total Number of Multipliers").getOrElse(
-          throw ParseError("Array Data Not found")
-        ),
-        dynamicPowerGroupPeRowPj = config.getDouble("Dynamic Power Group PE Row").getOrElse(
-          throw ParseError("Array Data Not found")
-        ),
-        dynamicPowerGroupPeColPj = config.getDouble("Dynamic Power Group PE Column").getOrElse(
-          throw ParseError("Array Data Not found")
-        ),
-        dynamicPowerVectorPeRowPj = config.getDouble("Dynamic Power Vector PE Row").getOrElse(
-          throw ParseError("Array Data Not found")
-        ),
-        dynamicPowerVectorPeColPj = config.getDouble("Dynamic Power Vector PE Column").getOrElse(
-          throw ParseError("Array Data Not found")
-        ),
-        dynamicPowerNumMultiplierPj = config.getDouble("Dynamic Power Total Number of Multipliers").getOrElse(
-          throw ParseError("Array Data Not found")
-        ),
-        areaPowerGroupPeRowUm2 = config.getDouble("Area Group PE Row").getOrElse(
-          throw ParseError("Array Data Not found")
-        ),
-        areaPowerGroupPeColUm2 = config.getDouble("Area Group PE Column").getOrElse(
-          throw ParseError("Array Data Not found")
-        ),
-        areaPowerVectorPeRowUm2 = config.getDouble("Area Vector PE Row").getOrElse(
-          throw ParseError("Array Data Not found")
-        ),
-        areaPowerVectorPeColUm2 = config.getDouble("Area Vector PE Column").getOrElse(
-          throw ParseError("Array Data Not found")
-        ),
-        areaPowerNumMultiplierUm2 = config.getDouble("Area Total Number of Multipliers").getOrElse(
-          throw ParseError("Array Data Not found")
+        leakagePowerMw = config.getDouble("Leakage Power").getOrElse(
+          throw ParseError("Leakage Power Not found")
         )
       )
     }
@@ -175,7 +142,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
       testConfig = testConfig,
       dramReferenceData = dramReferenceData,
       sramReferenceData = sramReferenceData,
-      arrayReferenceData = arrayReferenceData
+      arraySynthesisData = arraySynthesisData
     )
 
     if(!simulationConfig.validate)
@@ -199,7 +166,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     testConfig: ConfigParser.Config,
     dramReferenceData: Option[DramReferenceData] = None,
     sramReferenceData: Option[Vector[SramReferenceData]] = None,
-    arrayReferenceData: Option[ArrayReferenceData] = None
+    arraySynthesisData: Option[ArraySynthesisData] = None
   ): SimulationConfig ={
 
     //layer
@@ -230,10 +197,6 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
       case _ =>
         throw ParseError("Invalid dataflow")
     }
-
-//    val streamingDimensionSize = testConfig.
-//      getInt("Streaming Dimension Size").
-//      getOrElse(getMaximumStreamingDimension(gemmDimension, dataflow))
 
     val streamingDimensionSize = dataflow match {
       case Dataflow.Is =>
@@ -312,15 +275,14 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     val singleBufferLimitKbA = testConfig.getInt("SRAM A Single Buffer Limit (KB)").getOrElse(
       throw ParseError("SRAM A Single Buffer Limit (KB)")
     )
+
     val singleBufferLimitKbB = testConfig.getInt("SRAM B Single Buffer Limit (KB)").getOrElse(
       throw ParseError("SRAM B Single Buffer Limit (KB)")
     )
+
     val singleBufferLimitKbC = testConfig.getInt("SRAM C Single Buffer Limit (KB)").getOrElse(
       throw ParseError("SRAM C Single Buffer Limit (KB)")
     )
-//    dramReferenceData.foreach(println(_))
-//    println(sramReferenceData)
-//    println(arrayReferenceData)
 
     SimulationConfig(
       debugPrint = debugPrint,
@@ -343,7 +305,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
       singleBufferLimitKbC = singleBufferLimitKbC,
       sramReferenceDataVector = sramReferenceData,
       dramReferenceData = dramReferenceData,
-      arrayReferenceData = arrayReferenceData,
+      arraySynthesisData = arraySynthesisData,
     )
 
   }
@@ -448,11 +410,6 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     val capacityB = (simConfig.singleBufferLimitKbB * 8 * 1024)/ sizeTileB
     val capacityC = (simConfig.singleBufferLimitKbC * 8 * 1024)/ sizeTileC
 
-//    println(s"Capacity A = ${capacityA}")
-//    println(s"Capacity B = ${capacityB}")
-//    println(s"Capacity C = ${capacityC}")
-
-
     if(!(capacityA > 0 && capacityB > 0 && capacityC > 0 ))
       throw RunTimeError("SRAM Cannot contain even 1 tile increase SRAM size")
 
@@ -485,6 +442,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     simConfig: SimulationConfig,
     components: (Layer, Array, Interface, Dram, (DoubleBufferSram, DoubleBufferSram, OutputDoubleBufferSram), LoggerOption)
   ): SimulationResult = {
+
     val (layer, array, interface, dram, srams, loggerOption) = components
     val (sramA, sramB, sramC) = srams
 
@@ -496,9 +454,10 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
       interface = interface,
       layer = layer,
       array = array,
+      streamingDimensionSize = simConfig.streamingDimensionSize,
       dramReferenceData = simConfig.dramReferenceData,
       sramDataReferenceVector = simConfig.sramReferenceDataVector,
-      arrayReferenceData = simConfig.arrayReferenceData,
+      arraySynthesisData = simConfig.arraySynthesisData,
       debugStartCycle = simConfig.debugStartCycle,
       debugEndCycle = simConfig.debugEndCycle,
       debugMode = simConfig.debugPrint,
@@ -568,6 +527,10 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
         averageMemoryUsageKbC = simulation.getAverageMemoryUsageKbC,
         averageMemoryUtilizationC = simulation.getAverageMemoryUtilizationC,
 
+        dramReferenceData = simulation.getDramRefData,
+        sramReferenceDataTable = simulation.getSramRefDataTable,
+        arraySynthesisData = simulation.getArraySynthesisData,
+
         sramReadEnergyPjA = simulation.getSramReadEnergyA,
         sramWriteEnergyPjA = simulation.getSramWriteEnergyA,
         sramLeakageEnergyPjA = simulation.getSramLeakageEnergyA,
@@ -593,12 +556,12 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
 
         energyPj = simulation.getTotalEnergy,
 
-        sramAreaMmA = simulation.getSramAreaA,
-        sramAreaMmB = simulation.getSramAreaB,
-        sramAreaMmC = simulation.getSramAreaC,
+        sramAreaUm2A = simulation.getSramAreaA,
+        sramAreaUm2B = simulation.getSramAreaB,
+        sramAreaUm2C = simulation.getSramAreaC,
 
-        arrayAreaMm = simulation.getArrayArea,
-        areaMm = simulation.getArea
+        arrayAreaUm2 = simulation.getArrayArea,
+        areaUm2 = simulation.getArea
 
       )
 

@@ -7,14 +7,14 @@ import rtl.commonRtl.{Arithmetic, PortConfig}
 trait RtlGenerator {
 
   def generateRtl(verilogGenerationConfig: VerilogGenerationConfig): Unit = {
-    val VerilogGenerationConfig(splitVerilogOutput, dataflow, arrayConfig, integerType, portBitWidthInfo) = verilogGenerationConfig
+    val VerilogGenerationConfig(splitVerilogOutput, dataflow, arrayConfig, integerType, portBitWidthInfo, streamingDimensionSize) = verilogGenerationConfig
 
     integerType match {
       case IntegerType.Signed =>
-        generateRtlForType[SInt](splitVerilogOutput, arrayConfig, portBitWidthInfo, dataflow, (w: Int) => SInt(w.W))
+        generateRtlForType[SInt](splitVerilogOutput, arrayConfig, portBitWidthInfo, dataflow, streamingDimensionSize, (w: Int) => SInt(w.W))
 
       case IntegerType.UnSigned =>
-        generateRtlForType[UInt](splitVerilogOutput, arrayConfig, portBitWidthInfo, dataflow, (w: Int) => UInt(w.W))
+        generateRtlForType[UInt](splitVerilogOutput, arrayConfig, portBitWidthInfo, dataflow, streamingDimensionSize, (w: Int) => UInt(w.W))
     }
   }
 
@@ -23,6 +23,7 @@ trait RtlGenerator {
     arrayConfig: ArrayDimension,
     portBitWidthInfo: PortBitWidthInfo,
     dataflow: Dataflow.Value,
+    streamingDimensionSize: Int,
     typeConstructor: Int => T
   )(implicit ev: Arithmetic[T]): Unit = {
 
@@ -42,7 +43,15 @@ trait RtlGenerator {
     )
 
     val dataflowString = dataflow.toString.toLowerCase
-    val generatedFileName = s"${dataflowString}_sta_${arrayConfig.arrayDimensionString}"
+//    val generatedFileName = s"${dataflowString}_sta_${arrayConfig.arrayDimensionString}"
+
+    val generatedFileName = dataflow match {
+      case Dataflow.Is | Dataflow.Ws=>
+        s"${dataflowString}_sta_${arrayConfig.arrayDimensionString}"
+      case Dataflow.Os =>
+        s"${dataflowString}_sta_${arrayConfig.arrayDimensionString}_sd$streamingDimensionSize"
+    }
+
 
     lazy val rtlGenerator =  dataflow match {
       case Dataflow.Is =>

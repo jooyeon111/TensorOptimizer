@@ -29,7 +29,8 @@ class DimensionAlignedSystolicTensorArray[T <: Data](
 
   val numInputA: Int = groupPeRow * vectorPeRow * numMultiplier
   val numInputB: Int = groupPeCol * vectorPeCol * numMultiplier
-  val numPropagateB: Int = groupPeRow * vectorPeRow
+//  val numPropagateB: Int = groupPeRow * vectorPeRow
+val numPropagateB: Int = groupPeRow * vectorPeRow * groupPeCol
   val numOutput : Int = groupPeCol * vectorPeCol
 
   val preProcessorInputA = Module (new PreProcessor(
@@ -57,11 +58,11 @@ class DimensionAlignedSystolicTensorArray[T <: Data](
     portConfig,
     generateRtl = false
   ))
-  val postProcessor = Module (new PostProcessor(
-    groupPeCol,
-    vectorPeCol,
-    systolicTensorArray.outputTypeC
-  ))
+//  val postProcessor = Module (new PostProcessor(
+//    groupPeCol,
+//    vectorPeCol,
+//    systolicTensorArray.outputTypeC
+//  ))
 
   val io = IO(new Bundle {
     val inputA = Input(Vec(numInputA, portConfig.inputTypeA))
@@ -75,12 +76,13 @@ class DimensionAlignedSystolicTensorArray[T <: Data](
   preProcessorInputB.io.input := io.inputB
   systolicTensorArray.io.inputA := preProcessorInputA.io.output
   systolicTensorArray.io.inputB := preProcessorInputB.io.output
-  postProcessor.io.input := systolicTensorArray.io.outputC
+//  postProcessor.io.input := systolicTensorArray.io.outputC
 
   //Wiring Control
   systolicTensorArray.io.propagateB := RegNext(io.propagateB, VecInit.fill(numPropagateB)(false.B))
 
   //Wiring Output
-  io.outputC := postProcessor.io.output
+//  io.outputC := postProcessor.io.output
+  io.outputC := systolicTensorArray.io.outputC
 
 }

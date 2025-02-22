@@ -5,7 +5,7 @@ case class SramReferenceData(
   bandwidthBytes: Int, // bytes
   readEnergyPj: Double, // pJ
   writeEnergyPj: Double, // pJ
-  leakagePowerMw: Double, // mW
+  private val leakagePowerMw: Double, // mW
   areaUm2: Double// um^2
 ) {
   def validate: Boolean = {

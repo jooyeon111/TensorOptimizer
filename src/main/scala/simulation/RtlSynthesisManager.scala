@@ -3,7 +3,7 @@ package simulation
 import java.io.File
 import common.{Dataflow, FilePaths, IntegerType, OutputPortCalculator, VerilogGenerationConfig, RtlGenerator}
 
-trait RtlSynthesisManager extends BandWidthFilter with OutputPortCalculator with RtlGenerator with Logger {
+trait RtlSynthesisManager extends/* BandWidthFilter with*/ OutputPortCalculator with RtlGenerator with Logger {
 
   private case class BandwidthConfig(
     bitWidthPortA: Int,
@@ -18,7 +18,8 @@ trait RtlSynthesisManager extends BandWidthFilter with OutputPortCalculator with
 
     val config = parseBandwidthConfig(bandwidthInfoPath, help)
 
-    val dataflows = Vector(Dataflow.Is, Dataflow.Os, Dataflow.Ws)
+//    val dataflows = Vector(Dataflow.Is, Dataflow.Os, Dataflow.Ws)
+    val dataflows = Vector(Dataflow.Os)
     dataflows.foreach { dataflow =>
       val arrayConfigs = ArrayConfigGenerator.generateArrayConfig(
         config.totalNumberOfMultiplier,
@@ -29,13 +30,16 @@ trait RtlSynthesisManager extends BandWidthFilter with OutputPortCalculator with
       )
 
       setupLogging(dataflow, config.totalNumberOfMultiplier)
-      val filteredConfigs = filterConfigsWithTwoSigma(arrayConfigs)
+//      val filteredConfigs = filterConfigsWithTwoSigma(arrayConfigs)
 
-      filteredConfigs.foreach { arrayConfig =>
+      arrayConfigs.foreach { arrayConfig =>
         generateVerilogForConfig(arrayConfig, config.streamingDimensionSize, config.verilogGeneration, config.splitVerilogModules )
       }
 
-      showBandwidthComparison(arrayConfigs, filteredConfigs)
+//      showBandwidthComparison(arrayConfigs, filteredConfigs)
+
+      log(s"\n[Configuration Candidates]")
+      showConfigBandwidths(arrayConfigs, "created")
 
     }
   }
@@ -131,7 +135,8 @@ trait RtlSynthesisManager extends BandWidthFilter with OutputPortCalculator with
         bitWidthPortB = config.portBitWidth.typeB,
         configPortC = None,
         streamingDimensionSize = streamingDimensionSize
-      )
+      ),
+      streamingDimensionSize = streamingDimensionSize
     )
     if(verilogGeneration)
       generateRtl(verilogConfig)

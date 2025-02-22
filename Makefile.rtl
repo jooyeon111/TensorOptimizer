@@ -1,5 +1,5 @@
 rtl_gen:
 	sbt "runMain rtl.Main input/rtl/weight_stationary.cfg"
-	sbt "runMain rtl.Main input/rtl/output_stationary.cfg"
+	#sbt "runMain rtl.Main input/rtl/output_stationary.cfg"
 
 

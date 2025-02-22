@@ -13,7 +13,7 @@ object AnalyzerMain extends App
     |Second argument is test setting argument
     |Third argument is DRAM Reference Data (Option)
     |Fourth argument is SRAM Reference Data (Option)
-    |Fifth argument is Array Reference Data (Option)
+    |Fifth argument is Array Synthesis Reference Data (Option)
     |Usage 2: [single config file mode]
     |First argument is for calculating proper band width
   """.stripMargin
@@ -30,12 +30,24 @@ object AnalyzerMain extends App
     if(args.length == 1){
       processArrayConfigsAndGenerateRtl(args(0), help)
     } else if (args.length == 2) {
+      println("Cycle Report Only")
       processOneLayer(
         layerPath = args(0),
         testPath = args(1),
         help = help
       )
-    } else if (args.length == 5){
+    } else if (args.length == 4){
+      println("Cycle and Energy Report")
+      println("Array Energy and Area will be calculated automatically")
+      processOneLayer(
+        layerPath = args(0),
+        testPath = args(1),
+        dramDataPath = Option(args(2)),
+        sramDataPath = Option(args(3)),
+        help = help
+      )
+    } else if (args.length ==5){
+      println("Cycle and Energy Report")
       processOneLayer(
         layerPath = args(0),
         testPath = args(1),

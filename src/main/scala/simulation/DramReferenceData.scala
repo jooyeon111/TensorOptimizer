@@ -9,5 +9,4 @@ case class DramReferenceData(
       writeEnergyPj > 0
   }
 
-  val areaMm2: Double = 75.0
 }
