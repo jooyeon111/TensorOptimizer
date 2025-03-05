@@ -90,13 +90,15 @@ class OutputDoubleBufferSram(
           loop.break()
         }
       }
+
     }
 
     if (temporalTileQueue.nonEmpty) {
-      interface.dram.receive(interface)
+      interface.dram.receive()
       incrementReadAccessCount()
+      markTileSendSuccessful()
     } else
-      stuck = true
+      markTileSendFailed()
 
   }
 
@@ -134,10 +136,6 @@ class OutputDoubleBufferSram(
       if(writeBuffer.forall(tile => tile.ownedBySram)){
         executeBufferSwap()
         increaseBufferSwapCount()
-//        interface.array.go()
-//        interface.array.isArrayStall = false
-//        interface.sramA.isSramStall = false
-//        interface.sramB.isSramStall = false
         resumeHardware(interface)
       } else {
         increaseBufferSwapStallCount()
@@ -145,16 +143,8 @@ class OutputDoubleBufferSram(
     } else {
       if(writeBuffer.forall(tile => tile.ownedBySram)) {
         if(writeBuffer.length == singleBufferTileCapacity){
-//          interface.array.stop()
-//          interface.array.isArrayStall = true
-//          interface.sramA.isSramStall = true
-//          interface.sramB.isSramStall = true
-          stallHardware(interface)
+          pauseHardware(interface)
         } else {
-//          interface.array.go()
-//          interface.array.isArrayStall = false
-//          interface.sramA.isSramStall = false
-//          interface.sramB.isSramStall = false
           resumeHardware(interface)
         }
       }
@@ -169,25 +159,32 @@ class OutputDoubleBufferSram(
 
   }
 
-  private def stallHardware(interface: Interface): Unit = {
-    interface.array.isArrayStall = true
-    interface.sramA.isSramStall = true
-    interface.sramB.isSramStall = true
+  private def pauseHardware(interface: Interface): Unit = {
+//    interface.array.isArrayStall = true
+//    interface.sramA.isSramStall = true
+//    interface.sramB.isSramStall = true
+
+    interface.array.pauseTileSending()
+    interface.sramA.pauseTileSending()
+    interface.sramB.pauseTileSending()
   }
 
   private def resumeHardware(interface: Interface): Unit = {
-    interface.array.isArrayStall = false
-    interface.sramA.isSramStall = false
-    interface.sramB.isSramStall = false
+//    interface.array.isArrayStall = false
+//    interface.sramA.isSramStall = false
+//    interface.sramB.isSramStall = false
+
+    interface.array.resumeTileSending()
+    interface.sramA.resumeTileSending()
+    interface.sramB.resumeTileSending()
+
   }
 
   private def judgeDramReadWriteState(interface: Interface): Unit = {
-
-    val shouldEnableWrite = readBuffer.nonEmpty
-    if(shouldEnableWrite)
-      interface.dram.onWriteEnable()
+    if(readBuffer.nonEmpty)
+      interface.dram.pauseTileSending()
     else
-      interface.dram.offWriteEnable()
+      interface.dram.resumeTileSending()
 
   }
 

@@ -25,13 +25,12 @@ final class Dram(
 
   private var singleBufferTileCapacityOfSramA = -1
   private var singleBufferTileCapacityOfSramB = -1
-  private var writeEnable: Boolean = false
+//  private var writeEnable: Boolean = false
 
   //TODO change variable names below
   var trimTileCountA: Int = 0
   var trimTileCountB: Int = 0
 
-  private var isTrimmed = false
   var dramStall = 0
 
   //Function called by Compiler
@@ -69,30 +68,14 @@ final class Dram(
     checkCapacity()
   }
 
-
-  //Function called by Output Double Buffer SRAM
-  def onWriteEnable(): Unit = {
-    writeEnable = true
-  }
-
-  def offWriteEnable(): Unit = {
-    writeEnable = false
-  }
-
   //Function called by array
-  def receive(interface: Interface): Unit = {
+  def receive(): Unit = {
     incrementWriteAccessCount()
-  }
-
-  //Function called by interface
-  override def restoreTrafficState(): Unit = {
-    stuck = false
-    isTrimmed = false
   }
 
   override def update(interface: Interface) : Unit = {
 
-    if(currentTileQueue.nonEmpty && !writeEnable){
+    if(currentTileQueue.nonEmpty && isReadyToSend){
 
       prepareTileInTransit()
 
@@ -203,7 +186,6 @@ final class Dram(
           throw RunTimeError("Invalid data type in DRAM Tile Queue")
       }
       currentTileQueue.dequeue()
-      if (!isTrimmed) isTrimmed = true
     }
 
     while (currentTileQueue.nonEmpty && shouldTrimTile(currentTileQueue.front)) {
@@ -250,15 +232,13 @@ final class Dram(
 
   override def send(interface: Interface) : Unit = {
 
-    if(sendingTileQueueA.nonEmpty || sendingTileQueueB.nonEmpty) {
+    if(sendingTileQueueA.isEmpty && sendingTileQueueB.isEmpty) {
+      markTileSendFailed()
+      dramStall += 1
+    } else {
+      markTileSendSuccessful()
       incrementReadAccessCount()
     }
-
-    if(sendingTileQueueA.isEmpty && sendingTileQueueB.isEmpty)
-      dramStall += 1
-
-    if(sendingTileQueueA.isEmpty && sendingTileQueueB.isEmpty && !isTrimmed)
-      stuck = true
 
     if(sendingTileQueueA.nonEmpty)
       interface.sramA.receive(sendingTileQueueA)

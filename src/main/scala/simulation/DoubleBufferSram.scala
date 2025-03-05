@@ -17,8 +17,7 @@ class DoubleBufferSram(
   require(singleBufferTileCapacity >=  1, "[error] Tile capacity must be at least 1")
   setMode(loggerOption)
 
-  var isSramStall = false
-  var swapCount = 0
+  private var swapCount = 0
 
   private var tileIdToSend: (Int, Int) = (-1, -1)
   private val tileOperationOrder: mutable.ListBuffer[TileScheduleEntry] = mutable.ListBuffer.empty[TileScheduleEntry]
@@ -102,15 +101,6 @@ class DoubleBufferSram(
   def canSwapBuffers: Boolean = {
     require(isNothingToUpdateInWriteBuffer, "[error] There is something to update in write buffer")
 
-//    if(isFirstFillUpCompete && isWriteBufferTilesIntact){
-//      updateToReadBuffer(writeBuffer)
-//      updateToWriteBuffer(readBuffer)
-//      executeBufferSwap()
-//      increaseBufferSwapCount()
-//    } else {
-//      increaseBufferSwapStallCount()
-//    }
-
     if(isFirstFillUpDone){
       if(isWriteBufferTilesIntact){
         updateToReadBuffer(writeBuffer)
@@ -157,12 +147,13 @@ class DoubleBufferSram(
 
   override def update(interface: Interface) : Unit = {
 
-    if(isGoodStateToGo && !isSramStall){
+    markTileSendFailed()
+
+    if(isGoodStateToGo && isReadyToSend){
       prepareTileForSend()
       send(interface)
       resetTileIdToSend()
-    } else
-      stuck = true
+    }
 
     countDramAccess()
     updateState()
@@ -202,6 +193,7 @@ class DoubleBufferSram(
     }
 
     availableOutputBandwidth = outputBandwidth
+
   }
 
 
@@ -216,8 +208,10 @@ class DoubleBufferSram(
       incrementReadAccessCount()
     }
 
+    //TODO do we need buffer here?
     def sendFromBuffer(buffer: mutable.Queue[Tile]): Unit = {
       if (buffer.nonEmpty) {
+        markTileSendSuccessful()
         buffer.find(_.memoryOccupiedByArray > 0).foreach(sendTile)
       }
     }
@@ -358,49 +352,22 @@ class DoubleBufferSram(
 
   private def updateToReadBuffer(writeBuffer: mutable.Queue[Tile]): Unit = {
     if(writeBuffer.isEmpty) return
-//    var isFirstLoop = true
-//    var loopCount = 0
 
     while(tileOperationOrder.exists(!_.isScheduled)){
-//      println(s"SRAM $dataType")
-//      println(s"? : ${isFirstLoop}")
 
       val unScheduledTileId = tileOperationOrder.find(!_.isScheduled).get.id
       val startIdx = writeBuffer.indexWhere(_.id == unScheduledTileId)
-
-//      if(isFirstLoop){
-//
-//        if(startIdx <0){
-//          Console.err.println("[error] update to read buffer malfunction")
-//          sys.exit(1)
-//        } else {
-//          isFirstLoop = false
-//        }
-//
-//      } else {
-//        if(startIdx < 0 ) return
-//      }
-
       if(startIdx < 0 ) return
 
       val writeBufferPattern = mutable.Queue[(Int, Int)]()
       writeBufferPattern ++= writeBuffer.slice(startIdx, writeBuffer.size).map(_.id.asInstanceOf[(Int, Int)])
 
       matchPatterns(writeBufferPattern, tileOperationOrder)
-//      loopCount += 1
+
     }
 
   }
-//  private def updateToWriteBuffer(readBuffer: mutable.Queue[Tile]): Unit = {
-//    tileOperationOrder.find(!_.isScheduled).foreach { startTileId =>
-//      val indexToKeep = readBuffer.indexWhere(_.id == startTileId.id)
-//      if(indexToKeep >= 0){
-//        readBuffer.remove(0, indexToKeep)
-//      } else {
-//        readBuffer.clear()
-//      }
-//    }
-//  }
+
 
   private def updateToWriteBuffer(readBuffer: mutable.Queue[Tile]): Unit = {
 

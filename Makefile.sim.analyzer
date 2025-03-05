@@ -174,9 +174,12 @@ bandwidth:
 	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_512_SD_64}"
 	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_512_SD_128}"
 	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_512_SD_256}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_512_SD_512}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_512_SD_1024}"
 
 	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_32}"
 	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_64}"
 	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_128}"
 	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_256}"
-	sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_1024}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_512}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_1024}"

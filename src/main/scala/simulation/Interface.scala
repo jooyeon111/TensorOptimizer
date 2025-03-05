@@ -22,13 +22,13 @@ class Interface(
 
   def checkTraffic(): Either[RunTimeError, Unit] = {
 
-    val isTransmissionStuck = dram.isStuck &&
-      sramA.isStuck &&
-      sramB.isStuck &&
-      array.isStuck &&
-      sramC.isStuck &&
-      sramA.isFirstFillUpDone &&
-      sramB.isFirstFillUpDone
+    val isTransmissionStuck = dram.isFailedToSend &&
+      sramA.isFailedToSend &&
+      sramB.isFailedToSend &&
+      array.isFailedToSend &&
+      sramC.isFailedToSend
+//      sramA.isFirstFillUpDone &&
+//      sramB.isFirstFillUpDone
 
     if(isTransmissionStuck) {
       Left(RunTimeError("Hardware is stuck !!!"))

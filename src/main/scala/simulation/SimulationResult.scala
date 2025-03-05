@@ -276,7 +276,7 @@ case class SimulationResult(
     dramReferenceData.isDefined && sramReferenceDataTable.isDefined && dramReferenceData.isDefined
   }
 
-  private def isEnergyReportValid: Boolean = {
+  def isEnergyReportValid: Boolean = {
     sramReadEnergyPjA.isDefined &&
       sramWriteEnergyPjA.isDefined &&
       sramLeakageEnergyPjA.isDefined &&
@@ -295,7 +295,7 @@ case class SimulationResult(
       energyPj.isDefined
   }
 
-  private def isAreaReportValid: Boolean = {
+  def isAreaReportValid: Boolean = {
     sramAreaUm2A.isDefined &&
       sramAreaUm2B.isDefined &&
       sramAreaUm2C.isDefined &&

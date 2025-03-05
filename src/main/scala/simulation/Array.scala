@@ -11,7 +11,7 @@ final class Array(
 
   setMode(loggerOption)
 
-  var isArrayStall = false
+//  var isArrayStall = false
 
   private var tileIdToReceiveA: (Int,Int) = (-1, -1)
   private var tileIdToReceiveB: (Int,Int) = (-1, -1)
@@ -130,11 +130,15 @@ final class Array(
 
   override def update(interface: Interface) : Unit = {
 
-    if(isArrayStall){
-      stuck = true
-    } else {
+//    if(isStuck){
+//      markAsStuck()
+//    } else {
 
-      if (calculatingOperation.nonEmpty && !isArrayStall) {
+    markTileSendFailed()
+
+    if(isReadyToSend) {
+
+      if (calculatingOperation.nonEmpty) {
         prepareTileForSend()
         send(interface)
       }
@@ -155,6 +159,10 @@ final class Array(
       }
 
     }
+
+
+
+//    }
 
   }
 
@@ -331,6 +339,7 @@ final class Array(
       s" ID: ${operation.operationId}")
 
     if(targetTileC.memoryOccupiedBySram > 0 ){
+      markTileSendSuccessful()
 
       if(targetTileC.ownedBySram) {
 
@@ -368,9 +377,7 @@ final class Array(
       } else
         interface.sramC.receive(targetTileC.copyTile())
 
-//      incrementReadAccessCount()
     }
-
 
   }
 

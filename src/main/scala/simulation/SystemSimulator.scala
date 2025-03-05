@@ -68,12 +68,12 @@ class SystemSimulator(
 //        println(s"Cycle: $cycle")
         interface.updateCycle(cycle)
 
-//        val currentProgress = (array.schedule.count(_.isCalculated) * 100) / layer.operationVector.size
-//        if (currentProgress > lastProgressPercent) {
-//          println(s"Progress: $currentProgress")
-//          lastProgressPercent = currentProgress
-//        }
-
+        val currentProgress = (array.schedule.count(_.isCalculated) * 100) / layer.operationVector.size
+        if (currentProgress > lastProgressPercent) {
+          println(s"Progress: $currentProgress %")
+          println(s"Cycle: $cycle")
+          lastProgressPercent = currentProgress
+        }
 
         if (debugMode)
           if (debugStartCycle <= cycle && cycle < debugEndCycle)
@@ -89,16 +89,7 @@ class SystemSimulator(
 
         interface.checkTraffic() match {
           case Right(_) =>
-
-            dram.restoreTrafficState()
-            sramA.restoreTrafficState()
-            sramB.restoreTrafficState()
-            array.restoreTrafficState()
-            sramC.restoreTrafficState()
-            dram.restoreTrafficState()
-
           case Left(e) =>
-
             println(s"Failed: ${e.getMessage}")
             printCompilationState(cycle)
             sys.exit(1)
@@ -400,6 +391,16 @@ class SystemSimulator(
     array.printTiles()
     sramC.printTiles()
     array.printSchedule()
+
+    println(s"DRAM Tile Send Failed: ${dram.isFailedToSend}")
+
+    println(s"SRAM A Tile Send Failed: ${sramA.isFailedToSend}")
+    println(s"SRAM B Tile Send Failed: ${sramB.isFailedToSend}")
+    println(s"ARRAY Tile Send Failed: ${array.isFailedToSend}")
+    println(s"SRAM C Tile Send Failed: ${sramC.isFailedToSend}")
+    println(s"")
+
+
 //    sramA.printSchedule()
 //    sramB.printSchedule()
 
