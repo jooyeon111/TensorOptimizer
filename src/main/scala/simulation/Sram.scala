@@ -111,9 +111,9 @@ trait Sram extends Hardware with Logger {
         log("\t\t[Buffer0: DRAM is writing]")
     } else if(dataType == DataType.C) {
       if(isWritingToPong)
-        log("\t\t[Buffer0: DRAM is writing]")
+        log("\t\t[Buffer0: Array is writing]")
       else
-        log("\t\t[Buffer0: ARRAY is reading]")
+        log("\t\t[Buffer0: DRAM is reading]")
     }
 
     if(pingBuffer.isEmpty){
@@ -130,9 +130,9 @@ trait Sram extends Hardware with Logger {
         log("\t\t[Buffer1: ARRAY is reading]")
     } else if (dataType == DataType.C){
       if(isWritingToPong)
-        log("\t\t[Buffer1: ARRAY is reading]")
+        log("\t\t[Buffer1: DRAM is reading]")
       else
-        log("\t\t[Buffer1: DRAM is writing]")
+        log("\t\t[Buffer1: ARRAY is writing]")
     }
 
 

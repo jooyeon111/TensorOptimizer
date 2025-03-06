@@ -62,9 +62,14 @@ class DoubleBufferSram(
   }
 
   //Functions are called by DRAM
-  def existsInBuffers(targetTile: Tile): Boolean = {
+  def existsInBothBuffers(targetTile: Tile): Boolean = {
     assert(dataType == targetTile.dataType, "[error] Tile data type mismatch")
     readBuffer.exists(tile => tile.id == targetTile.id) || writeBuffer.exists(tile => tile.id == targetTile.id)
+  }
+
+  def existsInWriteBuffer(targetTile: Tile): Boolean = {
+    assert(dataType == targetTile.dataType, "[error] Tile data type mismatch")
+    writeBuffer.exists(tile => tile.id == targetTile.id)
   }
 
   def howManyTileCanStore() : Int = {
@@ -371,6 +376,24 @@ class DoubleBufferSram(
 
   private def updateToWriteBuffer(readBuffer: mutable.Queue[Tile]): Unit = {
 
+//    val readBufferIds = readBuffer.map(_.id).toSet
+//    val unscheduledNeededTiles = tileOperationOrder
+//      .filter(!_.isScheduled)
+//      .map(_.id)
+//      .filter(readBufferIds.contains)
+//      .toSet
+//
+//    val indicesToKeep = readBuffer.indices
+//      .filter(i => unscheduledNeededTiles.contains(readBuffer(i).id.asInstanceOf[(Int, Int)]))
+//      .toSet
+//
+//    for (i <- readBuffer.indices.reverse if !indicesToKeep.contains(i)) {
+//      readBuffer.remove(i)
+//    }
+
+    if(tileOperationOrder.forall(_.isScheduled))
+      return
+
     val readBufferIds = readBuffer.map(_.id).toSet
     val unscheduledNeededTiles = tileOperationOrder
       .filter(!_.isScheduled)
@@ -385,6 +408,12 @@ class DoubleBufferSram(
     for (i <- readBuffer.indices.reverse if !indicesToKeep.contains(i)) {
       readBuffer.remove(i)
     }
+
+//    val unScheduledId = tileOperationOrder.find(!_.isScheduled).get
+//
+//    if(!readBuffer.exists(_.id == unScheduledId)){
+//      readBuffer.clear()
+//    }
 
   }
 

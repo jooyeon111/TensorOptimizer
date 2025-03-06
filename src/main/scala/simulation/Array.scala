@@ -139,6 +139,7 @@ final class Array(
     if(isReadyToSend) {
 
       if (calculatingOperation.nonEmpty) {
+        markTileSendSuccessful()
         prepareTileForSend()
         send(interface)
       }
@@ -339,7 +340,7 @@ final class Array(
       s" ID: ${operation.operationId}")
 
     if(targetTileC.memoryOccupiedBySram > 0 ){
-      markTileSendSuccessful()
+//      markTileSendSuccessful()
 
       if(targetTileC.ownedBySram) {
 

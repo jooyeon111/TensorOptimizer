@@ -5,13 +5,13 @@ LAYER_PATH := $(BASE_PATH)/layer/resnet18
 HARDWARE_PATH := $(BASE_PATH)/hardware_reference
 
 # Test configurations
-TEST_OPTION_OS_SD_32 := $(CONFIG_PATH)/oneLayer/os_{32x32}x{1x1}x1_sd_32_buffer_128.cfg
-TEST_OPTION_OS_SD_256 := $(CONFIG_PATH)/oneLayer/os_{32x32}x{1x1}x1_sd_256_buffer_128.cfg
-TEST_OPTION_OS_SD_1024 := $(CONFIG_PATH)/oneLayer/os_{32x32}x{1x1}x1_sd_1024_buffer_128.cfg
+TEST_OPTION_OS_SD_32 := $(CONFIG_PATH)/oneLayer/os_{32x32}x{1x1}x1_sd_32_buffer_256.cfg
+TEST_OPTION_OS_SD_256 := $(CONFIG_PATH)/oneLayer/os_{32x32}x{1x1}x1_sd_256_buffer_256.cfg
+TEST_OPTION_OS_SD_1024 := $(CONFIG_PATH)/oneLayer/os_{32x32}x{1x1}x1_sd_1024_buffer_256.cfg
 
-TEST_OPTION_WS_SD_32 := $(CONFIG_PATH)/oneLayer/ws_{32x32}x{1x1}x1_sd_32_buffer_128.cfg
-TEST_OPTION_WS_SD_256 := $(CONFIG_PATH)/oneLayer/ws_{32x32}x{1x1}x1_sd_256_buffer_128.cfg
-TEST_OPTION_WS_SD_1024 := $(CONFIG_PATH)/oneLayer/os_{32x32}x{1x1}x1_sd_1024_buffer_128.cfg
+TEST_OPTION_WS_SD_32 := $(CONFIG_PATH)/oneLayer/ws_{32x32}x{1x1}x1_sd_32_buffer_256.cfg
+TEST_OPTION_WS_SD_256 := $(CONFIG_PATH)/oneLayer/ws_{32x32}x{1x1}x1_sd_256_buffer_256.cfg
+TEST_OPTION_WS_SD_1024 := $(CONFIG_PATH)/oneLayer/os_{32x32}x{1x1}x1_sd_1024_buffer_256.cfg
 
 # Hardware configurations
 DRAM_DATA = $(HARDWARE_PATH)/DRAMsim3/ddr4_dram.cfg
@@ -89,14 +89,14 @@ stage1:
 	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK2_CONV2} ${TEST_OPTION_OS_SD_256} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_256}"
 	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK2_CONV2} ${TEST_OPTION_WS_SD_256} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
 	#Extra Large
-	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK1_CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK1_CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK1_CONV2} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK1_CONV2} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK2_CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK2_CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK2_CONV2} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK2_CONV2} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK1_CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK1_CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK1_CONV2} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK1_CONV2} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK2_CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK2_CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK2_CONV2} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE1_BLOCK2_CONV2} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
 
 .PHONY: stage2
 stage2:
@@ -123,16 +123,16 @@ stage2:
 	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK2_CONV2} ${TEST_OPTION_OS_SD_256} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_256}"
 	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK2_CONV2} ${TEST_OPTION_WS_SD_256} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
 	#Extra Large
-	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK1_CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK1_CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK1_CONV2} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK1_CONV2} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK1_SHORTCUT} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK1_SHORTCUT} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK2_CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK2_CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK2_CONV2} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK2_CONV2} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK1_CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK1_CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK1_CONV2} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK1_CONV2} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK1_SHORTCUT} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK1_SHORTCUT} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK2_CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK2_CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK2_CONV2} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE2_BLOCK2_CONV2} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
 ##
 .PHONY: stage3
 stage3:
@@ -159,16 +159,16 @@ stage3:
 	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK2_CONV2} ${TEST_OPTION_OS_SD_256} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_256}"
 	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK2_CONV2} ${TEST_OPTION_WS_SD_256} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
 	#Extra Large
-	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK1_CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK1_CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK1_CONV2} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK1_CONV2} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK1_SHORTCUT} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK1_SHORTCUT} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK2_CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK2_CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK2_CONV2} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK2_CONV2} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK1_CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK1_CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK1_CONV2} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK1_CONV2} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK1_SHORTCUT} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK1_SHORTCUT} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK2_CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK2_CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK2_CONV2} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE3_BLOCK2_CONV2} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
 #
 .PHONY: stage4
 stage4:
@@ -195,16 +195,16 @@ stage4:
 	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK2_CONV2} ${TEST_OPTION_OS_SD_256} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_256}"
 	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK2_CONV2} ${TEST_OPTION_WS_SD_256} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
 	#Extra Large
-	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK1_CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK1_CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK1_CONV2} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK1_CONV2} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK1_SHORTCUT} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK1_SHORTCUT} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK2_CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK2_CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK2_CONV2} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK2_CONV2} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK1_CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK1_CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK1_CONV2} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK1_CONV2} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK1_SHORTCUT} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK1_SHORTCUT} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK2_CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK2_CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK2_CONV2} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${STAGE4_BLOCK2_CONV2} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
 ##
 .PHONY: fc
 fc:
@@ -215,5 +215,5 @@ fc:
 	sbt "runMain simulation.AnalyzerMain ${FC} ${TEST_OPTION_OS_SD_256} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_256}"
 	sbt "runMain simulation.AnalyzerMain ${FC} ${TEST_OPTION_WS_SD_256} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
 	#Extra Large
-	sbt "runMain simulation.AnalyzerMain ${FC} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
-	sbt "runMain simulation.AnalyzerMain ${FC} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+#	sbt "runMain simulation.AnalyzerMain ${FC} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
+#	sbt "runMain simulation.AnalyzerMain ${FC} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"

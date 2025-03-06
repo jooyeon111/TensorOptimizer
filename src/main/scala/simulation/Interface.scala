@@ -31,7 +31,7 @@ class Interface(
 //      sramB.isFirstFillUpDone
 
     if(isTransmissionStuck) {
-      Left(RunTimeError("Hardware is stuck !!!"))
+      Left(RunTimeError("All Hardware can not send tile ...! Check out the log file please~"))
     } else {
       Right(())
     }

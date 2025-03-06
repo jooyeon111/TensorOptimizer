@@ -76,9 +76,10 @@ class SystemSimulator(
         }
 
         if (debugMode)
-          if (debugStartCycle <= cycle && cycle < debugEndCycle)
+          if (debugStartCycle <= cycle && cycle < debugEndCycle) {
+            println("Program stop for debugging purpose")
             printCompilationState(cycle)
-          else if (debugEndCycle == cycle)
+          } else if (debugEndCycle == cycle)
             break()
 
         dram.update(interface)
@@ -92,7 +93,7 @@ class SystemSimulator(
           case Left(e) =>
             println(s"Failed: ${e.getMessage}")
             printCompilationState(cycle)
-            sys.exit(1)
+            break()
 
         }
 
@@ -391,19 +392,6 @@ class SystemSimulator(
     array.printTiles()
     sramC.printTiles()
     array.printSchedule()
-
-    println(s"DRAM Tile Send Failed: ${dram.isFailedToSend}")
-
-    println(s"SRAM A Tile Send Failed: ${sramA.isFailedToSend}")
-    println(s"SRAM B Tile Send Failed: ${sramB.isFailedToSend}")
-    println(s"ARRAY Tile Send Failed: ${array.isFailedToSend}")
-    println(s"SRAM C Tile Send Failed: ${sramC.isFailedToSend}")
-    println(s"")
-
-
-//    sramA.printSchedule()
-//    sramB.printSchedule()
-
     log("")
   }
 }

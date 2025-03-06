@@ -188,6 +188,7 @@ class OutputDoubleBufferSram(
 
   }
 
+  //TODO override printSrams
   def printTiles(): Unit = {
     printSram()
   }

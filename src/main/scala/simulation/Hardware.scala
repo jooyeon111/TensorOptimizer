@@ -17,7 +17,6 @@ trait Hardware {
   def pauseTileSending(): Unit = readyToSend = false
   def resumeTileSending(): Unit = readyToSend = true
 
-
   def printTiles() : Unit
   def isHardwareEmpty: Boolean
 
