@@ -11,12 +11,16 @@ final class Array(
 
   setMode(loggerOption)
 
-//  var isArrayStall = false
+
+  var schedule: Vector[ScheduledOperation] = _
+  var isBufferFlagChangedA = false
+  var isBufferFlagChangedB = false
+
+  private var previousFirstFillUpA = false
+  private var previousFirstFillUpB = false
 
   private var tileIdToReceiveA: (Int,Int) = (-1, -1)
   private var tileIdToReceiveB: (Int,Int) = (-1, -1)
-
-  var schedule: Vector[ScheduledOperation] = _
 
   private val currentTileQueueTypeA: mutable.Queue[TileA] = mutable.Queue.empty[TileA]
   private val nextTileQueueTypeA: mutable.Queue[TileA] = mutable.Queue.empty[TileA]
@@ -135,6 +139,17 @@ final class Array(
 //    } else {
 
     markTileSendFailed()
+//    isBufferFlagChangedA = false
+//    isBufferFlagChangedB = false
+    if (interface.sramA.isFirstFillUpDone && !previousFirstFillUpA) {
+      isBufferFlagChangedA = true
+      previousFirstFillUpA = true
+    }
+
+    if (interface.sramB.isFirstFillUpDone && !previousFirstFillUpB) {
+      isBufferFlagChangedB = true
+      previousFirstFillUpB = true
+    }
 
     if(isReadyToSend) {
 
@@ -200,14 +215,19 @@ final class Array(
 
   private def judgeSramDoubleBufferLogic(interface: Interface): Unit = {
 
+//    if(interface.sramA.isFirstFillUpDone)
+//      isFirstFillUpDoneA = true
+
     if(tileIdToReceiveA != (-1, -1))
       if(!interface.sramA.hasThisTileForArray(tileIdToReceiveA, DataType.A)) {
-        interface.sramA.canSwapBuffers
+        if(!isBufferFlagChangedA)
+          isBufferFlagChangedA = interface.sramA.canSwapBuffers
       }
 
     if(tileIdToReceiveB != (-1, -1))
       if(!interface.sramB.hasThisTileForArray(tileIdToReceiveB, DataType.B)) {
-        interface.sramB.canSwapBuffers
+        if(!isBufferFlagChangedB)
+          isBufferFlagChangedB = interface.sramB.canSwapBuffers
       }
 
   }
@@ -575,6 +595,8 @@ final class Array(
   //Util functions
   def printTiles(): Unit = {
     log(s"\t[Systolic Tensor Array]")
+    log(s"\t\tChange SRAM A buffer: ${isBufferFlagChangedA}")
+    log(s"\t\tChange SRAM B buffer: ${isBufferFlagChangedB}")
     log(s"\t\tTile A ID to receive: $tileIdToReceiveA")
     log(s"\t\tTile B ID to receive: $tileIdToReceiveB")
     log(s"\t\tTarget Operation Tile C id: ${generateOperationId(tileIdToReceiveA, tileIdToReceiveB)}")

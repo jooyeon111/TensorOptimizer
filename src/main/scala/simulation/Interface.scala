@@ -26,9 +26,11 @@ class Interface(
       sramA.isFailedToSend &&
       sramB.isFailedToSend &&
       array.isFailedToSend &&
-      sramC.isFailedToSend
-//      sramA.isFirstFillUpDone &&
-//      sramB.isFirstFillUpDone
+      sramC.isFailedToSend &&
+      sramA.isFirstFillUpDone &&
+      sramB.isFirstFillUpDone &&
+      !array.isBufferFlagChangedA &&
+      !array.isBufferFlagChangedB
 
     if(isTransmissionStuck) {
       Left(RunTimeError("All Hardware can not send tile ...! Check out the log file please~"))

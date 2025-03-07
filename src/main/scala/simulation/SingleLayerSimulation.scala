@@ -21,10 +21,10 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     portBitWidth: PortBitWidth,
     dramBandwidth: Int,
     dramUploadOrder: DramUploadOrder.Value,
+//    tileDeduplicationStrategy: TileDeduplicationStrategy.Value,
     singleBufferLimitKbA: Int,
     singleBufferLimitKbB: Int,
     singleBufferLimitKbC: Int,
-
     dramReferenceData: Option[DramReferenceData],
     sramReferenceDataVector: Option[Vector[SramReferenceData]],
     arraySynthesisData: Option[ArraySynthesisData]

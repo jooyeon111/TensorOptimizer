@@ -62,14 +62,9 @@ class DoubleBufferSram(
   }
 
   //Functions are called by DRAM
-  def existsInBothBuffers(targetTile: Tile): Boolean = {
+  def existsInInBuffers(targetTile: Tile): Boolean = {
     assert(dataType == targetTile.dataType, "[error] Tile data type mismatch")
     readBuffer.exists(tile => tile.id == targetTile.id) || writeBuffer.exists(tile => tile.id == targetTile.id)
-  }
-
-  def existsInWriteBuffer(targetTile: Tile): Boolean = {
-    assert(dataType == targetTile.dataType, "[error] Tile data type mismatch")
-    writeBuffer.exists(tile => tile.id == targetTile.id)
   }
 
   def howManyTileCanStore() : Int = {

@@ -168,9 +168,9 @@ final class Dram(
 
       tile.dataType match {
         case DataType.A =>
-          interface.sramA.existsInBothBuffers(tile) || sendingTileQueueA.exists(_.id == tile.id)
+          interface.sramA.existsInInBuffers(tile) || sendingTileQueueA.exists(_.id == tile.id)
         case DataType.B =>
-          interface.sramB.existsInBothBuffers(tile) || sendingTileQueueB.exists(_.id == tile.id)
+          interface.sramB.existsInInBuffers(tile) || sendingTileQueueB.exists(_.id == tile.id)
         case _ =>
           throw RunTimeError("Invalid data type in DRAM Tile Queue")
       }
