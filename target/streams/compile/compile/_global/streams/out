@@ -1,2 +1,5 @@
-[0m[[0m[33mwarn[0m] [0m[0m1 deprecation (since 2.13.3); re-run with -deprecation for details[0m
-[0m[[0m[33mwarn[0m] [0m[0mone warning found[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/SingleLayerSimulation.scala:287:21: not enough arguments for method apply: (debugPrint: Boolean, debugStartCycle: Int, debugEndCycle: Int, layerName: String, layerGemmDimension: simulation.GemmDimension, streamingDimensionSize: Int, dataflow: common.Dataflow.Value, groupPeRow: Int, groupPeCol: Int, vectorPeRow: Int, vectorPeCol: Int, numMultiplier: Int, portBitWidth: simulation.PortBitWidth, dramBandwidth: Int, dramUploadOrder: simulation.DramUploadOrder.Value, tileDeduplicationStrategy: simulation.TileDeduplicationStrategy.Value, singleBufferLimitKbA: Int, singleBufferLimitKbB: Int, singleBufferLimitKbC: Int, dramReferenceData: Option[simulation.DramReferenceData], sramReferenceDataVector: Option[Vector[simulation.SramReferenceData]], arraySynthesisData: Option[simulation.ArraySynthesisData]): SingleLayerSimulation.this.SimulationConfig in object SimulationConfig.[0m
+[0m[[0m[31merror[0m] [0m[0mUnspecified value parameter tileDeduplicationStrategy.[0m
+[0m[[0m[31merror[0m] [0m[0m    SimulationConfig([0m
+[0m[[0m[31merror[0m] [0m[0m                    ^[0m
+[0m[[0m[31merror[0m] [0m[0mone error found[0m

@@ -13,8 +13,12 @@ final class Array(
 
 
   var schedule: Vector[ScheduledOperation] = _
-  var isBufferFlagChangedA = false
-  var isBufferFlagChangedB = false
+
+  var canArrayReceiveTileInSramA = false
+  var canArrayReceiveTileInSramB = false
+
+  private var isBufferFlagChangedA = false
+  private var isBufferFlagChangedB = false
 
   private var previousFirstFillUpA = false
   private var previousFirstFillUpB = false
@@ -134,13 +138,10 @@ final class Array(
 
   override def update(interface: Interface) : Unit = {
 
-//    if(isStuck){
-//      markAsStuck()
-//    } else {
-
     markTileSendFailed()
-//    isBufferFlagChangedA = false
-//    isBufferFlagChangedB = false
+    isBufferFlagChangedA = false
+    isBufferFlagChangedB = false
+
     if (interface.sramA.isFirstFillUpDone && !previousFirstFillUpA) {
       isBufferFlagChangedA = true
       previousFirstFillUpA = true
@@ -190,7 +191,7 @@ final class Array(
   private def countSramAccess(interface: Interface): Unit = {
     if(tileIdToReceiveA != (-1, -1) && interface.sramA.isFirstFillUpDone) {
       totalMemoryAccessCountA += 1.0
-      if(interface.sramA.hasThisTileForArray(tileIdToReceiveA, DataType.A) &&
+      if(interface.sramA.hasThisTileInReadBuffer(tileIdToReceiveA, DataType.A) &&
         (capacityLeftTileA() >= arrayConfig.bandwidthOfInputA ||
           (capacityLeftTileA() == 0 && calculatingOperation.exists(_.canBeColoredTileA))) &&
         nextTileQueueTypeA.exists(_.id == tileIdToReceiveA)) {
@@ -202,7 +203,7 @@ final class Array(
 
     if(tileIdToReceiveB != (-1, -1) && interface.sramB.isFirstFillUpDone) {
       totalMemoryAccessCountB += 1.0
-      if(interface.sramB.hasThisTileForArray(tileIdToReceiveB, DataType.B) &&
+      if(interface.sramB.hasThisTileInReadBuffer(tileIdToReceiveB, DataType.B) &&
         (capacityLeftTileB() >= arrayConfig.bandwidthOfInputB ||
           (capacityLeftTileB() == 0 && calculatingOperation.exists(_.canBeColoredTileB))) &&
         nextTileQueueTypeB.exists(_.id == tileIdToReceiveB)) {
@@ -218,16 +219,27 @@ final class Array(
 //    if(interface.sramA.isFirstFillUpDone)
 //      isFirstFillUpDoneA = true
 
+    var hasTileInWriteBufferA = false
+    var hasTileInWriteBufferB = false
+
     if(tileIdToReceiveA != (-1, -1))
-      if(!interface.sramA.hasThisTileForArray(tileIdToReceiveA, DataType.A)) {
-        if(!isBufferFlagChangedA)
+      if(!interface.sramA.hasThisTileInReadBuffer(tileIdToReceiveA, DataType.A)) {
+        if(!isBufferFlagChangedA) {
+          if(interface.sramA.hasThisTileInWriteBuffer(tileIdToReceiveA, DataType.A))
+            hasTileInWriteBufferA = true
           isBufferFlagChangedA = interface.sramA.canSwapBuffers
+          canArrayReceiveTileInSramA = hasTileInWriteBufferA && isBufferFlagChangedA
+        }
       }
 
     if(tileIdToReceiveB != (-1, -1))
-      if(!interface.sramB.hasThisTileForArray(tileIdToReceiveB, DataType.B)) {
-        if(!isBufferFlagChangedB)
+      if(!interface.sramB.hasThisTileInReadBuffer(tileIdToReceiveB, DataType.B)) {
+        if(!isBufferFlagChangedB) {
+          if(interface.sramB.hasThisTileInWriteBuffer(tileIdToReceiveB, DataType.B))
+            hasTileInWriteBufferB = true
           isBufferFlagChangedB = interface.sramB.canSwapBuffers
+          canArrayReceiveTileInSramB = hasTileInWriteBufferB && isBufferFlagChangedB
+        }
       }
 
   }
@@ -235,7 +247,7 @@ final class Array(
   private def setRequestedTilesToSRAM(interface: Interface): Unit = {
 
     def handleTileARequest(sram: DoubleBufferSram, tileId: (Int, Int), bandwidth: Int): Unit = {
-      if (sram.hasThisTileForArray(tileId, DataType.A) && tileId != (-1, -1)) {
+      if (sram.hasThisTileInReadBuffer(tileId, DataType.A) && tileId != (-1, -1)) {
         if (capacityLeftTileA() >= bandwidth) {
           sram.setTileIdToSend(tileId)
         } else if (capacityLeftTileA() == 0) {
@@ -250,7 +262,7 @@ final class Array(
     }
 
     def handleTileBRequest(sram: DoubleBufferSram, tileId: (Int, Int), bandwidth: Int): Unit = {
-      if (sram.hasThisTileForArray(tileId, DataType.B) && tileId != (-1, -1)) {
+      if (sram.hasThisTileInReadBuffer(tileId, DataType.B) && tileId != (-1, -1)) {
         if (capacityLeftTileB() >= bandwidth) {
           sram.setTileIdToSend(tileId)
         } else if (capacityLeftTileB() == 0) {
@@ -269,8 +281,8 @@ final class Array(
         handleTileARequest(interface.sramA, tileIdToReceiveA, arrayConfig.bandwidthOfInputA)
         handleTileBRequest(interface.sramB, tileIdToReceiveB, arrayConfig.bandwidthOfInputB)
       case Dataflow.Os =>
-        if(interface.sramA.hasThisTileForArray(tileIdToReceiveA, DataType.A) &&
-          interface.sramB.hasThisTileForArray(tileIdToReceiveB, DataType.B) &&
+        if(interface.sramA.hasThisTileInReadBuffer(tileIdToReceiveA, DataType.A) &&
+          interface.sramB.hasThisTileInReadBuffer(tileIdToReceiveB, DataType.B) &&
           tileIdToReceiveA != (-1, -1) &&
           tileIdToReceiveB != (-1, -1)){
 

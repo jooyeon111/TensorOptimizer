@@ -93,9 +93,14 @@ class DoubleBufferSram(
   def setTileIdToSend( nextTileIdToSend: (Int, Int) ): Unit =
     tileIdToSend = nextTileIdToSend
 
-  def hasThisTileForArray(tileId: (Int,Int), tileDataType: DataType): Boolean = {
+  def hasThisTileInReadBuffer(tileId: (Int,Int), tileDataType: DataType): Boolean = {
     assert(dataType == tileDataType, "[error] Tile data type mismatch")
     readBuffer.exists(_.id == tileId)
+  }
+
+  def hasThisTileInWriteBuffer(tileId: (Int,Int), tileDataType: DataType): Boolean = {
+    assert(dataType == tileDataType, "[error] Tile data type mismatch")
+    writeBuffer.exists(_.id == tileId)
   }
 
   def canSwapBuffers: Boolean = {
@@ -298,58 +303,6 @@ class DoubleBufferSram(
     }
   }
 
-  private def updateToReadBuffer2(writeBuffer: mutable.Queue[Tile]): Unit = {
-    if(writeBuffer.isEmpty) return
-
-    val writeBufferPattern = mutable.Queue[(Int,Int)]()
-    writeBufferPattern ++= writeBuffer.map(_.id.asInstanceOf[(Int,Int)])
-
-    while(writeBufferPattern.nonEmpty) {
-      val startIndex = tileOperationOrder.indexWhere(!_.isScheduled)
-      if(startIndex < 0) return
-
-      if(writeBufferPattern.head != tileOperationOrder(startIndex).id) {
-        return
-      }
-
-      var index = startIndex
-      var patternIndex = 0
-
-      while(patternIndex < writeBufferPattern.size) {
-        val tileId = writeBufferPattern(patternIndex)
-        while(index < tileOperationOrder.length && tileId == tileOperationOrder(index).id) {
-          tileOperationOrder(index).markAsScheduled()
-          index += 1
-        }
-        patternIndex += 1
-      }
-
-      val schedulePattern = mutable.Queue[(Int, Int)]()
-      val patternRange = startIndex until index
-      schedulePattern ++= patternRange.map(i => tileOperationOrder(i).id)
-      val patternSize = schedulePattern.size
-
-      @scala.annotation.tailrec
-      def findAndMarkPattern(currentIndex: Int): Unit = {
-        if(currentIndex + patternSize <= tileOperationOrder.length) {
-          val isMatched = (0 until patternSize).forall(i =>
-            tileOperationOrder(currentIndex + i).id == tileOperationOrder(startIndex + i).id
-          )
-          if(isMatched) {
-            (0 until patternSize).foreach(i =>
-              tileOperationOrder(currentIndex + i).markAsScheduled()
-            )
-            findAndMarkPattern(currentIndex + patternSize)
-          }
-        }
-      }
-
-      findAndMarkPattern(index)
-
-      (0 until schedulePattern.toSet.size).foreach(_ => writeBufferPattern.dequeue())
-    }
-  }
-
   private def updateToReadBuffer(writeBuffer: mutable.Queue[Tile]): Unit = {
     if(writeBuffer.isEmpty) return
 
@@ -365,26 +318,9 @@ class DoubleBufferSram(
       matchPatterns(writeBufferPattern, tileOperationOrder)
 
     }
-
   }
 
-
   private def updateToWriteBuffer(readBuffer: mutable.Queue[Tile]): Unit = {
-
-//    val readBufferIds = readBuffer.map(_.id).toSet
-//    val unscheduledNeededTiles = tileOperationOrder
-//      .filter(!_.isScheduled)
-//      .map(_.id)
-//      .filter(readBufferIds.contains)
-//      .toSet
-//
-//    val indicesToKeep = readBuffer.indices
-//      .filter(i => unscheduledNeededTiles.contains(readBuffer(i).id.asInstanceOf[(Int, Int)]))
-//      .toSet
-//
-//    for (i <- readBuffer.indices.reverse if !indicesToKeep.contains(i)) {
-//      readBuffer.remove(i)
-//    }
 
     if(tileOperationOrder.forall(_.isScheduled))
       return
@@ -403,12 +339,6 @@ class DoubleBufferSram(
     for (i <- readBuffer.indices.reverse if !indicesToKeep.contains(i)) {
       readBuffer.remove(i)
     }
-
-//    val unScheduledId = tileOperationOrder.find(!_.isScheduled).get
-//
-//    if(!readBuffer.exists(_.id == unScheduledId)){
-//      readBuffer.clear()
-//    }
 
   }
 

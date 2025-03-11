@@ -2,6 +2,8 @@ package simulation
 
 import common.Dataflow
 import scala.collection.mutable
+import simulation.DataType.DataType
+
 
 final class Dram(
   val outputBandwidth: Int,
@@ -30,7 +32,6 @@ final class Dram(
   //TODO change variable names below
   var trimTileCountA: Int = 0
   var trimTileCountB: Int = 0
-
   var dramStall = 0
 
   //Function called by Compiler
@@ -61,6 +62,26 @@ final class Dram(
 
   private def checkCapacity(): Unit = {
     assert (currentTileQueue.map(_.dims.memorySize).sum <= ddr4CapacityBit, "[error] Cannot contain tiles ")
+  }
+
+  def getTileIdsFromCurrentTileQueue(dataType: DataType): Set[(Int, Int)] = {
+
+    val currentTiles = dataType match {
+      case DataType.A =>
+        currentTileQueue
+          .filter(tile => tile.dataType == DataType.A)
+      case DataType.B =>
+        currentTileQueue
+          .filter(tile => tile.dataType == DataType.A)
+      case _ =>
+        Console.err.println(s"[error] Invalid data type for DRAM")
+        sys.exit(1)
+    }
+
+    currentTiles
+      .map(_.id.asInstanceOf[(Int,Int)])
+      .toSet
+
   }
 
   def initDram(operationVector: Vector[MultiplicationOperation], dataflow: Dataflow.Value) : Unit = {
@@ -247,7 +268,6 @@ final class Dram(
       interface.sramB.receive(sendingTileQueueB)
 
   }
-
 
   //Util functions
   def printTiles(): Unit = {
