@@ -7,8 +7,8 @@ case class SimulationResult(
   tileSizeA: Int,
   tileSizeB: Int,
   tileSizeC: Int,
-  trimTileCountA: Int,
-  trimTileCountB: Int,
+  skipTileCountA: Int,
+  skipTileCountB: Int,
   singleBufferTileCapacityA: Int,
   singleBufferTileCapacityB: Int,
   singleBufferTileCapacityC: Int,
@@ -114,8 +114,8 @@ case class SimulationResult(
     log(s"\t\tTile Size A: $tileSizeA")
     log(s"\t\tTile Size B: $tileSizeB")
     log(s"\t\tTile Size C: $tileSizeC")
-    log(s"\t\tTile A Trim Count: $trimTileCountA")
-    log(s"\t\tTile B Trim Count: $trimTileCountB")
+    log(s"\t\tTile A Skip Count: $skipTileCountA")
+    log(s"\t\tTile B Skip Count: $skipTileCountB")
     log(s"")
     log("\t[Bandwidth Information]")
     log(s"\t\tArray Input Bandwidth A: $arrayInputBandwidthA bit")
@@ -329,8 +329,8 @@ object SimulationResult {
       tileSizeA = defaults.intValue,
       tileSizeB = defaults.intValue,
       tileSizeC = defaults.intValue,
-      trimTileCountA = defaults.intValue,
-      trimTileCountB = defaults.intValue,
+      skipTileCountA = defaults.intValue,
+      skipTileCountB = defaults.intValue,
       singleBufferTileCapacityA = defaults.intValue,
       singleBufferTileCapacityB = defaults.intValue,
       singleBufferTileCapacityC = defaults.intValue,

@@ -134,9 +134,9 @@ class SystemSimulator(
 
   def getSingleBufferTileCapacityC: Int = sramC.singleBufferTileCapacity
 
-  def getTrimTileCountA: Int = dram.trimTileCountA
+  def getSkipTileCountA: Int = dram.skipTileCountA
 
-  def getTrimTileCountB: Int = dram.trimTileCountB
+  def getSkipTileCountB: Int = dram.skipTileCountB
 
   //2. Bandwidth info
   def getArrayInputBandwidthA: Int = array.arrayConfig.bandwidthOfInputA

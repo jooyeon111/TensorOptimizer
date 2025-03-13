@@ -30,8 +30,8 @@ final class Dram(
 //  private var writeEnable: Boolean = false
 
   //TODO change variable names below
-  var trimTileCountA: Int = 0
-  var trimTileCountB: Int = 0
+  var skipTileCountA: Int = 0
+  var skipTileCountB: Int = 0
   var dramStall = 0
 
   //Function called by Compiler
@@ -200,9 +200,9 @@ final class Dram(
     def processTile(tile: Tile): Unit = {
       tile.dataType match {
         case DataType.A =>
-          trimTileCountA += 1
+          skipTileCountA += 1
         case DataType.B =>
-          trimTileCountB += 1
+          skipTileCountB += 1
         case _ =>
           throw RunTimeError("Invalid data type in DRAM Tile Queue")
       }
