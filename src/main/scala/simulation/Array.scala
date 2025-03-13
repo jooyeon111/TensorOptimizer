@@ -14,8 +14,8 @@ final class Array(
 
   var schedule: Vector[ScheduledOperation] = _
 
-  var canArrayReceiveTileInSramA = false
-  var canArrayReceiveTileInSramB = false
+  var canArrayReceiveTileFromSramAfterBufferChangeA = false
+  var canArrayReceiveTileFromSramAfterBufferChangeB = false
 
   private var isBufferFlagChangedA = false
   private var isBufferFlagChangedB = false
@@ -222,25 +222,44 @@ final class Array(
     var hasTileInWriteBufferA = false
     var hasTileInWriteBufferB = false
 
-    if(tileIdToReceiveA != (-1, -1))
-      if(!interface.sramA.hasThisTileInReadBuffer(tileIdToReceiveA, DataType.A)) {
-        if(!isBufferFlagChangedA) {
-          if(interface.sramA.hasThisTileInWriteBuffer(tileIdToReceiveA, DataType.A))
+    if(tileIdToReceiveA != (-1, -1)) {
+      if(!isBufferFlagChangedA) {
+        if (!interface.sramA.hasThisTileInReadBuffer(tileIdToReceiveA, DataType.A)) {
+          if (interface.sramA.hasThisTileInWriteBuffer(tileIdToReceiveA, DataType.A))
             hasTileInWriteBufferA = true
+
           isBufferFlagChangedA = interface.sramA.canSwapBuffers
-          canArrayReceiveTileInSramA = hasTileInWriteBufferA && isBufferFlagChangedA
+          canArrayReceiveTileFromSramAfterBufferChangeA = hasTileInWriteBufferA && isBufferFlagChangedA
+
         }
+      } else {
+
+        if(interface.sramA.hasThisTileInReadBuffer(tileIdToReceiveA, DataType.A))
+          canArrayReceiveTileFromSramAfterBufferChangeA = true
+
       }
 
-    if(tileIdToReceiveB != (-1, -1))
-      if(!interface.sramB.hasThisTileInReadBuffer(tileIdToReceiveB, DataType.B)) {
-        if(!isBufferFlagChangedB) {
+    }
+
+    if(tileIdToReceiveB != (-1, -1)) {
+      if(!isBufferFlagChangedB){
+        if(!interface.sramB.hasThisTileInReadBuffer(tileIdToReceiveB, DataType.B)) {
+
           if(interface.sramB.hasThisTileInWriteBuffer(tileIdToReceiveB, DataType.B))
             hasTileInWriteBufferB = true
+
           isBufferFlagChangedB = interface.sramB.canSwapBuffers
-          canArrayReceiveTileInSramB = hasTileInWriteBufferB && isBufferFlagChangedB
+          canArrayReceiveTileFromSramAfterBufferChangeB = hasTileInWriteBufferB && isBufferFlagChangedB
+
         }
+
+      } else {
+
+        if(interface.sramB.hasThisTileInReadBuffer(tileIdToReceiveB, DataType.B))
+          canArrayReceiveTileFromSramAfterBufferChangeB = true
+
       }
+    }
 
   }
 

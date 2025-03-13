@@ -2,7 +2,9 @@ package simulation
 
 import simulation.DataType.DataType
 import simulation.TileState.TileState
+
 import scala.collection.mutable
+import scala.util.control.Breaks
 
 class DoubleBufferSram(
   override val dataType: DataType,
@@ -289,7 +291,7 @@ class DoubleBufferSram(
   }
 
   private def countDramAccess(): Unit = {
-    val unscheduledTiles = tileOperationOrder.filter(!_.isScheduled).map(_.id).toSet
+    val unscheduledTiles = tileOperationOrder.filter(!_.isInReadBuffer).map(_.id).toSet
     if(unscheduledTiles.nonEmpty){
       val bufferIds = (readBuffer.map(_.id.asInstanceOf[(Int, Int)]) ++ writeBuffer.map(_.id.asInstanceOf[(Int, Int)])).toSet
       if(!unscheduledTiles.subsetOf(bufferIds)){
@@ -303,41 +305,111 @@ class DoubleBufferSram(
     }
   }
 
+//  private def updateToReadBuffer(writeBuffer: mutable.Queue[Tile]): Unit = {
+//    if(writeBuffer.isEmpty) return
+//
+//    while(tileOperationOrder.exists(!_.isInReadBuffer)){
+//
+//      val unScheduledTileId = tileOperationOrder.find(!_.isInReadBuffer).get.id
+//      val startIdx = writeBuffer.indexWhere(_.id == unScheduledTileId)
+//      if(startIdx < 0 ) return
+//
+//      val writeBufferPattern = mutable.Queue[(Int, Int)]()
+//      writeBufferPattern ++= writeBuffer.slice(startIdx, writeBuffer.size).map(_.id.asInstanceOf[(Int, Int)])
+//
+//      matchPatterns(writeBufferPattern, tileOperationOrder)
+//
+//    }
+//
+//  }
+
   private def updateToReadBuffer(writeBuffer: mutable.Queue[Tile]): Unit = {
     if(writeBuffer.isEmpty) return
 
-    while(tileOperationOrder.exists(!_.isScheduled)){
+    while(tileOperationOrder.exists(!_.isInReadBuffer)){
 
-      val unScheduledTileId = tileOperationOrder.find(!_.isScheduled).get.id
-      val startIdx = writeBuffer.indexWhere(_.id == unScheduledTileId)
-      if(startIdx < 0 ) return
+      val writeBufferIds = writeBuffer
+        .map(_.id)
+        .toSet
 
-      val writeBufferPattern = mutable.Queue[(Int, Int)]()
-      writeBufferPattern ++= writeBuffer.slice(startIdx, writeBuffer.size).map(_.id.asInstanceOf[(Int, Int)])
+      val pendingOperation = tileOperationOrder
+        .find(!_.isInReadBuffer)
+        .get
 
-      matchPatterns(writeBufferPattern, tileOperationOrder)
+      if(writeBufferIds.contains(pendingOperation.id)){
+        pendingOperation.markAsInReadBuffer()
+      } else {
+        return
+      }
 
     }
+
   }
+
+//  private def updateToWriteBuffer(readBuffer: mutable.Queue[Tile]): Unit = {
+//
+//    if(tileOperationOrder.forall(_.isInReadBuffer))
+//      return
+//
+//    val readBufferIds = readBuffer.map(_.id).toSet
+//    val unscheduledNeededTiles = tileOperationOrder
+//      .filter(!_.isInReadBuffer)
+//      .map(_.id)
+//      .filter(readBufferIds.contains)
+//      .toSet
+//
+//    val indicesToKeep = readBuffer.indices
+//      .filter(i => unscheduledNeededTiles.contains(readBuffer(i).id.asInstanceOf[(Int, Int)]))
+//      .toSet
+//
+//    for (i <- readBuffer.indices.reverse if !indicesToKeep.contains(i)) {
+//      readBuffer.remove(i)
+//    }
+//
+//  }
 
   private def updateToWriteBuffer(readBuffer: mutable.Queue[Tile]): Unit = {
 
-    if(tileOperationOrder.forall(_.isScheduled))
+    if(tileOperationOrder.forall(_.isInReadBuffer))
       return
 
+    //Delete Tiles Which are not going to use forever
     val readBufferIds = readBuffer.map(_.id).toSet
-    val unscheduledNeededTiles = tileOperationOrder
-      .filter(!_.isScheduled)
+
+    val pendingMatchingIds = tileOperationOrder
+      .filter(!_.isInReadBuffer)
       .map(_.id)
       .filter(readBufferIds.contains)
       .toSet
 
-    val indicesToKeep = readBuffer.indices
-      .filter(i => unscheduledNeededTiles.contains(readBuffer(i).id.asInstanceOf[(Int, Int)]))
+    val indicesToKeep = readBuffer
+      .indices
+      .filter(i => pendingMatchingIds.contains(readBuffer(i).id.asInstanceOf[(Int, Int)]))
       .toSet
 
-    for (i <- readBuffer.indices.reverse if !indicesToKeep.contains(i)) {
+    for (i <- readBuffer.indices.reverse if !indicesToKeep.contains(i))
       readBuffer.remove(i)
+
+    val pendingOperations = tileOperationOrder
+      .filter(!_.isInReadBuffer)
+
+    val firstMatchingIndex = pendingOperations
+      .indexWhere(tile => readBufferIds.contains(tile.id))
+
+    if(firstMatchingIndex == -1)
+      return
+
+    val operationsBeforeMatch = if (firstMatchingIndex > 0) {
+      pendingOperations.take(firstMatchingIndex)
+    } else {
+      Seq.empty
+    }
+
+    val operationBeforeMatchSet = operationsBeforeMatch.toSet
+    val tileNumberToBeLoaded = operationBeforeMatchSet.size
+
+    while (readBuffer.nonEmpty && readBuffer.size + tileNumberToBeLoaded > singleBufferTileCapacity) {
+      readBuffer.removeLast()
     }
 
   }
@@ -353,7 +425,7 @@ class DoubleBufferSram(
   def printSchedule(): Unit = {
     log(s"\t[SRAM $dataType]")
     tileOperationOrder.foreach{ entry =>
-      log(s"\t\tID: ${entry.id} Status: ${entry.isScheduled}")
+      log(s"\t\tID: ${entry.id} Status: ${entry.isInReadBuffer}")
     }
     log(s"")
   }

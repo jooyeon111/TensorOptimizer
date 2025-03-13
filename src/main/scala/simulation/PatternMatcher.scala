@@ -10,7 +10,7 @@ trait PatternMatcher {
   ): Unit = {
     while(writeBufferPattern.nonEmpty){
 
-      val startIndex = tileOperationOrder.indexWhere(!_.isScheduled)
+      val startIndex = tileOperationOrder.indexWhere(!_.isInReadBuffer)
       if(startIndex < 0) return
 
       if(writeBufferPattern.head != tileOperationOrder(startIndex).id){
@@ -23,7 +23,7 @@ trait PatternMatcher {
       while(patternIndex < writeBufferPattern.size) {
         val tileId = writeBufferPattern(patternIndex)
         while(index < tileOperationOrder.length && tileId == tileOperationOrder(index).id) {
-          tileOperationOrder(index).markAsScheduled()
+          tileOperationOrder(index).markAsInReadBuffer()
           index += 1
         }
         patternIndex += 1
@@ -43,7 +43,7 @@ trait PatternMatcher {
           )
           if(isMatched) {
             (0 until patternSize).foreach(i =>
-              tileOperationOrder(currentIndex + i).markAsScheduled()
+              tileOperationOrder(currentIndex + i).markAsInReadBuffer()
             )
             findAndMarkPattern(currentIndex + patternSize)
           }
