@@ -65,7 +65,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     dramDataPath: Option[String] = None,
     sramDataPath: Option[String] = None,
     arrayDataPath: Option[String] = None,
-    mlpModelWeights: Option[MLPredictor.ModelWeights] = None,
+    dnnModelWeights: Option[DNNPredictor.DNNModel] = None,
     help: String
   ): Unit = {
 
@@ -155,7 +155,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
         )
       )
     }
-  } else if (mlpModelWeights.isDefined) {
+  } else if (dnnModelWeights.isDefined) {
     // Use ML model to predict array synthesis data
     val dataflow = testConfig.getString("Dataflow").get match {
       case "IS" => Dataflow.Is.toString
@@ -189,7 +189,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     println(s"- Total Multipliers: $totalMultipliers")
     println(s"- PE Configuration: ${groupPeRow}x${groupPeCol}, ${vectorPeRow}x${vectorPeCol}, $numMultiplier")
 
-    val predictedData = MLPredictor.predictArraySynthesisData(
+    val predictedData = DNNPredictor.predictArraySynthesisData(
       dataflow = dataflow,
       totalMultipliers = totalMultipliers,
       groupPeRow = groupPeRow,
@@ -198,7 +198,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       vectorPeCol = vectorPeCol,
       numMultiplier = numMultiplier,
       streamingDimensionSize = streamingDimSize,
-      modelWeights = mlpModelWeights.get
+      model = dnnModelWeights.get
     )
 
     println(s"ML predicted array synthesis data:")

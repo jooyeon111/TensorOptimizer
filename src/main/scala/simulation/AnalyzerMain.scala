@@ -66,7 +66,7 @@ object AnalyzerMain extends App
 
       val loggerOption = LoggerOption(OutputMode.Console, None)
 
-      MLPredictor.trainModel(
+      DNNPredictor.trainModel(
         weightOutputPath = outputWeightPath,
         trainFilePath = trainCsvPath,
         validationFilePath = validationCsvPath,
@@ -88,8 +88,8 @@ object AnalyzerMain extends App
         // Load existing ML model weights
         val loggerOption = LoggerOption(OutputMode.Console, None)
 
-        MLPredictor.loadModel(
-          weightFilePath = args(4),
+        DNNPredictor.loadModel(
+          filePath = args(4),
           loggerOption = loggerOption
         ) match {
           case Success(modelWeights) =>
@@ -98,7 +98,7 @@ object AnalyzerMain extends App
               testPath = args(1),
               dramDataPath = Option(args(2)),
               sramDataPath = Option(args(3)),
-              mlpModelWeights = Some(modelWeights),
+              dnnModelWeights = Some(modelWeights),
               help = help
             )
           case Failure(e) =>
