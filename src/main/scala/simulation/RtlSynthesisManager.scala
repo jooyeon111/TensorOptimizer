@@ -3,7 +3,7 @@ package simulation
 import java.io.File
 import common.{Dataflow, FilePaths, IntegerType, OutputPortCalculator, VerilogGenerationConfig, RtlGenerator}
 
-trait RtlSynthesisManager extends/* BandWidthFilter with*/ OutputPortCalculator with RtlGenerator with Logger {
+trait RtlSynthesisManager extends OutputPortCalculator with RtlGenerator with Logger {
 
   private case class BandwidthConfig(
     bitWidthPortA: Int,

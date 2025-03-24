@@ -1,0 +1,9 @@
+BASE_PATH := input/simulation/synthesis
+
+TRAIN := $(BASE_PATH)/train.csv
+VALID := $(BASE_PATH)/validation.csv
+TEST := $(BASE_PATH)/test.csv
+
+.PHNOY: train
+train:
+	sbt "runMain simulation.AnalyzerMain ${TRAIN} ${VALID} ${TEST}"

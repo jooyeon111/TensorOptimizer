@@ -2,6 +2,7 @@ package simulation
 
 import scala.collection.mutable
 
+//TODO Delete it
 trait PatternMatcher {
 
   def matchPatterns(

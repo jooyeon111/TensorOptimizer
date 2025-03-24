@@ -12,7 +12,7 @@ class DoubleBufferSram(
   override val singleBufferTileCapacity: Int,
   override val singleBufferLimitKb: Int,
   val loggerOption: LoggerOption,
-) extends Sram with PatternMatcher with AccessCounter{
+) extends Sram with AccessCounter{
 
 
   require(outputBandwidth >= 1, "[error] Output bandwidth must be at least 1")
@@ -409,7 +409,8 @@ class DoubleBufferSram(
     val tileNumberToBeLoaded = operationBeforeMatchSet.size
 
     while (readBuffer.nonEmpty && readBuffer.size + tileNumberToBeLoaded > singleBufferTileCapacity) {
-      readBuffer.removeLast()
+      readBuffer.dequeue()
+//      readBuffer.removeLast()
     }
 
   }

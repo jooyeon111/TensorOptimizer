@@ -3,7 +3,7 @@ package simulation
 import java.io.File
 import common.{Dataflow, OutputPortCalculator, FilePaths, ArrayDimension}
 
-trait SingleLayerSimulation extends OutputPortCalculator with Logger with StreamingDimensionCalculator {
+trait SingleLayerSimulation extends OutputPortCalculator with Logger {
 
   private case class SimulationConfig(
     debugPrint: Boolean,
@@ -65,6 +65,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     dramDataPath: Option[String] = None,
     sramDataPath: Option[String] = None,
     arrayDataPath: Option[String] = None,
+    mlpModelWeights: Option[MLPredictor.ModelWeights] = None,
     help: String
   ): Unit = {
 
@@ -120,7 +121,25 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
 
     val sramReferenceData = sramDataParser.flatMap(_.getConfig).map(_.sramReferenceDataVector)
 
-    val arraySynthesisData = arrayDataParser.flatMap(_.getConfig).map { config =>
+//    val arraySynthesisData = arrayDataParser.flatMap(_.getConfig).map { config =>
+//      ArraySynthesisData(
+//        areaUm2 = config.getDouble("Area").getOrElse(
+//          throw ParseError("Array Area not found")
+//        ),
+//        switchPowerMw = config.getDouble("Switch Power").getOrElse(
+//          throw ParseError("Switch Power Not found")
+//        ),
+//        internalPowerMw = config.getDouble("Internal Power").getOrElse(
+//          throw ParseError("Internal Power Not found")
+//        ),
+//        leakagePowerMw = config.getDouble("Leakage Power").getOrElse(
+//          throw ParseError("Leakage Power Not found")
+//        )
+//      )
+//    }
+  val arraySynthesisData = if (arrayDataPath.isDefined) {
+    // Use array synthesis data from file
+    arrayDataParser.flatMap(_.getConfig).map { config =>
       ArraySynthesisData(
         areaUm2 = config.getDouble("Area").getOrElse(
           throw ParseError("Array Area not found")
@@ -136,6 +155,62 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
         )
       )
     }
+  } else if (mlpModelWeights.isDefined) {
+    // Use ML model to predict array synthesis data
+    val dataflow = testConfig.getString("Dataflow").get match {
+      case "IS" => Dataflow.Is.toString
+      case "OS" => Dataflow.Os.toString
+      case "WS" => Dataflow.Ws.toString
+      case other => other
+    }
+
+    val groupPeRow = testConfig.getInt("Group PE Row").getOrElse(
+      throw ParseError("Group PE Row not found")
+    )
+    val groupPeCol = testConfig.getInt("Group PE Column").getOrElse(
+      throw ParseError("Group PE Col not found")
+    )
+    val vectorPeRow = testConfig.getInt("Vector PE Row").getOrElse(
+      throw ParseError("Vector PE Row not found")
+    )
+    val vectorPeCol = testConfig.getInt("Vector PE Column").getOrElse(
+      throw ParseError("Vector PE Column not found")
+    )
+    val numMultiplier = testConfig.getInt("Multipliers Per PE").getOrElse(
+      throw ParseError("Multipliers Per PE not found")
+    )
+    val streamingDimSize = testConfig.getInt("Streaming Dimension Size").getOrElse(
+      throw ParseError("Streaming Dimension Size not found")
+    )
+    val totalMultipliers = groupPeRow * groupPeCol * vectorPeRow * vectorPeCol * numMultiplier
+
+    println(s"Using ML model to predict array synthesis data for:")
+    println(s"- Dataflow: $dataflow")
+    println(s"- Total Multipliers: $totalMultipliers")
+    println(s"- PE Configuration: ${groupPeRow}x${groupPeCol}, ${vectorPeRow}x${vectorPeCol}, $numMultiplier")
+
+    val predictedData = MLPredictor.predictArraySynthesisData(
+      dataflow = dataflow,
+      totalMultipliers = totalMultipliers,
+      groupPeRow = groupPeRow,
+      groupPeCol = groupPeCol,
+      vectorPeRow = vectorPeRow,
+      vectorPeCol = vectorPeCol,
+      numMultiplier = numMultiplier,
+      streamingDimensionSize = streamingDimSize,
+      modelWeights = mlpModelWeights.get
+    )
+
+    println(s"ML predicted array synthesis data:")
+    println(f"- Area: ${predictedData.areaUm2}%.2f um²")
+    println(f"- Switch Power: ${predictedData.switchPowerPw}%.4f mW")
+    println(f"- Internal Power: ${predictedData.internalPowerPw}%.4f mW")
+    println(f"- Leakage Power: ${predictedData.leakagePowerPw}%.4f mW")
+
+    Some(predictedData)
+  } else {
+    None
+  }
 
     val simulationConfig = buildSimulationOneLayerConfig(
       layerConfig = layerConfig,
@@ -627,18 +702,6 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger with Stream
     log(s"\t[Tile Size info]")
     log(s"\t\tStreaming Dimension Size: ${simConfig.streamingDimensionSize}")
     log(s"")
-
-//    log(s"[SRAM Energy info]")
-//    simConfig.sramReferenceDataVector.foreach{ energy =>
-//      log(s"Capacity: ${energy.capacityKb} (KB)," +
-//        s" Bandwidth: ${energy.bandwidthBytes} (Byte)," +
-//        s" Read Energy: ${energy.readEnergyPj} (pJ)," +
-//        s" Write energy: ${energy.writeEnergyPj} (pJ)," +
-//        s" Leakage Power ${energy.leakagePowerMw} (mW)")
-//    }
-
-
-
 
   }
 
