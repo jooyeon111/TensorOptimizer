@@ -15,9 +15,17 @@ object MLPredictor extends Logger {
                            areaIntercept: Double,
                            areaWeights: Map[String, Double],
 
+                           // Target normalization parameters for area
+                           areaMean: Double,
+                           areaStd: Double,
+
                            // Linear regression weights for power prediction
                            powerIntercept: Double,
-                           powerWeights: Map[String, Double]
+                           powerWeights: Map[String, Double],
+
+                           // Target normalization parameters for power
+                           powerMean: Double,
+                           powerStd: Double
                          )
 
   private case class FeatureVector(
@@ -184,7 +192,24 @@ object MLPredictor extends Logger {
   }
 
   /**
-   * Train linear regression models for area and power prediction
+   * Compute the mean and standard deviation for a set of values
+   */
+  private def computeStats(values: Vector[Double]): (Double, Double) = {
+    val mean = values.sum / values.size
+    val variance = values.map(x => math.pow(x - mean, 2)).sum / values.size
+    val std = math.sqrt(variance)
+    (mean, std)
+  }
+
+  /**
+   * Normalize a vector of values using z-score normalization
+   */
+  private def normalizeValues(values: Vector[Double], mean: Double, std: Double): Vector[Double] = {
+    values.map(v => (v - mean) / std)
+  }
+
+  /**
+   * Train linear regression models for area and power prediction with target normalization
    */
   private def trainLinearModels(
                                  trainData: Vector[(FeatureVector, (Double, Double))],
@@ -197,21 +222,70 @@ object MLPredictor extends Logger {
     // Get all feature names
     val allFeatureNames = trainFeatureMaps.flatMap(_.keys).toSet.toVector
 
-    // Train area model
+    // Extract and normalize area values
+    val trainAreaValues = trainData.map(_._2._1)
+    val (areaMean, areaStd) = computeStats(trainAreaValues)
+    val normalizedTrainAreaValues = normalizeValues(trainAreaValues, areaMean, areaStd)
+
+    println(s"Area mean: $areaMean, std: $areaStd")
+
+    // Extract and normalize power values
+    val trainPowerValues = trainData.map(_._2._2)
+    val (powerMean, powerStd) = computeStats(trainPowerValues)
+    val normalizedTrainPowerValues = normalizeValues(trainPowerValues, powerMean, powerStd)
+
+    println(s"Power mean: $powerMean, std: $powerStd")
+
+    // Create normalized training data for area
+    val normalizedTrainAreaData = trainData.zip(normalizedTrainAreaValues).map {
+      case ((features, _), normalizedArea) => (features.toMap, normalizedArea)
+    }
+
+    // Create normalized validation data for area
+    val validationAreaValues = validationData.map(_._2._1)
+    val normalizedValidationAreaValues = normalizeValues(validationAreaValues, areaMean, areaStd)
+    val normalizedValidationAreaData = validationData.zip(normalizedValidationAreaValues).map {
+      case ((features, _), normalizedArea) => (features.toMap, normalizedArea)
+    }
+
+    // Create normalized training data for power
+    val normalizedTrainPowerData = trainData.zip(normalizedTrainPowerValues).map {
+      case ((features, _), normalizedPower) => (features.toMap, normalizedPower)
+    }
+
+    // Create normalized validation data for power
+    val validationPowerValues = validationData.map(_._2._2)
+    val normalizedValidationPowerValues = normalizeValues(validationPowerValues, powerMean, powerStd)
+    val normalizedValidationPowerData = validationData.zip(normalizedValidationPowerValues).map {
+      case ((features, _), normalizedPower) => (features.toMap, normalizedPower)
+    }
+
+    // Train area model with normalized targets
     val (areaIntercept, areaWeights) = trainLinearModel(
-      trainData.map { case (features, (area, _)) => (features.toMap, area) },
-      validationData.map { case (features, (area, _)) => (features.toMap, area) },
-      allFeatureNames
+      normalizedTrainAreaData,
+      normalizedValidationAreaData,
+      allFeatureNames,
+      learningRate = 0.001,
+      l2Regularization = 0.01,
+      epochs = 1000,
+      modelName = "Area"
     )
 
-    // Train power model
+    // Train power model with normalized targets
     val (powerIntercept, powerWeights) = trainLinearModel(
-      trainData.map { case (features, (_, power)) => (features.toMap, power) },
-      validationData.map { case (features, (_, power)) => (features.toMap, power) },
-      allFeatureNames
+      normalizedTrainPowerData,
+      normalizedValidationPowerData,
+      allFeatureNames,
+      learningRate = 0.001,
+      l2Regularization = 0.01,
+      epochs = 1000,
+      modelName = "Power"
     )
 
-    ModelWeights(areaIntercept, areaWeights, powerIntercept, powerWeights)
+    ModelWeights(
+      areaIntercept, areaWeights, areaMean, areaStd,
+      powerIntercept, powerWeights, powerMean, powerStd
+    )
   }
 
   /**
@@ -221,9 +295,10 @@ object MLPredictor extends Logger {
                                 trainData: Vector[(Map[String, Double], Double)],
                                 validationData: Vector[(Map[String, Double], Double)],
                                 allFeatureNames: Vector[String],
-                                learningRate: Double = 0.001,  // Reduced from 0.01 to prevent large updates
-                                l2Regularization: Double = 0.01,  // Reduced from 0.1 to prevent overfitting
-                                epochs: Int = 1000
+                                learningRate: Double = 0.001,
+                                l2Regularization: Double = 0.01,
+                                epochs: Int = 1000,
+                                modelName: String = "Generic"
                               ): (Double, Map[String, Double]) = {
 
     // Initialize weights with small random values
@@ -255,7 +330,7 @@ object MLPredictor extends Logger {
         val error = prediction - target
         if (error.isNaN) {
           println(s"Warning: NaN error detected in epoch $epoch for target $target and prediction $prediction")
-          // Skip this sample by using a conditional instead of 'continue'
+          // Skip this sample
         } else {
           // Only update gradients if error is valid
           // Update intercept gradient with safeguard
@@ -302,21 +377,22 @@ object MLPredictor extends Logger {
       }
 
       // Check validation error periodically with safeguards for NaN
-      if (epoch % 100 == 0) {
+      if (epoch % 100 == 0 || epoch == epochs) {
         val trainRmse = computeRMSE(trainData, intercept, weights)
         val validationRmse = computeRMSE(validationData, intercept, weights)
-        println(s"Epoch $epoch - Train RMSE: $trainRmse, Validation RMSE: $validationRmse")
+        println(s"$modelName Model - Epoch $epoch - Train RMSE: $trainRmse, Validation RMSE: $validationRmse")
 
         // Early stopping if we get NaN values (model diverged)
         if (trainRmse.isNaN || validationRmse.isNaN) {
-          println("Warning: NaN values detected in RMSE. Adjusting learning rate and restarting.")
+          println(s"Warning: NaN values detected in RMSE for $modelName model. Adjusting learning rate and restarting.")
           return trainLinearModel(
             trainData,
             validationData,
             allFeatureNames,
             learningRate / 10.0,  // Reduce learning rate
             l2Regularization / 2.0,  // Reduce regularization
-            epochs
+            epochs,
+            modelName
           )
         }
       }
@@ -355,6 +431,40 @@ object MLPredictor extends Logger {
   }
 
   /**
+   * Compute Root Mean Squared Error for denormalized predictions
+   */
+  private def computeDenormalizedRMSE(
+                                       data: Vector[(Map[String, Double], Double)],
+                                       intercept: Double,
+                                       weights: Map[String, Double],
+                                       mean: Double,
+                                       std: Double
+                                     ): Double = {
+    if (data.isEmpty) return 0.0
+
+    val squaredErrors = data.flatMap { case (featureMap, target) =>
+      // Get normalized prediction
+      val normalizedPrediction = intercept + featureMap.map { case (feature, value) =>
+        weights.getOrElse(feature, 0.0) * value
+      }.sum
+
+      // Denormalize prediction
+      val prediction = normalizedPrediction * std + mean
+
+      // Original target is already in original scale
+      if (prediction.isNaN || prediction.isInfinite) {
+        None
+      } else {
+        Some(math.pow(prediction - target, 2))
+      }
+    }
+
+    if (squaredErrors.isEmpty) return Double.NaN
+
+    math.sqrt(squaredErrors.sum / squaredErrors.size)
+  }
+
+  /**
    * Compute Mean Absolute Error for model evaluation
    */
   private def computeMAE(
@@ -368,6 +478,39 @@ object MLPredictor extends Logger {
       val prediction = intercept + featureMap.map { case (feature, value) =>
         weights.getOrElse(feature, 0.0) * value
       }.sum
+
+      if (prediction.isNaN || prediction.isInfinite) {
+        None
+      } else {
+        Some(math.abs(prediction - target))
+      }
+    }
+
+    if (absoluteErrors.isEmpty) return Double.NaN
+
+    absoluteErrors.sum / absoluteErrors.size
+  }
+
+  /**
+   * Compute Mean Absolute Error for denormalized predictions
+   */
+  private def computeDenormalizedMAE(
+                                      data: Vector[(Map[String, Double], Double)],
+                                      intercept: Double,
+                                      weights: Map[String, Double],
+                                      mean: Double,
+                                      std: Double
+                                    ): Double = {
+    if (data.isEmpty) return 0.0
+
+    val absoluteErrors = data.flatMap { case (featureMap, target) =>
+      // Get normalized prediction
+      val normalizedPrediction = intercept + featureMap.map { case (feature, value) =>
+        weights.getOrElse(feature, 0.0) * value
+      }.sum
+
+      // Denormalize prediction
+      val prediction = normalizedPrediction * std + mean
 
       if (prediction.isNaN || prediction.isInfinite) {
         None
@@ -445,15 +588,21 @@ object MLPredictor extends Logger {
 
     val featureMap = features.toMap
 
-    // Predict area
-    val area = modelWeights.areaIntercept + featureMap.map { case (feature, value) =>
+    // Get normalized area prediction
+    val normalizedAreaPrediction = modelWeights.areaIntercept + featureMap.map { case (feature, value) =>
       modelWeights.areaWeights.getOrElse(feature, 0.0) * value
     }.sum
 
-    // Predict total power
-    val totalPower = modelWeights.powerIntercept + featureMap.map { case (feature, value) =>
+    // Denormalize prediction to get actual area
+    val area = normalizedAreaPrediction * modelWeights.areaStd + modelWeights.areaMean
+
+    // Get normalized power prediction
+    val normalizedPowerPrediction = modelWeights.powerIntercept + featureMap.map { case (feature, value) =>
       modelWeights.powerWeights.getOrElse(feature, 0.0) * value
     }.sum
+
+    // Denormalize prediction to get actual power
+    val totalPower = normalizedPowerPrediction * modelWeights.powerStd + modelWeights.powerMean
 
     // Divide total power into its components (approximation)
     // Typical breakdown: switching (45%), internal (35%), leakage (20%)
@@ -540,21 +689,58 @@ object MLPredictor extends Logger {
 
       // Evaluate on test set if available
       if (testData.nonEmpty) {
-        val areaTestData = testData.map { case (features, (area, _)) => (features.toMap, area) }
-        val powerTestData = testData.map { case (features, (_, power)) => (features.toMap, power) }
+        // Extract test data for evaluating original (non-normalized) performance
+        val testAreaData = testData.map { case (features, (area, _)) => (features.toMap, area) }
+        val testPowerData = testData.map { case (features, (_, power)) => (features.toMap, power) }
 
-        val areaRmse = computeRMSE(areaTestData, modelWeights.areaIntercept, modelWeights.areaWeights)
-        val powerRmse = computeRMSE(powerTestData, modelWeights.powerIntercept, modelWeights.powerWeights)
+        // Evaluate normalized models on test data
+        val testAreaRmse = computeDenormalizedRMSE(
+          testAreaData,
+          modelWeights.areaIntercept,
+          modelWeights.areaWeights,
+          modelWeights.areaMean,
+          modelWeights.areaStd
+        )
 
-        log(s"Test Area RMSE: $areaRmse")
-        log(s"Test Power RMSE: $powerRmse")
+        val testPowerRmse = computeDenormalizedRMSE(
+          testPowerData,
+          modelWeights.powerIntercept,
+          modelWeights.powerWeights,
+          modelWeights.powerMean,
+          modelWeights.powerStd
+        )
+
+        log(s"Test Area RMSE: $testAreaRmse")
+        log(s"Test Power RMSE: $testPowerRmse")
 
         // Compute additional metrics for model evaluation
-        val areaMae = computeMAE(areaTestData, modelWeights.areaIntercept, modelWeights.areaWeights)
-        val powerMae = computeMAE(powerTestData, modelWeights.powerIntercept, modelWeights.powerWeights)
+        val testAreaMae = computeDenormalizedMAE(
+          testAreaData,
+          modelWeights.areaIntercept,
+          modelWeights.areaWeights,
+          modelWeights.areaMean,
+          modelWeights.areaStd
+        )
 
-        log(s"Test Area MAE: $areaMae")
-        log(s"Test Power MAE: $powerMae")
+        val testPowerMae = computeDenormalizedMAE(
+          testPowerData,
+          modelWeights.powerIntercept,
+          modelWeights.powerWeights,
+          modelWeights.powerMean,
+          modelWeights.powerStd
+        )
+
+        log(s"Test Area MAE: $testAreaMae")
+        log(s"Test Power MAE: $testPowerMae")
+
+        // Calculate relative error (as percentage of average value)
+        val averageArea = testAreaData.map(_._2).sum / testAreaData.size
+        val relativAreaError = testAreaRmse / averageArea * 100
+        log(s"Relative Area Error: ${relativAreaError.toInt}%")
+
+        val averagePower = testPowerData.map(_._2).sum / testPowerData.size
+        val relativePowerError = testPowerRmse / averagePower * 100
+        log(s"Relative Power Error: ${relativePowerError.toInt}%")
 
         // Log the top features by weight magnitude
         log("Top area features by importance:")
