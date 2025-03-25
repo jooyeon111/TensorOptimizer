@@ -218,6 +218,8 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/bandwidth_analyzer_ws_multiplier_256.txt[0m
 [0m[[0m[0mdebug[0m] [0m[0m	output/simulation/bandwidth_analyzer_ws_multiplier_128.txt[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/bandwidth_analyzer_ws_multiplier_128.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	output/simulation/debug_swin_base_stage4_down_sample_os_{32x32}x{1x1}x1}_sd_size_1024_buffer_A:128_buffer_B:128_buffer_C:128.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/debug_swin_base_stage4_down_sample_os_{32x32}x{1x1}x1}_sd_size_1024_buffer_A:128_buffer_B:128_buffer_C:128.txt[0m
 [0m[[0m[0mdebug[0m] [0m[0m	output/simulation/bandwidth_analyzer_os_multiplier_256.txt[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/bandwidth_analyzer_os_multiplier_256.txt[0m
 [0m[[0m[0mdebug[0m] [0m[0m	output/simulation/bandwidth_analyzer_ws_multiplier_512.txt[0m

@@ -82,8 +82,20 @@ object AnalyzerMain extends App
 
     } else if (args.length == 5){
 
+      println(s"${args(0)}")
+      println(s"${args(1)}")
+      println(s"${args(2)}")
+      println(s"${args(3)}")
+      println(s"${args(4)}")
+
       val file = new File(args(4))
-      if (file.exists() && args(4).endsWith(".bin")) {
+      if(file.exists()){
+        println("weight file is real")
+      } else {
+        println("weight file is not real")
+      }
+
+      if (args(4).endsWith(".bin")) {
         println("Cycle and Energy Report Mode with ML Inference")
         // Load existing ML model weights
         val loggerOption = LoggerOption(OutputMode.Console, None)
@@ -93,6 +105,7 @@ object AnalyzerMain extends App
           loggerOption = loggerOption
         ) match {
           case Success(modelWeights) =>
+
             processOneLayer(
               layerPath = args(0),
               testPath = args(1),
@@ -101,10 +114,13 @@ object AnalyzerMain extends App
               dnnModelWeights = Some(modelWeights),
               help = help
             )
+
           case Failure(e) =>
             Console.err.println(s"Failed to load ML model: ${e.getMessage}")
             sys.exit(1)
+
         }
+
       } else {
         println("Cycle and Energy Report Mode with Design Compiler Results")
         processOneLayer(

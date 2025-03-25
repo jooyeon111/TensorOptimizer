@@ -1,9 +1,25 @@
-BASE_PATH := input/simulation/synthesis
+LAYER := input/simulation/layer/swin/base/stage4_down_sample.cfg
+TEST_OPTION_WS_SD_1024 := input/simulation/configs/analyzer/oneLayer/os_{32x32}x{1x1}x1_sd_1024_buffer_256.cfg
+DRAM_DATA = input/simulation/hardware_reference/DRAMsim3/ddr4_dram.cfg
+SRAM_DATA = input/simulation/hardware_reference/nvsim/sram.cfg
+WEIGHT := input/simulation/synthesis/weight.bin
 
+BASE_PATH := input/simulation/synthesis
 TRAIN := $(BASE_PATH)/train.csv
 VALID := $(BASE_PATH)/validation.csv
 TEST := $(BASE_PATH)/test.csv
 
+SYNTHESIS_RESULTS := input/simulation/hardware_reference/design_compiler/os_sta_32x32x1x1x1_sd32.cfg
+
 .PHNOY: train
 train:
 	sbt "runMain simulation.AnalyzerMain ${TRAIN} ${VALID} ${TEST}"
+
+.PHONY: inference
+inference:
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WEIGHT}"
+
+
+.PHONY: dc
+dc:
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${SYNTHESIS_RESULTS}"

@@ -741,7 +741,8 @@ object DNNPredictor extends Logger {
     }
 
     Try {
-      val file = new File(filePath)
+      //TODO fix it below
+      val file = new File("src/main/resources/" + filePath)
       val inputStream = new FileInputStream(file)
       val objectInputStream = new ObjectInputStream(inputStream)
 
@@ -752,6 +753,7 @@ object DNNPredictor extends Logger {
         inputStream.close()
       }
     }
+
   }
 
   /**
