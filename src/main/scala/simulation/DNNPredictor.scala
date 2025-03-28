@@ -18,41 +18,41 @@ object DNNPredictor extends Logger {
    * Class to represent a neural network layer
    */
   case class Layer(
-                    weights: Array[Array[Double]],
-                    biases: Array[Double],
-                    activation: String // "relu", "linear", or "sigmoid"
-                  ) extends Serializable
+    weights: Array[Array[Double]],
+    biases: Array[Double],
+    activation: String // "relu", "linear", or "sigmoid"
+  ) extends Serializable
 
   /**
    * Deep Neural Network model containing multiple layers
    */
   case class DNNModel(
-                       layers: Array[Layer],
+    layers: Array[Layer],
 
-                       // Normalization parameters for inputs
-                       featureMeans: Map[String, Double],
-                       featureStds: Map[String, Double],
+    // Normalization parameters for inputs
+    featureMeans: Map[String, Double],
+    featureStds: Map[String, Double],
 
-                       // Normalization parameters for targets
-                       areaMean: Double,
-                       areaStd: Double,
-                       powerMean: Double,
-                       powerStd: Double,
+    // Normalization parameters for targets
+    areaMean: Double,
+    areaStd: Double,
+    powerMean: Double,
+    powerStd: Double,
 
-                       // Feature names to ensure consistent ordering
-                       featureNames: Array[String]
-                     ) extends Serializable
+    // Feature names to ensure consistent ordering
+    featureNames: Array[String]
+  ) extends Serializable
 
   case class FeatureVector(
-                            dataflow: String,
-                            totalMultipliers: Int,
-                            r: Int,
-                            c: Int,
-                            a: Int,
-                            b: Int,
-                            p: Int,
-                            streamingDimensionSize: Int
-                          ) {
+    dataflow: String,
+    totalMultipliers: Int,
+    r: Int,
+    c: Int,
+    a: Int,
+    b: Int,
+    p: Int,
+    streamingDimensionSize: Int
+  ) {
     def toMap: Map[String, Double] = {
       // Create one-hot encoding for dataflow
       val dataflowFeatures = Map(
@@ -491,14 +491,14 @@ object DNNPredictor extends Logger {
    * Train a neural network model for area and power prediction
    */
   private def trainNeuralNetworks(
-                                   trainData: Vector[(FeatureVector, (Double, Double))],
-                                   validationData: Vector[(FeatureVector, (Double, Double))],
-                                   learningRate: Double = 0.001,
-                                   batchSize: Int = 32,
-                                   epochs: Int = 1000,
-                                   patience: Int = 50, // For early stopping
-                                   l2Lambda: Double = 0.001
-                                 ): DNNModel = {
+    trainData: Vector[(FeatureVector, (Double, Double))],
+    validationData: Vector[(FeatureVector, (Double, Double))],
+    learningRate: Double = 0.001,
+    batchSize: Int = 32,
+    epochs: Int = 1000,
+    patience: Int = 50, // For early stopping
+    l2Lambda: Double = 0.001
+  ): DNNModel = {
     log("Starting neural network training...")
 
     // Extract all feature names from the first sample
@@ -760,16 +760,16 @@ object DNNPredictor extends Logger {
    * Predict area and power using the model
    */
   def predictArraySynthesisData(
-                                 dataflow: String,
-                                 totalMultipliers: Int,
-                                 groupPeRow: Int,
-                                 groupPeCol: Int,
-                                 vectorPeRow: Int,
-                                 vectorPeCol: Int,
-                                 numMultiplier: Int,
-                                 streamingDimensionSize: Int,
-                                 model: DNNModel
-                               ): ArraySynthesisData = {
+    dataflow: String,
+    totalMultipliers: Int,
+    groupPeRow: Int,
+    groupPeCol: Int,
+    vectorPeRow: Int,
+    vectorPeCol: Int,
+    numMultiplier: Int,
+    streamingDimensionSize: Int,
+    model: DNNModel
+  ): ArraySynthesisData = {
 
     val features = FeatureVector(
       dataflow = dataflow,
@@ -817,12 +817,12 @@ object DNNPredictor extends Logger {
    * Train a new model
    */
   def trainModel(
-                  weightOutputPath: String,
-                  trainFilePath: String,
-                  validationFilePath: String,
-                  testFilePath: String,
-                  loggerOption: LoggerOption
-                ): Try[DNNModel] = {
+    weightOutputPath: String,
+    trainFilePath: String,
+    validationFilePath: String,
+    testFilePath: String,
+    loggerOption: LoggerOption
+  ): Try[DNNModel] = {
     setMode(loggerOption)
     log("Training a new deep neural network model for array synthesis data prediction")
 

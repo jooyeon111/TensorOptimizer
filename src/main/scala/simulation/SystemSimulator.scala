@@ -1,7 +1,10 @@
 package simulation
 
+import com.sun.xml.internal.bind.v2.runtime.reflect.Lister.Pack
+
 import scala.util.control.Breaks._
 
+//TODO ordering the arguments
 class SystemSimulator(
   private val dram: Dram,
   private val sramA: DoubleBufferSram,
@@ -10,10 +13,6 @@ class SystemSimulator(
   private val interface: Interface,
   private val layer: Layer,
   private val array: Array,
-  private val streamingDimensionSize: Int,
-  private val dramReferenceData: Option[DramReferenceData] = None,
-  private val sramDataReferenceVector: Option[Vector[SramReferenceData]] = None,
-  private val arraySynthesisData: Option[ArraySynthesisData] = None,
   private val debugStartCycle: Long = 0,
   private val debugEndCycle: Long = 0,
   private val debugMode: Boolean = false,
@@ -24,29 +23,25 @@ class SystemSimulator(
   setMode(loggerOption)
 
   private val clockPeriod: Double = 2e-9
-
-  private lazy val sramDataTable: SramDataTable = {
-    if(sramDataReferenceVector.isEmpty){
-      SramDataTable(None, None, None)
-    } else {
-      SramDataTable(
-        findMatchingSramData(sramA, array.arrayConfig.bandwidthOfInputA),
-        findMatchingSramData(sramB, array.arrayConfig.bandwidthOfInputB),
-        findMatchingSramData(sramC, array.arrayConfig.outputBandwidth)
-      )
-    }
-  }
-
   private var cycle: Long = -1
   private var lastProgressPercent: Int = -1
 
-  def getDramRefData: Option[DramReferenceData] = dramReferenceData
-  def getSramRefDataTable: Option[SramDataTable] = if(sramDataReferenceVector.isEmpty){
-    None
-  } else {
-    Some(sramDataTable)
-  }
-  def getArraySynthesisData: Option[ArraySynthesisData] = arraySynthesisData
+  def getDramRefData: Option[DramReferenceData] = dram.referenceData
+
+
+  def getSramRefDataTable: Option[SramDataTable] =
+    for {
+      sramDataA <- sramA.referenceData
+      sramDataB <- sramB.referenceData
+      sramDataC <- sramC.referenceData
+    } yield SramDataTable(
+      Some(sramDataA),
+      Some(sramDataB),
+      Some(sramDataC),
+    )
+
+  def getArraySynthesisData: Option[ArraySynthesisData] = array.arrayConfig.arraySynthesisData
+  def getArraySynthesisSource: Option[ArraySynthesisSource.Value] = array.arrayConfig.arraySynthesisSource
 
 
   def startSimulation(): Unit = {
@@ -65,15 +60,14 @@ class SystemSimulator(
 
     breakable {
       while (!areAllHardwareQueueEmpty) {
-//        println(s"Cycle: $cycle")
         interface.updateCycle(cycle)
 
-        val currentProgress = (array.schedule.count(_.isCalculated) * 100) / layer.operationVector.size
-        if (currentProgress > lastProgressPercent) {
-          println(s"Progress: $currentProgress %")
-          println(s"Cycle: $cycle")
-          lastProgressPercent = currentProgress
-        }
+//        val currentProgress = (array.schedule.count(_.isCalculated) * 100) / layer.operationVector.size
+//        if (currentProgress > lastProgressPercent) {
+//          println(s"Progress: $currentProgress %")
+//          println(s"Cycle: $cycle")
+//          lastProgressPercent = currentProgress
+//        }
 
         if (debugMode)
           if (debugStartCycle <= cycle && cycle < debugEndCycle) {
@@ -123,9 +117,7 @@ class SystemSimulator(
   def getTotalOperationNumber: Int = layer.operationVector.size
 
   def getTileSizeA: Int = layer.operationVector.head.generateTileA.dims.memorySize
-
   def getTileSizeB: Int = layer.operationVector.head.generateTileB.dims.memorySize
-
   def getTileSizeC: Int = layer.operationVector.head.generateTileC.dims.memorySize
 
   def getSingleBufferTileCapacityA: Int = sramA.singleBufferTileCapacity
@@ -227,27 +219,16 @@ class SystemSimulator(
   //5. Energy Report
 
   // DRAM
-  def getDramReadEnergy: Option[Double] =
-    if (dramReferenceData.isEmpty) None
-    else Some(dram.getReadAccessCount * dramReferenceData.get.readEnergyPj)
-
-  def getDramWriteEnergy: Option[Double] =
-    if (dramReferenceData.isEmpty) None
-    else Some(dram.getWriteAccessCount * dramReferenceData.get.writeEnergyPj)
-
-  def getDramEnergy: Option[Double] =
-    if (dramReferenceData.isEmpty) None
-    else Some(getDramReadEnergy.get + getDramWriteEnergy.get)
+  def getDramReadEnergy: Option[Double] = dram.getDramReadEnergy
+  def getDramWriteEnergy: Option[Double] = dram.getDramWriteEnergy
+  def getDramEnergy: Option[Double] = dram.getDramEnergy
 
   // SRAM A
-  def getSramReadEnergyA: Option[Double] =
-    sramDataTable.sramA.map(_.readEnergyPj * sramA.getReadAccessCount)
-
-  def getSramWriteEnergyA: Option[Double] =
-    sramDataTable.sramA.map(_.writeEnergyPj * sramA.getWriteAccessCount)
-
-  def getSramLeakageEnergyA: Option[Double] =
-    sramDataTable.sramA.map(_.leakagePowerPw * cycle * clockPeriod)
+  def getSramReadEnergyA: Option[Double] = sramA.getSramReadEnergy
+  def getSramWriteEnergyA: Option[Double] = sramA.getSramWriteEnergy
+  def getSramLeakageEnergyA: Option[Double] = sramA.referenceData.map{ data =>
+    data.leakagePowerPw * cycle * clockPeriod
+  }
 
   def getSramEnergyA: Option[Double] = {
     for {
@@ -258,14 +239,11 @@ class SystemSimulator(
   }
 
   // SRAM B
-  def getSramReadEnergyB: Option[Double] =
-    sramDataTable.sramB.map(_.readEnergyPj * sramB.getReadAccessCount)
-
-  def getSramWriteEnergyB: Option[Double] =
-    sramDataTable.sramB.map(_.writeEnergyPj * sramB.getWriteAccessCount)
-
-  def getSramLeakageEnergyB: Option[Double] =
-    sramDataTable.sramB.map(_.leakagePowerPw * cycle * clockPeriod)
+  def getSramReadEnergyB: Option[Double] = sramB.getSramReadEnergy
+  def getSramWriteEnergyB: Option[Double] = sramB.getSramWriteEnergy
+  def getSramLeakageEnergyB: Option[Double] = sramB.referenceData.map{ data =>
+    data.leakagePowerPw * cycle * clockPeriod
+  }
 
   def getSramEnergyB: Option[Double] = {
     for {
@@ -276,103 +254,64 @@ class SystemSimulator(
   }
 
   // SRAM C
-  def getSramReadEnergyC: Option[Double] =
-    sramDataTable.sramC.map(_.readEnergyPj * sramC.getReadAccessCount)
+  def getSramReadEnergyC: Option[Double] = sramC.getSramReadEnergy
+  def getSramWriteEnergyC: Option[Double] = sramC.getSramWriteEnergy
+  def getSramLeakageEnergyC: Option[Double] = sramC.referenceData.map{ data =>
+    data.leakagePowerPw * cycle * clockPeriod
+  }
 
-  def getSramWriteEnergyC: Option[Double] =
-    sramDataTable.sramC.map(_.writeEnergyPj * sramC.getWriteAccessCount)
-
-  def getSramLeakageEnergyC: Option[Double] =
-    sramDataTable.sramC.map(_.leakagePowerPw * cycle * clockPeriod)
-
-  def getSramEnergyC: Option[Double] = {
+  def getSramEnergyC: Option[Double] =
     for {
       read <- getSramReadEnergyC
       write <- getSramWriteEnergyC
       leakage <- getSramLeakageEnergyC
     } yield read + write + leakage
-  }
 
   //ARRAY
-  def getArrayDynamicEnergy: Double = if(arraySynthesisData.isDefined){
-    (arraySynthesisData.get.switchPowerPw + arraySynthesisData.get.internalPowerPw) *
-      array.getArrayActiveCount *
-      clockPeriod
-  } else {
-    (
-      calculateSwitchingPowerPj(
-      array.arrayConfig.asArrayDimension,
-        array.arrayConfig.dataflow,
-        streamingDimensionSize
-      ) + calculateInternalPowerPj(
-        array.arrayConfig.asArrayDimension,
-        array.arrayConfig.dataflow,
-        streamingDimensionSize)
-      ) *
-      array.getArrayActiveCount *
-      clockPeriod
+  def getArrayDynamicEnergy: Option[Double] = array.arrayConfig.arraySynthesisData.map{ data =>
+    (data.switchPowerPw + data.internalPowerPw) * array.getArrayActiveCount * clockPeriod
   }
 
-  def getArrayLeakageEnergy: Double = if(arraySynthesisData.isDefined){
-    arraySynthesisData.get.leakagePowerPw * cycle * clockPeriod
-  } else {
-    calculateLeakagePowerPj(
-      array.arrayConfig.asArrayDimension,
-      array.arrayConfig.dataflow,
-      streamingDimensionSize
-    ) *
-    array.getArrayActiveCount *
-    clockPeriod
+  def getArrayLeakageEnergy: Option[Double] = array.arrayConfig.arraySynthesisData.map { data =>
+    data.leakagePowerPw * cycle * clockPeriod
   }
 
+  def getArrayEnergy: Option[Double] =
+    for{
+      dynamicEnergy <- getArrayDynamicEnergy
+      leakageEnergy <- getArrayLeakageEnergy
+    } yield dynamicEnergy + leakageEnergy
 
-  def getArrayEnergy: Double = getArrayDynamicEnergy + getArrayLeakageEnergy
-
-  //Total
   def getTotalEnergy: Option[Double] =
-    if (sramDataReferenceVector.isEmpty || dramReferenceData.isEmpty || arraySynthesisData.isEmpty) None
-    else Some(
-      getSramEnergyA.get + getSramEnergyB.get + getSramEnergyC.get +
-        getDramEnergy.get + getArrayEnergy
-    )
+    for {
+      dramEnergy <- getDramEnergy
+      sramEnergyA <- getSramEnergyA
+      sramEnergyB <- getSramEnergyB
+      arrayEnergy <- getArrayEnergy
+      sramEnergyC <- getSramEnergyC
+
+
+    } yield dramEnergy + sramEnergyA + sramEnergyB + sramEnergyC + arrayEnergy
 
   //6. Area Report
-  //SRAM
-  def getSramAreaA: Option[Double] =
-    sramDataTable.sramA.map(_.areaUm2)
+  def getSramAreaA: Option[Double] = sramA.referenceData.map(_.areaUm2)
+  def getSramAreaB: Option[Double] = sramB.referenceData.map(_.areaUm2)
+  def getSramAreaC: Option[Double] = sramC.referenceData.map(_.areaUm2)
 
-  def getSramAreaB: Option[Double] =
-    sramDataTable.sramB.map(_.areaUm2)
-
-  def getSramAreaC: Option[Double] =
-    sramDataTable.sramC.map(_.areaUm2)
 
   //Array
-  def getArrayArea: Double = if(arraySynthesisData.isDefined){
-    arraySynthesisData.get.areaUm2
-  } else {
-    calculateAreaUm2(
-      array.arrayConfig.asArrayDimension,
-      array.arrayConfig.dataflow,
-      streamingDimensionSize
-    )
+  def getArrayArea: Option[Double] = array.arrayConfig.arraySynthesisData.map { data =>
+    data.areaUm2
   }
 
   //Total
   def getArea: Option[Double] =
-    if (sramDataReferenceVector.isEmpty || dramReferenceData.isEmpty || arraySynthesisData.isEmpty) None
-    else Some(getSramAreaA.get +  getSramAreaB.get + getSramAreaC.get + getArrayArea)
-
-  // Helper Function
-  private def findMatchingSramData(sram: Sram, bandwidth: Int): Option[SramReferenceData] = {
-
-    sramDataReferenceVector.flatMap{ vector =>
-      vector.find { sramData =>
-        sramData.capacityKb == sram.singleBufferLimitKb &&
-          bandwidth <= sramData.bandwidthBits
-      }
-    }
-  }
+    for {
+      sramAreaA <- getSramAreaA
+      sramAreaB <- getSramAreaB
+      sramAreaC <- getSramAreaC
+      arrayArea <- getArrayArea
+    } yield sramAreaA + sramAreaB + sramAreaC + arrayArea
 
   //Util functions
   private def areAllHardwareQueueEmpty: Boolean = {

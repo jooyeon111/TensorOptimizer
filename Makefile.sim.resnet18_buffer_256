@@ -60,10 +60,10 @@ all: conv1 stage1 stage2 stage3 stage4 fc
 conv1:
 	#Square
 	sbt "runMain simulation.AnalyzerMain ${CONV1} ${TEST_OPTION_OS_SD_32} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_32}"
-	sbt "runMain simulation.AnalyzerMain ${CONV1} ${TEST_OPTION_WS_SD_32} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+	#sbt "runMain simulation.AnalyzerMain ${CONV1} ${TEST_OPTION_WS_SD_32} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
 	#Large
-	sbt "runMain simulation.AnalyzerMain ${CONV1} ${TEST_OPTION_OS_SD_256} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_256}"
-	sbt "runMain simulation.AnalyzerMain ${CONV1} ${TEST_OPTION_WS_SD_256} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
+	#sbt "runMain simulation.AnalyzerMain ${CONV1} ${TEST_OPTION_OS_SD_256} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_256}"
+	#sbt "runMain simulation.AnalyzerMain ${CONV1} ${TEST_OPTION_WS_SD_256} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"
 	#Extra large
 	#sbt "runMain simulation.AnalyzerMain ${CONV1} ${TEST_OPTION_OS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${OS_ARRAY_SD_1024}"
 	#sbt "runMain simulation.AnalyzerMain ${CONV1} ${TEST_OPTION_WS_SD_1024} ${DRAM_DATA} ${SRAM_DATA} ${WS_ARRAY}"

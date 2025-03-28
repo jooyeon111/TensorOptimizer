@@ -2,15 +2,14 @@ package simulation
 
 import simulation.DataType.DataType
 import simulation.TileState.TileState
-
 import scala.collection.mutable
-import scala.util.control.Breaks
 
 class DoubleBufferSram(
   override val dataType: DataType,
   val outputBandwidth: Int,
   override val singleBufferTileCapacity: Int,
   override val singleBufferLimitKb: Int,
+  val referenceData: Option[SramReferenceData] = None,
   val loggerOption: LoggerOption,
 ) extends Sram with AccessCounter{
 
@@ -32,6 +31,12 @@ class DoubleBufferSram(
   def getDramAccessCount: Double = totalDramAccessCount
   def getDramHitCount: Double = totalDramHitCount
   def getDramMissCount: Double = totalDramMissCount
+
+  def getSramReadEnergy: Option[Double] =
+    referenceData.map( data => getReadAccessCount * data.readEnergyPj )
+
+  def getSramWriteEnergy: Option[Double] =
+    referenceData.map( data => getWriteAccessCount * data.writeEnergyPj )
 
   def getReadBufferIDs: mutable.Queue[(Int, Int)] = {
     readBuffer.map(tile =>tile.id.asInstanceOf[(Int,Int)])

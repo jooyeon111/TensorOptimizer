@@ -70,6 +70,7 @@ case class SimulationResult(
   //6. Reference Data
   dramReferenceData: Option[DramReferenceData],
   sramReferenceDataTable: Option[SramDataTable],
+  arraySynthesisSource: Option[ArraySynthesisSource.Value],
   arraySynthesisData: Option[ArraySynthesisData],
 
   //7. Energy
@@ -92,9 +93,9 @@ case class SimulationResult(
   dramWriteEnergyPj: Option[Double],
   dramEnergyPj: Option[Double],
 
-  arrayDynamicEnergyPj: Double,
-  arrayLeakageEnergyPj: Double,
-  arrayEnergy: Double,
+  arrayDynamicEnergyPj: Option[Double],
+  arrayLeakageEnergyPj: Option[Double],
+  arrayEnergy: Option[Double],
 
   energyPj: Option[Double],
 
@@ -102,7 +103,7 @@ case class SimulationResult(
   sramAreaUm2A: Option[Double],
   sramAreaUm2B: Option[Double],
   sramAreaUm2C: Option[Double],
-  arrayAreaUm2: Double,
+  arrayAreaUm2: Option[Double],
   areaUm2: Option[Double],
 
 ) extends Logger {
@@ -176,11 +177,11 @@ case class SimulationResult(
     log(s"")
 
     if(isReferenceDataValid){
-      log(s"\t[DRAM Reference Data]")
+      log(s"\t[DRAM Data from DRAMSim3]")
       log(s"\t\tDRAM Read Energy per Access: ${String.format("%.2f", dramReferenceData.get.readEnergyPj)} pJ ")
       log(s"\t\tDRAM Read Energy per Access: ${String.format("%.2f", dramReferenceData.get.writeEnergyPj)} pJ ")
       log(s"")
-      log(s"\t[SRAM Data]")
+      log(s"\t[SRAM Data from NVSim]")
       log(s"\t\t[Input SRAM A]")
       log(s"\t\tSize: ${sramReferenceDataTable.get.sramA.get.capacityKb} KB")
       log(s"\t\tBandwidth bit: ${sramReferenceDataTable.get.sramA.get.bandwidthBits}")
@@ -204,6 +205,29 @@ case class SimulationResult(
       log(s"\t\tWrite Energy Per Access: ${sramReferenceDataTable.get.sramC.get.writeEnergyPj} pJ")
       log(s"\t\tLeakage Power: ${sramReferenceDataTable.get.sramC.get.leakagePowerPw} pW")
       log(s"\t\tArea: ${sramReferenceDataTable.get.sramC.get.areaUm2} pJ")
+      log(s"")
+
+      if(arraySynthesisSource.isEmpty){
+        Console.err.println(s"[error] Array Synthesis Source is not defined when the results contain Energy")
+        sys.exit(1)
+      }
+
+      if(arraySynthesisSource.get == ArraySynthesisSource.DesignCompiler){
+
+        log(s"\t[Array Synthesis Results from Design Compiler]")
+        log(s"\t\tArea: ${arraySynthesisData.get.areaUm2} um^2")
+        log(s"\t\tSwitch Power: ${arraySynthesisData.get.switchPowerPw} pW")
+        log(s"\t\tInternal Power: ${arraySynthesisData.get.internalPowerPw} pW")
+        log(s"\t\tLeakage Power: ${arraySynthesisData.get.leakagePowerPw} pW")
+
+      } else if(arraySynthesisSource.get == ArraySynthesisSource.DNNPrediction) {
+        log(s"\t[Array Synthesis Results from DNN Prediction]")
+        log(s"\t\tArea: ${arraySynthesisData.get.areaUm2} um^2")
+        log(s"\t\tSwitch Power: ${arraySynthesisData.get.switchPowerPw} pW")
+        log(s"\t\tInternal Power: ${arraySynthesisData.get.internalPowerPw} pW")
+        log(s"\t\tLeakage Power: ${arraySynthesisData.get.leakagePowerPw} pW")
+      }
+
       log(s"")
     }
 
@@ -238,9 +262,9 @@ case class SimulationResult(
       log("")
 
       log("\t\t[Array Energy]")
-      log(s"\t\tEnergy: ${String.format("%.2f", arrayDynamicEnergyPj)} pJ")
-      log(s"\t\tEnergy: ${String.format("%.2f", arrayLeakageEnergyPj)} pJ")
-      log(s"\t\tEnergy: ${String.format("%.2f", arrayEnergy)} pJ")
+      log(s"\t\tEnergy: ${String.format("%.2f", arrayDynamicEnergyPj.get)} pJ")
+      log(s"\t\tEnergy: ${String.format("%.2f", arrayLeakageEnergyPj.get)} pJ")
+      log(s"\t\tEnergy: ${String.format("%.2f", arrayEnergy.get)} pJ")
       log("")
 
       log("\t\t[Total Energy]")
@@ -251,7 +275,7 @@ case class SimulationResult(
         s"${String.format("%.2f", sramEnergyPjA.get)}, " +
         s"${String.format("%.2f", sramEnergyPjB.get)}, " +
         s"${String.format("%.2f", sramEnergyPjC.get)}, " +
-        s"${String.format("%.2f", arrayEnergy)}"
+        s"${String.format("%.2f", arrayEnergy.get)}"
       )
     }
 
@@ -262,7 +286,7 @@ case class SimulationResult(
       log(s"\t\tSRAM A Area: ${String.format("%.2f", sramAreaUm2A.get)} um^2")
       log(s"\t\tSRAM B Area: ${String.format("%.2f", sramAreaUm2B.get)} um^2")
       log(s"\t\tSRAM C Area: ${String.format("%.2f", sramAreaUm2C.get)} um^2")
-      log(s"\t\tArray Area: ${String.format("%.2f", arrayAreaUm2)} um^2")
+      log(s"\t\tArray Area: ${String.format("%.2f", arrayAreaUm2.get)} um^2")
       log(s"\t\tTotal Area: ${String.format("%.2f", areaUm2.get)} um^2")
       log(s"")
       log(s"\t\t[CSV Format (SRAM A, SRAM B, SRAM C, ARRAY)] Area")
@@ -282,6 +306,7 @@ case class SimulationResult(
   }
 
   def isEnergyReportValid: Boolean = {
+
     sramReadEnergyPjA.isDefined &&
       sramWriteEnergyPjA.isDefined &&
       sramLeakageEnergyPjA.isDefined &&
@@ -320,7 +345,7 @@ object SimulationResult {
     doubleValue: Double = defaultErrorValueDouble
   )
 
-  def apply(wrongCycle: Long): SimulationResult = {
+  def apply(wrongCycle: Long, wrongEnergy: Double, wrongArea: Double): SimulationResult = {
     val defaults = DefaultValues()
 
     SimulationResult(
@@ -392,6 +417,7 @@ object SimulationResult {
       //6. Reference Data
       dramReferenceData = None,
       sramReferenceDataTable = None,
+      arraySynthesisSource = None,
       arraySynthesisData = None,
 
       //7, Energy Report
@@ -414,18 +440,18 @@ object SimulationResult {
       dramWriteEnergyPj = None,
       dramEnergyPj = None,
 
-      arrayDynamicEnergyPj = defaults.doubleValue,
-      arrayLeakageEnergyPj = defaults.doubleValue,
-      arrayEnergy = defaults.doubleValue,
+      arrayDynamicEnergyPj = None,
+      arrayLeakageEnergyPj = None,
+      arrayEnergy = None,
 
-      energyPj = None,
+      energyPj = Some(wrongEnergy),
 
       //8. Area
       sramAreaUm2A = None,
       sramAreaUm2B = None,
       sramAreaUm2C = None,
-      arrayAreaUm2 = defaults.doubleValue,
-      areaUm2 = None,
+      arrayAreaUm2 = None,
+      areaUm2 = Some(wrongArea),
     )
   }
 }

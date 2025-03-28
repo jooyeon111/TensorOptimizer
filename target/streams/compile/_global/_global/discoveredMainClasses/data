@@ -1,1 +1,1 @@
-["rtl.Main","simulation.AnalyzerMain"]
+["rtl.Main","simulation.AnalyzerMain","simulation.SystemArchitectureOptimizer"]

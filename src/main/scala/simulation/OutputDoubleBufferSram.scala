@@ -9,6 +9,7 @@ class OutputDoubleBufferSram(
   val outputBandwidth: Int,
   override val singleBufferTileCapacity: Int,
   override val singleBufferLimitKb: Int,
+  val referenceData: Option[SramReferenceData] = None,
   val loggerOption: LoggerOption,
 ) extends Sram with AccessCounter{
 
@@ -16,6 +17,12 @@ class OutputDoubleBufferSram(
 
   override val dataType: DataType = DataType.C
   private var availableOutputBandwidth: Int = outputBandwidth
+
+  def getSramReadEnergy: Option[Double] =
+    referenceData.map( data => getReadAccessCount * data.readEnergyPj )
+
+  def getSramWriteEnergy: Option[Double] =
+    referenceData.map( data => getWriteAccessCount * data.writeEnergyPj )
 
   def receive(tile: Tile): Unit = {
 

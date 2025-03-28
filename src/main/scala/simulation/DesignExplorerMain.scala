@@ -2,7 +2,6 @@
 //
 //
 //import common.{OutputPortCalculator, Dataflow}
-//
 //import java.io.File
 //import scala.annotation.tailrec
 //import scala.collection.mutable.ArrayBuffer
@@ -122,7 +121,6 @@
 //    simulationResult: SimulationResult
 //  ) {
 //    def showSummary(): Unit = {
-//
 //      if(simulationResult.isEnergyReportValid && simulationResult.isAreaReportValid){
 //        log(s"\t[${architecture.arrayConfig.arrayConfigString}]")
 //        log(s"\t\tCycle: ${simulationResult.cycle}")
@@ -411,8 +409,8 @@
 //    ArrayBuffer(Dataflow.Os).flatMap{ dataflow =>
 //     ArrayConfigGenerator.generateArrayConfig(
 //       multNumber = simConfig.totalNumberOfMultipliers,
-//       bandWidthPortA = simConfig.bitWidthPortA,
-//       bandWidthPortB = simConfig.bitWidthPortB,
+//       bitWidthPortA = simConfig.bitWidthPortA,
+//       bitWidthPortB = simConfig.bitWidthPortB,
 //       dataflow = dataflow,
 //       streamingDimensionSize = getMaximumStreamingDimension(simConfig.layerGemmDimension, dataflow)
 //     )
@@ -428,7 +426,7 @@
 //  private def filterArchitectureByMetric(
 //    results: ArrayBuffer[ArchitectureEvaluation],
 //    metric: OptimizationMetric.Value,
-//    marginPercent: Double = 20.0
+//    marginPercent: Double,
 //  ): ArrayBuffer[ArchitectureEvaluation] = {
 //
 //    val threshold = metric match {

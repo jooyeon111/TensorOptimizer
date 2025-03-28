@@ -45,7 +45,7 @@ object AnalyzerMain extends App
       processArrayConfigsAndGenerateRtl(args(0), help)
     } else if (args.length == 2) {
       println("Cycle Report Only")
-      processOneLayer(
+      runLayerSimulation(
         layerPath = args(0),
         testPath = args(1),
         help = help
@@ -82,18 +82,12 @@ object AnalyzerMain extends App
 
     } else if (args.length == 5){
 
-      println(s"${args(0)}")
-      println(s"${args(1)}")
-      println(s"${args(2)}")
-      println(s"${args(3)}")
-      println(s"${args(4)}")
-
-      val file = new File(args(4))
-      if(file.exists()){
-        println("weight file is real")
-      } else {
-        println("weight file is not real")
-      }
+//      val file = new File(args(4))
+//      if(file.exists()){
+//        println("weight file is real")
+//      } else {
+//        println("weight file is not real")
+//      }
 
       if (args(4).endsWith(".bin")) {
         println("Cycle and Energy Report Mode with ML Inference")
@@ -106,7 +100,7 @@ object AnalyzerMain extends App
         ) match {
           case Success(modelWeights) =>
 
-            processOneLayer(
+            runLayerSimulation(
               layerPath = args(0),
               testPath = args(1),
               dramDataPath = Option(args(2)),
@@ -123,7 +117,7 @@ object AnalyzerMain extends App
 
       } else {
         println("Cycle and Energy Report Mode with Design Compiler Results")
-        processOneLayer(
+        runLayerSimulation(
           layerPath = args(0),
           testPath = args(1),
           dramDataPath = Option(args(2)),

@@ -1,6 +1,7 @@
 package simulation
 
 import common.{Dataflow, OutputPortCalculator}
+import scala.util.{Failure, Success, Try}
 
 object ArrayConfigGenerator extends OutputPortCalculator {
 
@@ -37,101 +38,177 @@ object ArrayConfigGenerator extends OutputPortCalculator {
     } yield config).toSet  // Using Set to automatically remove duplicates
   }
 
+  //TODO do we need dnn model weight path in here?
   def generateArrayConfig(
     multNumber: Int,
-    bandWidthPortA: Int,
-    bandWidthPortB: Int,
+    bitWidthPortA: Int,
+    bitWidthPortB: Int,
     dataflow: Dataflow.Value,
-    streamingDimensionSize: Int
+    streamingDimensionSize: Int,
+    dnnModelWeightsPath: Option[String] = None,
   ): Vector[ArrayConfig] = {
 
     val dimensionConfigs = generateValidDimensionConfigs(multNumber)
 
-    val arrayConfigs = dataflow match {
-      case Dataflow.Is =>
-        dimensionConfigs.map { dim =>
-          val bandWidthPortC = calculateOutputPort(
-            dataflow,
-            dim.r,
-            dim.c,
-//            dim.a * dim.b,
-//            1,
-            dim.a,
-            dim.b,
-            dim.p,
-            bandWidthPortA,
-            bandWidthPortB,
-            streamingDimensionSize
-          )
-          ArrayConfig(
-            dim.r,
-            dim.c,
-//            dim.a * dim.b,
-//            1,
-            dim.a,
-            dim.b,
-            dim.p,
-            dataflow,
-            PortBitWidth(bandWidthPortA, bandWidthPortB, bandWidthPortC)
-          )
-        }
+    val arrayConfigs = if(dnnModelWeightsPath.isDefined){
 
-      case Dataflow.Os =>
-        dimensionConfigs.map { dim =>
-          val bandWidthPortC = calculateOutputPort(
-            dataflow,
-            dim.r,
-            dim.c,
-            dim.a,
-            dim.b,
-            dim.p,
-            bandWidthPortA,
-            bandWidthPortB,
-            streamingDimensionSize
-          )
-          ArrayConfig(
-            dim.r,
-            dim.c,
-            dim.a,
-            dim.b,
-            dim.p,
-            dataflow,
-            PortBitWidth(bandWidthPortA, bandWidthPortB, bandWidthPortC)
-          )
-        }
+      val loadedModel = DNNPredictor.loadModel(filePath = dnnModelWeightsPath.get)
 
-      case Dataflow.Ws =>
-        dimensionConfigs.map { dim =>
-          val bandWidthPortC = calculateOutputPort(
-            dataflow,
-            dim.r,
-            dim.c,
-//            1,
-//            dim.a * dim.b,
-            dim.a,
-            dim.b,
-            dim.p,
-            bandWidthPortA,
-            bandWidthPortB,
-            streamingDimensionSize
-          )
-          ArrayConfig(
-            dim.r,
-            dim.c,
-//            1,
-//            dim.a * dim.b,
-            dim.a,
-            dim.b,
-            dim.p,
-            dataflow,
-            PortBitWidth(bandWidthPortA, bandWidthPortB, bandWidthPortC)
-          )
-        }
+      loadedModel match {
+        case Success(modelWeights) =>
 
-      case _ =>
-        throw new IllegalArgumentException("Invalid dataflow")
+          dimensionConfigs.map { dim =>
+            val outputPortBitWidth = calculateOutputPort(
+              dataflow = dataflow,
+              groupPeRow = dim.r,
+              groupPeCol = dim.c,
+              vectorPeRow = dim.a,
+              vectorPeCol = dim.b,
+              numMultiplier = dim.p,
+              bitWidthPortA = bitWidthPortA,
+              bitWidthPortB = bitWidthPortB,
+              streamingDimensionSize = streamingDimensionSize
+            )
+
+            val synthesisData = DNNPredictor.predictArraySynthesisData(
+              dataflow = dataflow.toString,
+              totalMultipliers = dim.product,
+              groupPeRow = dim.r,
+              groupPeCol = dim.c,
+              vectorPeRow = dim.a,
+              vectorPeCol = dim.b,
+              numMultiplier = dim.p,
+              streamingDimensionSize = streamingDimensionSize,
+              model = modelWeights
+            )
+
+            ArrayConfig(
+              groupPeRow = dim.r,
+              groupPeCol = dim.c,
+              vectorPeRow = dim.a,
+              vectorPeCol = dim.b,
+              numMultiplier = dim.p,
+              dataflow = dataflow,
+              portBitWidth = PortBitWidth(bitWidthPortA, bitWidthPortB, outputPortBitWidth),
+              arraySynthesisData =  Some(synthesisData)
+            )
+
+          }
+
+        case Failure(e) =>
+          Console.err.println(s"Failed to load ML model: ${e.getMessage}")
+          sys.exit(1)
+      }
+
+    } else {
+      dimensionConfigs.map { dim =>
+        val outputPortBitWidth = calculateOutputPort(
+          dataflow = dataflow,
+          groupPeRow = dim.r,
+          groupPeCol = dim.c,
+          vectorPeRow = dim.a,
+          vectorPeCol = dim.b,
+          numMultiplier = dim.p,
+          bitWidthPortA = bitWidthPortA,
+          bitWidthPortB = bitWidthPortB,
+          streamingDimensionSize = streamingDimensionSize
+        )
+
+        ArrayConfig(
+          groupPeRow = dim.r,
+          groupPeCol = dim.c,
+          vectorPeRow = dim.a,
+          vectorPeCol = dim.b,
+          numMultiplier = dim.p,
+          dataflow = dataflow,
+          portBitWidth = PortBitWidth(bitWidthPortA, bitWidthPortB, outputPortBitWidth),
+        )
+      }
+
     }
 
     arrayConfigs.toVector
+
   }
+
 }
+
+
+
+//
+//    val arrayConfigs = dataflow match {
+//      case Dataflow.Is =>
+//        dimensionConfigs.map { dim =>
+//          val bandWidthPortC = calculateOutputPort(
+//            dataflow,
+//            dim.r,
+//            dim.c,
+//            dim.a,
+//            dim.b,
+//            dim.p,
+//            bandWidthPortA,
+//            bandWidthPortB,
+//            streamingDimensionSize
+//          )
+//          ArrayConfig(
+//            dim.r,
+//            dim.c,
+//            dim.a,
+//            dim.b,
+//            dim.p,
+//            dataflow,
+//            PortBitWidth(bandWidthPortA, bandWidthPortB, bandWidthPortC)
+//          )
+//        }
+//
+//      case Dataflow.Os =>
+//        dimensionConfigs.map { dim =>
+//          val bandWidthPortC = calculateOutputPort(
+//            dataflow,
+//            dim.r,
+//            dim.c,
+//            dim.a,
+//            dim.b,
+//            dim.p,
+//            bandWidthPortA,
+//            bandWidthPortB,
+//            streamingDimensionSize
+//          )
+//          ArrayConfig(
+//            dim.r,
+//            dim.c,
+//            dim.a,
+//            dim.b,
+//            dim.p,
+//            dataflow,
+//            PortBitWidth(bandWidthPortA, bandWidthPortB, bandWidthPortC)
+//          )
+//        }
+//
+//      case Dataflow.Ws =>
+//        dimensionConfigs.map { dim =>
+//          val bandWidthPortC = calculateOutputPort(
+//            dataflow,
+//            dim.r,
+//            dim.c,
+//            dim.a,
+//            dim.b,
+//            dim.p,
+//            bandWidthPortA,
+//            bandWidthPortB,
+//            streamingDimensionSize
+//          )
+//          ArrayConfig(
+//            dim.r,
+//            dim.c,
+//            dim.a,
+//            dim.b,
+//            dim.p,
+//            dataflow,
+//            PortBitWidth(bandWidthPortA, bandWidthPortB, bandWidthPortC)
+//          )
+//        }
+//
+//      case _ =>
+//        throw new IllegalArgumentException("Invalid dataflow")
+//    }

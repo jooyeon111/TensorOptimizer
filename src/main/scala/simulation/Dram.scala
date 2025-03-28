@@ -4,9 +4,9 @@ import common.Dataflow
 import scala.collection.mutable
 import simulation.DataType.DataType
 
-
 final class Dram(
   val outputBandwidth: Int,
+  val referenceData: Option[DramReferenceData] = None,
   val loggerOption: LoggerOption
 ) extends Hardware with Logger with AccessCounter {
 
@@ -36,6 +36,17 @@ final class Dram(
 
   //Function called by Compiler
 
+  def getDramReadEnergy: Option[Double] =
+    referenceData.map( data => getReadAccessCount * data.readEnergyPj )
+
+  def getDramWriteEnergy: Option[Double] =
+    referenceData.map( data => getWriteAccessCount * data.writeEnergyPj )
+
+  def getDramEnergy: Option[Double] =
+    referenceData.map{ data =>
+      getReadAccessCount * data.readEnergyPj +
+        getWriteAccessCount * data.writeEnergyPj
+    }
 
   //TODO assert this function is called once
   private def uploadInitialTiles(operationVector: Vector[MultiplicationOperation], dataflow: Dataflow.Value) : Unit = {

@@ -55,7 +55,6 @@ final class Array(
   def getMemoryMissCountB: Double = totalMemoryMissCountB
 
   def isAllCalculated: Boolean = schedule.forall(_.isCalculated)
-
   def getArrayActiveCount: Int = arrayActiveCount
 
   def uploadOperationVector(operationVector: Vector[MultiplicationOperation]): Unit = {

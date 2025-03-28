@@ -3,7 +3,13 @@ package simulation
 import common.{Dataflow, ArrayDimension}
 
 object ArrayConfig {
-  def apply(arrayDimension: ArrayDimension, dataflow: Dataflow.Value, portBitWidth: PortBitWidth): ArrayConfig = {
+  def apply(
+    arrayDimension: ArrayDimension,
+    dataflow: Dataflow.Value,
+    portBitWidth: PortBitWidth,
+    arraySynthesisData: Option[ArraySynthesisData],
+    arraySynthesisSource: Option[ArraySynthesisSource.Value],
+  ): ArrayConfig = {
     ArrayConfig(
       arrayDimension.groupPeRow,
       arrayDimension.groupPeCol,
@@ -11,7 +17,9 @@ object ArrayConfig {
       arrayDimension.vectorPeCol,
       arrayDimension.numMultiplier,
       dataflow,
-      portBitWidth
+      portBitWidth,
+      arraySynthesisData,
+      arraySynthesisSource
     )
   }
 }
@@ -25,6 +33,8 @@ case class ArrayConfig(
   override val numMultiplier: Int,
   dataflow: Dataflow.Value,
   portBitWidth: PortBitWidth,
+  arraySynthesisData: Option[ArraySynthesisData] = None,
+  arraySynthesisSource: Option[ArraySynthesisSource.Value] =None,
 ) extends ArrayDimension(
   groupPeRow,
   groupPeCol,

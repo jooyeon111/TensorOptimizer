@@ -10,6 +10,7 @@ case class ArraySynthesisData(
   val switchPowerPw: Double = switchPowerMw * 1e9
   val internalPowerPw: Double = internalPowerMw * 1e9
   val leakagePowerPw: Double = leakagePowerMw * 1e9
+  val totalPower: Double = switchPowerPw + internalPowerPw + leakagePowerPw
 
   def validate: Boolean = {
     areaUm2 > 0.0 &&

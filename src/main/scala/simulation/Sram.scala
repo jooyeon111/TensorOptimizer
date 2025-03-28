@@ -1,7 +1,6 @@
 package simulation
 
 import simulation.DataType.DataType
-
 import scala.collection.mutable
 
 trait Sram extends Hardware with Logger {

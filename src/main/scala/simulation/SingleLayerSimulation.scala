@@ -1,7 +1,7 @@
 package simulation
 
 import java.io.File
-import common.{Dataflow, OutputPortCalculator, FilePaths, ArrayDimension}
+import common.{ArrayDimension, Dataflow, FilePaths, OutputPortCalculator}
 
 trait SingleLayerSimulation extends OutputPortCalculator with Logger {
 
@@ -21,14 +21,13 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     portBitWidth: PortBitWidth,
     dramBandwidth: Int,
     dramUploadOrder: DramUploadOrder.Value,
-//    tileDeduplicationStrategy: TileDeduplicationStrategy.Value,
     singleBufferLimitKbA: Int,
     singleBufferLimitKbB: Int,
     singleBufferLimitKbC: Int,
     dramReferenceData: Option[DramReferenceData],
     sramReferenceDataVector: Option[Vector[SramReferenceData]],
+    arraySynthesisSource: Option[ArraySynthesisSource.Value],
     arraySynthesisData: Option[ArraySynthesisData]
-
   ) {
     def validate: Boolean = {
       val baseValidation = streamingDimensionSize > 0 &&
@@ -59,7 +58,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
   }
 
   //TODO reorder parameters
-  def processOneLayer(
+  def runLayerSimulation(
     layerPath: String,
     testPath: String,
     dramDataPath: Option[String] = None,
@@ -69,7 +68,12 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     help: String
   ): Unit = {
 
-    println(layerPath)
+    require(
+      (arrayDataPath.isDefined && dnnModelWeights.isEmpty) ||
+        (arrayDataPath.isEmpty && dnnModelWeights.isDefined) ||
+        (arrayDataPath.isEmpty && dnnModelWeights.isEmpty),
+      "Error: Only one of arrayDataPath or dnnModelWeights should be provided, not both."
+    )
 
     val layerConfigParser = new ConfigManager(layerPath)
     val testConfigParser = new ConfigManager(testPath)
@@ -123,10 +127,17 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
 
     val sramReferenceData = sramDataParser.flatMap(_.getConfig).map(_.sramReferenceDataVector)
 
+    val arraySynthesisSource: Option[ArraySynthesisSource.Value] = if(dnnModelWeights.isDefined){
+      Some(ArraySynthesisSource.DNNPrediction)
+    } else if(arrayDataParser.isDefined){
+      Some(ArraySynthesisSource.DesignCompiler)
+    } else {
+      None
+    }
+
     val arraySynthesisData = if (dnnModelWeights.isDefined) {
       // Using ML model weights directly
       dnnModelWeights.map { model =>
-        println(" i'm here ")
         // Use the data from the test config to predict
         val dataflow = testConfig.getString("Dataflow").get match {
           case "IS" => Dataflow.Is.toString
@@ -180,8 +191,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
 
         predictedData
       }
-
-    } else {
+    } else if (arrayDataParser.isDefined){
       // Use array synthesis data from file
       arrayDataParser.flatMap(_.getConfig).map { config =>
         ArraySynthesisData(
@@ -199,6 +209,8 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
           )
         )
       }
+    } else {
+      None
     }
 
     val simulationConfig = buildSimulationOneLayerConfig(
@@ -206,6 +218,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       testConfig = testConfig,
       dramReferenceData = dramReferenceData,
       sramReferenceData = sramReferenceData,
+      arraySynthesisSource = arraySynthesisSource,
       arraySynthesisData = arraySynthesisData
     )
 
@@ -230,6 +243,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     testConfig: ConfigParser.Config,
     dramReferenceData: Option[DramReferenceData] = None,
     sramReferenceData: Option[Vector[SramReferenceData]] = None,
+    arraySynthesisSource: Option[ArraySynthesisSource.Value] = None,
     arraySynthesisData: Option[ArraySynthesisData] = None
   ): SimulationConfig ={
 
@@ -369,6 +383,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       singleBufferLimitKbC = singleBufferLimitKbC,
       sramReferenceDataVector = sramReferenceData,
       dramReferenceData = dramReferenceData,
+      arraySynthesisSource = arraySynthesisSource,
       arraySynthesisData = arraySynthesisData,
     )
 
@@ -404,6 +419,8 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       arrayDimension = arrayDimension,
       dataflow = simConfig.dataflow,
       portBitWidth =  simConfig.portBitWidth,
+      arraySynthesisData = simConfig.arraySynthesisData,
+      arraySynthesisSource = simConfig.arraySynthesisSource,
     )
 
     val layer = new Layer(
@@ -415,17 +432,22 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       loggerOption = loggerOption
     )
 
+    val sampleTileA = layer.operationVector.head.generateTileA
+    val sampleTileB = layer.operationVector.head.generateTileB
+    val sampleTileC = layer.operationVector.head.generateTileC
+
     val dram = new Dram(
       outputBandwidth = simConfig.dramBandwidth,
+      referenceData = simConfig.dramReferenceData,
       loggerOption = loggerOption
     )
 
-    val sramComponents = buildSrams(
+    val srams = buildSrams(
       arrayConfig = arrayConfig,
       simConfig = simConfig,
-      sizeTileA = layer.operationVector.head.generateTileA.dims.memorySize,
-      sizeTileB = layer.operationVector.head.generateTileB.dims.memorySize,
-      sizeTileC = layer.operationVector.head.generateTileC.dims.memorySize,
+      tileSizeA = sampleTileA.dims.memorySize,
+      tileSizeB = sampleTileB.dims.memorySize,
+      tileSizeC = sampleTileC.dims.memorySize,
       loggerOption = loggerOption
     )
 
@@ -436,13 +458,13 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
 
     val interface = new Interface(
       dram = dram,
-      sramA = sramComponents._1,
-      sramB = sramComponents._2,
-      sramC = sramComponents._3,
+      sramA = srams._1,
+      sramB = srams._2,
+      sramC = srams._3,
       array = array
     )
 
-    ((layer, array, interface, dram, sramComponents, loggerOption), loggerOption)
+    ((layer, array, interface, dram, srams, loggerOption), loggerOption)
 
   }
 
@@ -464,24 +486,52 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
   private def buildSrams(
     arrayConfig: ArrayConfig,
     simConfig: SimulationConfig,
-    sizeTileA: Int,
-    sizeTileB: Int,
-    sizeTileC: Int,
+    tileSizeA: Int,
+    tileSizeB: Int,
+    tileSizeC: Int,
     loggerOption: LoggerOption
   ) = {
 
-    val capacityA = (simConfig.singleBufferLimitKbA * 8 * 1024)/ sizeTileA
-    val capacityB = (simConfig.singleBufferLimitKbB * 8 * 1024)/ sizeTileB
-    val capacityC = (simConfig.singleBufferLimitKbC * 8 * 1024)/ sizeTileC
+    require(tileSizeA > 0, "[error] Tile is the negative value")
+    require(tileSizeB > 0, "[error] Tile is the negative value")
+    require(tileSizeC > 0, "[error] Tile is the negative value")
+
+    val capacityA = (simConfig.singleBufferLimitKbA * 8 * 1024)/ tileSizeA
+    val capacityB = (simConfig.singleBufferLimitKbB * 8 * 1024)/ tileSizeB
+    val capacityC = (simConfig.singleBufferLimitKbC * 8 * 1024)/ tileSizeC
 
     if(!(capacityA > 0 && capacityB > 0 && capacityC > 0 ))
       throw RunTimeError("SRAM Cannot contain even 1 tile increase SRAM size")
+
+    val sramReferenceDataA: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+      vector.find{ data =>
+        data.capacityKb == simConfig.singleBufferLimitKbA && data.bandwidthBits >= arrayConfig.bandwidthOfInputA
+      }
+    }
+
+    val sramReferenceDataB: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+      vector.find{ data =>
+        data.capacityKb == simConfig.singleBufferLimitKbB && data.bandwidthBits >= arrayConfig.bandwidthOfInputB
+      }
+    }
+
+    val sramReferenceDataC: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+      vector.find{ data =>
+        data.capacityKb == simConfig.singleBufferLimitKbC && data.bandwidthBits >= arrayConfig.outputBandwidth
+      }
+    }
+
+    if(simConfig.sramReferenceDataVector.isDefined &&
+      (sramReferenceDataA.isEmpty || sramReferenceDataB.isEmpty || sramReferenceDataC.isEmpty)){
+      throw RunTimeError("Cannot find SRAM data from external reports ...")
+    }
 
     val sramA = new DoubleBufferSram(
       dataType = DataType.A,
       outputBandwidth = arrayConfig.bandwidthOfInputA,
       singleBufferTileCapacity = capacityA,
       singleBufferLimitKb = simConfig.singleBufferLimitKbA,
+      referenceData = sramReferenceDataA,
       loggerOption = loggerOption
     )
     val sramB = new DoubleBufferSram(
@@ -489,12 +539,14 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       outputBandwidth = arrayConfig.bandwidthOfInputB,
       singleBufferTileCapacity = capacityB,
       singleBufferLimitKb = simConfig.singleBufferLimitKbB,
+      referenceData = sramReferenceDataB,
       loggerOption = loggerOption
     )
     val sramC = new OutputDoubleBufferSram(
       outputBandwidth = simConfig.dramBandwidth,
       singleBufferTileCapacity = capacityC,
       singleBufferLimitKb = simConfig.singleBufferLimitKbC,
+      referenceData = sramReferenceDataC,
       loggerOption = loggerOption
     )
 
@@ -518,10 +570,6 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       interface = interface,
       layer = layer,
       array = array,
-      streamingDimensionSize = simConfig.streamingDimensionSize,
-      dramReferenceData = simConfig.dramReferenceData,
-      sramDataReferenceVector = simConfig.sramReferenceDataVector,
-      arraySynthesisData = simConfig.arraySynthesisData,
       debugStartCycle = simConfig.debugStartCycle,
       debugEndCycle = simConfig.debugEndCycle,
       debugMode = simConfig.debugPrint,
@@ -593,6 +641,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
 
         dramReferenceData = simulation.getDramRefData,
         sramReferenceDataTable = simulation.getSramRefDataTable,
+        arraySynthesisSource = simulation.getArraySynthesisSource,
         arraySynthesisData = simulation.getArraySynthesisData,
 
         sramReadEnergyPjA = simulation.getSramReadEnergyA,
@@ -600,7 +649,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
         sramLeakageEnergyPjA = simulation.getSramLeakageEnergyA,
         sramEnergyPjA = simulation.getSramEnergyA,
 
-        sramReadEnergyPjB = simulation.getSramWriteEnergyB,
+        sramReadEnergyPjB = simulation.getSramReadEnergyB,
         sramWriteEnergyPjB = simulation.getSramWriteEnergyB,
         sramLeakageEnergyPjB = simulation.getSramLeakageEnergyB,
         sramEnergyPjB = simulation.getSramEnergyB,
