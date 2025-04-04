@@ -66,7 +66,6 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
     |  Fifth argument is ML weight file (.bin)
   """.stripMargin
 
-  private val marginPercent: Int = 10
   private val maximumSingleBufferLimitKb: Int = 512
   private val minimumSingleBufferLimitKb: Int = 32
 

@@ -3,11 +3,11 @@ package simulation
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
 import common.Dataflow
+import scala.collection.parallel.CollectionConverters._
 
 class ArchitectureEvaluator(
   val simConfig: SystemArchitectureOptimizer.SimulationConfig,
   val architectureCandidates: ArrayBuffer[Architecture],
-  val marginPercent: Double =  5.0,
   val minSramSize: Int,
   val loggerOption: LoggerOption,
 ) extends Logger {
@@ -18,13 +18,13 @@ class ArchitectureEvaluator(
   private val calculatedAllResults = ArrayBuffer.empty[ArchitectureResult]
   private val rankedCalculatedResults = ArrayBuffer.empty[ArchitectureResult]
   private val archOptimizedResults = ArrayBuffer.empty[ArchitectureResult]
-  private val rankedArchOptimizedResults = ArrayBuffer.empty[ArchitectureResult]
+//  private val rankedArchOptimizedResults = ArrayBuffer.empty[ArchitectureResult]
   private val singleSramOptimizedResults = ArrayBuffer.empty[ArchitectureResult]
   private val rankedSingleSramOptimizedResults = ArrayBuffer.empty[ArchitectureResult]
 
   def run(): Unit = {
 
-    //validate
+    log("[Optimization Process]")
     executableCandidates ++= validateCandidates(architectureCandidates)
     logExecutableArch(
       candidates = architectureCandidates,
@@ -33,7 +33,7 @@ class ArchitectureEvaluator(
 
     //simulate all configs
     calculatedAllResults ++= process1(executableCandidates)
-    rankedCalculatedResults ++= rankResults(calculatedAllResults)
+    rankedCalculatedResults ++= rankResults(calculatedAllResults, 5.0)
     logSimulatedArch(
       validCandidates = executableCandidates,
       simulatedCandidates = calculatedAllResults,
@@ -42,19 +42,14 @@ class ArchitectureEvaluator(
 
     //optimize arch
     archOptimizedResults ++= process2(rankedCalculatedResults)
-    rankedArchOptimizedResults ++= rankResults(archOptimizedResults)
-    logProcess(
-      preProcess = rankedCalculatedResults,
-      postProcess = archOptimizedResults,
-      rankedPostProcess = rankedArchOptimizedResults
-    )
+
 
     //optimize single sram
-    singleSramOptimizedResults ++= process3(rankedArchOptimizedResults)
-    rankedSingleSramOptimizedResults ++= rankResults(singleSramOptimizedResults)
+    singleSramOptimizedResults ++= process3(archOptimizedResults)
+    rankedSingleSramOptimizedResults ++= rankResults(singleSramOptimizedResults, 2.0)
     logProcess(
-      preProcess = rankedArchOptimizedResults,
-      postProcess = rankedSingleSramOptimizedResults,
+      preProcess = archOptimizedResults,
+      postProcess = singleSramOptimizedResults,
       rankedPostProcess = rankedSingleSramOptimizedResults
     )
 
@@ -63,7 +58,7 @@ class ArchitectureEvaluator(
   }
 
   def showTopK(k: Int): Unit = {
-    singleSramOptimizedResults.take(k).foreach(logSummary)
+    rankedSingleSramOptimizedResults.take(k).foreach(logSummary)
   }
 
   private def validateCandidates(archBuffer: ArrayBuffer[Architecture]): ArrayBuffer[Architecture] = {
@@ -73,20 +68,20 @@ class ArchitectureEvaluator(
   }
 
   private def process1(archBuffer: ArrayBuffer[Architecture]): ArrayBuffer[ArchitectureResult] = {
-    log("\t[process1: Find High Efficiency STA configs]")
-    println("process1: Find High Efficiency STA configs")
+    log("\t[Process1: Find High Efficiency STA configs]")
+    println("Process1: Find High Efficiency STA configs")
     evaluateAllArchitectures(archBuffer)
   }
 
   private def process2(archResultBuffer: ArrayBuffer[ArchitectureResult]): ArrayBuffer[ArchitectureResult] = {
-    log(s"\t[process2: Optimize Architecture]")
-    println("process2: Optimize Architecture")
+    log(s"\t[Process2: Optimize Architecture]")
+    println("Process2: Optimize Architecture")
     optimizeSramStreamingTradeOffs(archResultBuffer)
   }
 
   private def process3(archResultBuffer: ArrayBuffer[ArchitectureResult]): ArrayBuffer[ArchitectureResult] = {
-    log(s"\t[process3: Optimize Single SRAM]")
-    println("process3: Optimize Single SRAM")
+    log(s"\t[Process3: Optimize Single SRAM]")
+    println("Process3: Optimize Single SRAM")
     halfSingleSramSizes(archResultBuffer)
   }
 
@@ -96,7 +91,7 @@ class ArchitectureEvaluator(
   ): Unit = {
     log(s"\t\t${candidates.size} architectures were candidates")
     log(s"\t\t${validCandidates.size} architectures were valid")
-
+    log("")
   }
 
   private def logSimulatedArch(
@@ -104,7 +99,6 @@ class ArchitectureEvaluator(
     simulatedCandidates: ArrayBuffer[ArchitectureResult],
     rankedSimulatedCandidates: ArrayBuffer[ArchitectureResult],
   ): Unit = {
-    log("")
     log(s"\t\t${validCandidates.size} valid architectures were passed to process")
     log(s"\t\t${simulatedCandidates.size} architectures were successfully processed")
     log(s"\t\t${rankedSimulatedCandidates.size} architectures meet performance criteria")
@@ -150,31 +144,23 @@ class ArchitectureEvaluator(
       }
     }
 
-    if (rankedSimulatedCandidates.nonEmpty) {
-      log("")
-      log(s"\t[Top ${Math.min(5, rankedSimulatedCandidates.size)} Ranked Architectures]")
-      rankedSimulatedCandidates.take(5).zipWithIndex.foreach { case (result, idx) =>
-        log(s"\t\t[Rank ${idx + 1}]")
-        logSummary(result)
-      }
-    }
-
     log("")
-    log("\tNow proceeding to optimization phase...")
+    log("\t\tNow proceeding to optimization phase...")
     log("")
 
   }
 
-
+  //TODO make tab variable
   private def logProcess(
     preProcess: ArrayBuffer[ArchitectureResult],
     postProcess: ArrayBuffer[ArchitectureResult],
     rankedPostProcess: ArrayBuffer[ArchitectureResult],
   ): Unit = {
 
-    log(s"\t${preProcess.size} architectures were processed")
-    log(s"\t${postProcess.size} optimized architectures were evaluated")
-    log(s"\t${rankedPostProcess.size} architectures meet performance criteria")
+    log(s"\t\t[Process Candidate Result Count]")
+    log(s"\t\t\t${preProcess.size} architectures were processed")
+    log(s"\t\t\t${postProcess.size} optimized architectures were evaluated")
+    log(s"\t\t\t${rankedPostProcess.size} architectures meet performance criteria")
 
     // Calculate improvement statistics
     if (preProcess.nonEmpty && rankedPostProcess.nonEmpty) {
@@ -224,16 +210,6 @@ class ArchitectureEvaluator(
       }
     }
 
-    // Top 5 architectures after optimization
-    if (rankedPostProcess.nonEmpty) {
-      log("")
-      log(s"\t[Top ${Math.min(5, rankedPostProcess.size)} Optimized Architectures]")
-      rankedPostProcess.take(5).zipWithIndex.foreach { case (result, idx) =>
-        log(s"\t\t[Rank ${idx + 1}]")
-        logSummary(result)
-      }
-    }
-
     log("")
 
   }
@@ -244,21 +220,21 @@ class ArchitectureEvaluator(
     val architecture = ArchitectureResult.architecture
 
     if(simulationResult.isEnergyReportValid && simulationResult.isAreaReportValid){
-      log(s"\t\t\t[${architecture.arrayConfig.arrayConfigString}]")
-      log(s"\t\t\t\tCycle: ${simulationResult.cycle}")
-      log(s"\t\t\t\tArea: ${String.format("%.2f", simulationResult.areaUm2.get)} mm^2")
-      log(s"\t\t\t\tEnergy: ${String.format("%.2f", simulationResult.energyPj.get)} pJ")
-      log(s"\t\t\t\tStreaming Dimension Size: ${architecture.streamingDimensionSize}")
-      log(s"\t\t\t\tSingleBuffer A: ${architecture.singleBufferLimitKbA} KB")
-      log(s"\t\t\t\tSingleBuffer B: ${architecture.singleBufferLimitKbB} KB")
-      log(s"\t\t\t\tSingleBuffer C: ${architecture.singleBufferLimitKbC} KB\n")
+      log(s"\t[${architecture.arrayConfig.arrayConfigString}]")
+      log(s"\t\tCycle: ${simulationResult.cycle}")
+      log(s"\t\tArea: ${String.format("%.2f", simulationResult.areaUm2.get)} mm^2")
+      log(s"\t\tEnergy: ${String.format("%.2f", simulationResult.energyPj.get)} pJ")
+      log(s"\t\tStreaming Dimension Size: ${architecture.streamingDimensionSize}")
+      log(s"\t\tSingleBuffer A: ${architecture.singleBufferLimitKbA} KB")
+      log(s"\t\tSingleBuffer B: ${architecture.singleBufferLimitKbB} KB")
+      log(s"\t\tSingleBuffer C: ${architecture.singleBufferLimitKbC} KB\n")
     } else {
-      log(s"\t\t\t[${architecture.arrayConfig.arrayConfigString}]")
-      log(s"\t\t\t\tCycle: ${simulationResult.cycle},")
-      log(s"\t\t\t\tStreaming Dimension Size: ${architecture.streamingDimensionSize}")
-      log(s"\t\t\t\tSingleBuffer A: ${architecture.singleBufferLimitKbA} KB")
-      log(s"\t\t\t\tSingleBuffer B: ${architecture.singleBufferLimitKbB} KB")
-      log(s"\t\t\t\tSingleBuffer C: ${architecture.singleBufferLimitKbC} KB\n")
+      log(s"\t[${architecture.arrayConfig.arrayConfigString}]")
+      log(s"\t\tCycle: ${simulationResult.cycle},")
+      log(s"\t\tStreaming Dimension Size: ${architecture.streamingDimensionSize}")
+      log(s"\t\tSingleBuffer A: ${architecture.singleBufferLimitKbA} KB")
+      log(s"\t\tSingleBuffer B: ${architecture.singleBufferLimitKbB} KB")
+      log(s"\t\tSingleBuffer C: ${architecture.singleBufferLimitKbC} KB\n")
     }
 
   }
@@ -266,7 +242,7 @@ class ArchitectureEvaluator(
 
     val executableArchBuffer = ArrayBuffer.empty[Architecture]
 
-    archBuffer.foreach { arch =>
+    archBuffer.par.foreach { arch =>
       var currentArch = arch
       var success = false
       var attempts = 0
@@ -329,130 +305,305 @@ class ArchitectureEvaluator(
 
     }
 
-    log(s"")
-
     executableArchBuffer
 
   }
 
   private def evaluateAllArchitectures(architectureBuffer: ArrayBuffer[Architecture]): ArrayBuffer[ArchitectureResult] = {
-    architectureBuffer.map { arch =>
-      buildAndRunSimulation(architecture = arch)
-    }
+
+//    val counter = new AtomicInteger(0)
+//    val totalCount = architectureBuffer.size
+//    val startTime = Instant.now()
+
+//    log(s"\t\t Statinrg evalulation of $totalCount architecture in parallel")
+
+//    val parallelResults = architectureBuffer.par.map { arch =>
+    architectureBuffer.par.map { arch =>
+//      val threadName = Thread.currentThread().getName
+//      val current = counter.incrementAndGet()
+
+//      log(s"\t\t[$threadName] Evaluating $current/$totalCount: ${arch.arrayConfig.arrayConfigString}")
+      val result = buildAndRunSimulation(architecture = arch)
+//      log(s"\t\t[$threadName] Complete $current/$totalCount: ${arch.arrayConfig.arrayConfigString}")
+
+      result
+    }.to(ArrayBuffer)
+
+//    val endTime = Instant.now()
+//    val duration = Duration.between(startTime, endTime).toMinutes
+
+//    log(s"\t\tCompleted evaluation of $totalCount architectures in $duration")
+//    log(s"\t\t AverageTime per architectures: ${duration.toDouble/ totalCount}")
+
+//    val resultBuffer = new ArrayBuffer[ArchitectureResult]()
+//    resultBuffer ++= parallelResults
+//    resultBuffer
+
+//    architectureBuffer.map { arch =>
+//      buildAndRunSimulation(architecture = arch)
+//    }
   }
+
+  //    architectureBuffer.map { arch =>
+  //      buildAndRunSimulation(architecture = arch)
+  //    }
+//
+//  private def optimizeSramStreamingTradeOffs(
+//    archResultBuffer: ArrayBuffer[ArchitectureResult],
+//  ): ArrayBuffer[ArchitectureResult] = {
+//    archResultBuffer.map(arch => optimizeSramStreamingTradeOff(arch))
+//  }
+//
+//  private def optimizeSramStreamingTradeOff(
+//    archResult: ArchitectureResult
+//  ): ArchitectureResult = {
+//
+//    def optimizeRecursively(
+//      currentEval: ArchitectureResult,
+//      maxIterations: Int = 10,
+//      iteration: Int = 0
+//    ): ArchitectureResult = {
+//      if (iteration >= maxIterations) {
+//        log(s"\t\t\tReached iteration limit (${iteration}). Stopping optimization.")
+//        return currentEval
+//      }
+//
+//      val currentArch = currentEval.architecture
+//      val currentResult = currentEval.simulationResult
+//
+//      log(s"\t\t\t[Iteration ${iteration}] Current config: SRAM=${currentArch.singleBufferLimitKbA}KB, " +
+//        s"Streaming=${currentArch.streamingDimensionSize}")
+//
+//      if (currentArch.singleBufferLimitKbA <= minSramSize) {
+//        log(s"\t\t\tCannot reduce SRAM size further (minimum reached: ${minSramSize}KB)")
+//        return currentEval
+//      }
+//
+//      // STEP 1: Try halving ONLY the SRAM size first
+//      val nextSramSize = math.max(minSramSize, currentArch.singleBufferLimitKbA / 2)
+//      val sramReducedArch = currentArch.withUniformSramSizes(nextSramSize)
+//
+//      log(s"\t\t\tTrying to reduce SRAM size from ${currentArch.singleBufferLimitKbA}KB to ${nextSramSize}KB")
+//
+//      val sramReducedArchResult = buildAndRunSimulation(sramReducedArch)
+//      val isSramReductionValid = sramReducedArchResult.simulationResult.cycle != Long.MaxValue
+//
+//      if (isSramReductionValid) {
+//        val isImproved = simConfig.metric match {
+//          case SystemArchitectureOptimizer.OptimizationMetric.Cycle =>
+//            sramReducedArchResult.simulationResult.cycle < currentResult.cycle
+//          case SystemArchitectureOptimizer.OptimizationMetric.Energy =>
+//            sramReducedArchResult.simulationResult.energyPj.exists(_ < currentResult.energyPj.get )
+//          case SystemArchitectureOptimizer.OptimizationMetric.Area =>
+//            sramReducedArchResult.simulationResult.areaUm2.exists(_ <= currentResult.areaUm2.get )
+//        }
+//
+//        if (isImproved) {
+//          log(s"\t\t\tSRAM reduction successful! Continuing optimization with reduced SRAM.")
+//          // If SRAM reduction was successful, continue optimization with the reduced SRAM
+//          return optimizeRecursively(sramReducedArchResult, maxIterations, iteration + 1)
+//        }
+//      } else {
+//        log(s"\t\t\tSRAM reduction failed to build. Trying combined reduction next.")
+//      }
+//
+//
+//      // If SRAM reduction was successful, return that result
+//      if (currentArch.streamingDimensionSize <= 1) {
+//        log(s"\t\t\tCannot reduce streaming dimension further (minimum reached: 1")
+//        return currentEval
+//      }
+//
+//      val nextStreamingSize = math.max(1, currentArch.streamingDimensionSize / 2)
+//      val combinedReducedArch = currentArch
+//        .withUniformSramSizes(nextSramSize)
+//        .withStreamingDimensionSize(nextStreamingSize)
+//
+//      log(s"\t\t\tTrying combined reduction: SRAM=${nextSramSize}KB, Streaming=${nextStreamingSize}")
+//
+//      val combinedReductionResult = buildAndRunSimulation(combinedReducedArch)
+//      val isCombinedResultValid = combinedReductionResult.simulationResult.cycle != Long.MaxValue
+//
+//      if(isCombinedResultValid){
+//        val isImproved = simConfig.metric match {
+//          case SystemArchitectureOptimizer.OptimizationMetric.Cycle =>
+//            combinedReductionResult.simulationResult.cycle <= currentResult.cycle
+//          case SystemArchitectureOptimizer.OptimizationMetric.Energy =>
+//            combinedReductionResult.simulationResult.energyPj.exists(_ <= currentResult.energyPj.get )
+//          case SystemArchitectureOptimizer.OptimizationMetric.Area =>
+//            combinedReductionResult.simulationResult.areaUm2.exists(_ <= currentResult.areaUm2.get )
+//        }
+//
+//        if(isImproved){
+//          log(s"\t\t\tCombined reduction successful! Continuing optimization.")
+//          return optimizeRecursively(combinedReductionResult, maxIterations, iteration + 1)
+//
+//        } else {
+//          log(s"\t\t\tCombined reduction worsened performance. Stopping optimization.")
+//        }
+//
+//      } else {
+//        log(s"\t\t\tCombined reduction failed to build. Stopping optimization.")
+//      }
+//
+//      // Return the result of combined reduction or the current evaluation if it failed
+//
+//      currentEval
+//
+//    }
+//
+//    // Start the recursive optimization process
+//    log(s"\t\tStarting optimization for ${archResult.architecture.arrayConfig.arrayConfigString}")
+//    val result = optimizeRecursively(archResult)
+//    log(s"\t\t\tOptimization complete. Final config: SRAM=${result.architecture.singleBufferLimitKbA}KB, " +
+//      s"Streaming=${result.architecture.streamingDimensionSize}")
+//    log(s"")
+//    result
+//
+//  }
 
   private def optimizeSramStreamingTradeOffs(
-    archResultBuffer: ArrayBuffer[ArchitectureResult],
+    archResultBuffer: ArrayBuffer[ArchitectureResult]
   ): ArrayBuffer[ArchitectureResult] = {
-    archResultBuffer.map(arch => optimizeSramStreamingTradeOff(arch))
-  }
+    val maxIterations = 10
+    var iteration = 0
+    var globalMadeProgress = true
 
-  private def optimizeSramStreamingTradeOff(
-    archResult: ArchitectureResult
-  ): ArchitectureResult = {
+    case class ArchitectureState(
+      archResult: ArchitectureResult,
+      canOptimize: Boolean = true,
+      madeProgress: Boolean = false
+    )
 
-    def optimizeRecursively(
-      currentEval: ArchitectureResult,
-      maxIterations: Int = 10,
-      iteration: Int = 0
-    ): ArchitectureResult = {
-      if (iteration >= maxIterations) {
-        log(s"\t\t\tReached iteration limit (${iteration}). Stopping optimization.")
-        return currentEval
-      }
+    var architectureStates = archResultBuffer.map(ArchitectureState(_))
+    var previousResults = archResultBuffer.clone()
 
-      val currentArch = currentEval.architecture
-      val currentResult = currentEval.simulationResult
+    log(s"\t\tStarting optimization for ${architectureStates.size} architectures")
 
-      log(s"\t\t\t[Iteration ${iteration}] Current config: SRAM=${currentArch.singleBufferLimitKbA}KB, " +
-        s"Streaming=${currentArch.streamingDimensionSize}")
+    while(iteration < maxIterations && globalMadeProgress){
 
-      if (currentArch.singleBufferLimitKbA <= minSramSize) {
-        log(s"\t\t\tCannot reduce SRAM size further (minimum reached: ${minSramSize}KB)")
-        return currentEval
-      }
+      globalMadeProgress = false
 
-      // STEP 1: Try halving ONLY the SRAM size first
-      val nextSramSize = math.max(minSramSize, currentArch.singleBufferLimitKbA / 2)
-      val sramReducedArch = currentArch.withUniformSramSizes(nextSramSize)
+//      log(s"\t\t\t[Iteration $iteration]")
+      architectureStates = architectureStates.par.map { state =>
+//        val arch = state.archResult.architecture
+//        val logMessage = new StringBuilder()
+//        logMessage.append(s"\t\t\t STA Config: ${arch.arrayConfig.arrayConfigString}")
+//        logMessage.append(s"\t\t\tCurrent config: SRAM=${arch.singleBufferLimitKbA}KB, Streaming=${arch.streamingDimensionSize}")
 
-      log(s"\t\t\tTrying to reduce SRAM size from ${currentArch.singleBufferLimitKbA}KB to ${nextSramSize}KB")
+        if(state.canOptimize){
+          val attemptResult = trySingleOptimizationStep(state.archResult)
+          val improved = isImproved(currentResult = state.archResult.simulationResult, newResult = attemptResult.simulationResult)
 
-      val sramReducedArchResult = buildAndRunSimulation(sramReducedArch)
-      val isSramReductionValid = sramReducedArchResult.simulationResult.cycle != Long.MaxValue
+          if(improved){
+//            logMessage.append(s"\t\t\tFound improvement!}")
+            ArchitectureState(attemptResult, madeProgress = true)
+          } else {
+//            logMessage.append(s"\t\t\tNo improvement for!")
+            ArchitectureState(state.archResult, canOptimize = false)
+          }
 
-      if (isSramReductionValid) {
-        val isImproved = simConfig.metric match {
-          case SystemArchitectureOptimizer.OptimizationMetric.Cycle =>
-            sramReducedArchResult.simulationResult.cycle < currentResult.cycle
-          case SystemArchitectureOptimizer.OptimizationMetric.Energy =>
-            sramReducedArchResult.simulationResult.energyPj.exists(_ < currentResult.energyPj.get )
-          case SystemArchitectureOptimizer.OptimizationMetric.Area =>
-            sramReducedArchResult.simulationResult.areaUm2.exists(_ <= currentResult.areaUm2.get )
-        }
-
-        if (isImproved) {
-          log(s"\t\t\tSRAM reduction successful! Continuing optimization with reduced SRAM.")
-          // If SRAM reduction was successful, continue optimization with the reduced SRAM
-          return optimizeRecursively(sramReducedArchResult, maxIterations, iteration + 1)
-        }
-      } else {
-        log(s"\t\t\tSRAM reduction failed to build. Trying combined reduction next.")
-      }
-
-
-      // If SRAM reduction was successful, return that result
-      if (currentArch.streamingDimensionSize <= 1) {
-        log(s"\t\t\tCannot reduce streaming dimension further (minimum reached: 1")
-        return currentEval
-      }
-
-      val nextStreamingSize = math.max(1, currentArch.streamingDimensionSize / 2)
-      val combinedReducedArch = currentArch
-        .withUniformSramSizes(nextSramSize)
-        .withStreamingDimensionSize(nextStreamingSize)
-
-      log(s"\t\t\tTrying combined reduction: SRAM=${nextSramSize}KB, Streaming=${nextStreamingSize}")
-
-      val combinedReductionResult = buildAndRunSimulation(combinedReducedArch)
-      val isCombinedResultValid = combinedReductionResult.simulationResult.cycle != Long.MaxValue
-
-      if(isCombinedResultValid){
-        val isImproved = simConfig.metric match {
-          case SystemArchitectureOptimizer.OptimizationMetric.Cycle =>
-            combinedReductionResult.simulationResult.cycle <= currentResult.cycle
-          case SystemArchitectureOptimizer.OptimizationMetric.Energy =>
-            combinedReductionResult.simulationResult.energyPj.exists(_ <= currentResult.energyPj.get )
-          case SystemArchitectureOptimizer.OptimizationMetric.Area =>
-            combinedReductionResult.simulationResult.areaUm2.exists(_ <= currentResult.areaUm2.get )
-        }
-
-        if(isImproved){
-          log(s"\t\t\tCombined reduction successful! Continuing optimization.")
-          return optimizeRecursively(combinedReductionResult, maxIterations, iteration + 1)
 
         } else {
-          log(s"\t\t\tCombined reduction worsened performance. Stopping optimization.")
+          if(!state.canOptimize){
+//            logMessage.append(s"\t\t\tSkipping already optimized architecture" )
+          } else {
+//            logMessage.append(s"\t\t\tSkipping architecture at minimum limits" )
+          }
+          ArchitectureState(state.archResult, canOptimize = false)
         }
+      }.to(ArrayBuffer)
 
-      } else {
-        log(s"\t\t\tCombined reduction failed to build. Stopping optimization.")
-      }
 
-      // Return the result of combined reduction or the current evaluation if it failed
+      globalMadeProgress = architectureStates.exists(_.madeProgress)
 
-      currentEval
+      val currentResults = architectureStates.map(_.archResult)
+      val rankedResults = rankResults(currentResults, 3.0)
 
+      log(s"\t\t[Iteration $iteration(${previousResults.head.architecture.singleBufferLimitKbA}" +
+        s" to ${previousResults.head.architecture.singleBufferLimitKbA/ 2}) Results]")
+      logProcess(
+        preProcess = previousResults,
+        postProcess = currentResults,
+        rankedPostProcess = rankedResults
+      )
+
+      // Keep only the states for architectures that made it through ranking
+      val rankedArchIds = rankedResults.map(_.architecture).toSet
+      architectureStates = architectureStates.filter(state =>
+        rankedArchIds.contains(state.archResult.architecture))
+
+      previousResults = rankedResults.clone()
+
+      iteration += 1
     }
 
-    // Start the recursive optimization process
-    log(s"\t\tStarting optimization for ${archResult.architecture.arrayConfig.arrayConfigString}")
-    val result = optimizeRecursively(archResult)
-    log(s"\t\t\tOptimization complete. Final config: SRAM=${result.architecture.singleBufferLimitKbA}KB, " +
-      s"Streaming=${result.architecture.streamingDimensionSize}")
-    log(s"")
-    result
+    log(s"\t\tOptimization complete after $iteration iterations")
+    architectureStates.map(_.archResult)
 
+  }
+
+  private def isImproved(currentResult: SimulationResult, newResult: SimulationResult): Boolean = {
+    simConfig.metric match {
+      case SystemArchitectureOptimizer.OptimizationMetric.Cycle =>
+        newResult.cycle < currentResult.cycle
+      case SystemArchitectureOptimizer.OptimizationMetric.Energy =>
+        newResult.energyPj.exists( e=>
+          currentResult.energyPj.exists(ce => e < ce)
+        )
+      case SystemArchitectureOptimizer.OptimizationMetric.Area =>
+        newResult.areaUm2.exists( a =>
+          currentResult.areaUm2.exists(ca => a < ca)
+        )
+    }
+  }
+
+  private def trySingleOptimizationStep(currentArchResult: ArchitectureResult): ArchitectureResult = {
+    
+    val currentArch = currentArchResult.architecture
+
+    if(currentArch.singleBufferLimitKbA <= minSramSize){
+//      log(s"\t\t\tCannot reduce SRAM size further (minimum reached: $minSramSize")
+      return currentArchResult
+    }
+    
+    val nextSramSize = math.max(minSramSize, currentArch.singleBufferLimitKbA/2)
+    assert(
+      (currentArch.singleBufferLimitKbA == currentArch.singleBufferLimitKbB)
+        && (currentArch.singleBufferLimitKbB == currentArch.singleBufferLimitKbC),
+      "[error] Single buffer size if different"
+    )
+
+    val sramReducedArch = currentArch.withUniformSramSizes(nextSramSize)
+    
+//    log(s"\t\t\tTrying to reduce SRAM size from ${currentArch.singleBufferLimitKbA} KB to $nextSramSize KB")
+    
+    val sramReducedArchResult = buildAndRunSimulation(sramReducedArch)
+    val isSramReductionValid = sramReducedArchResult.simulationResult.cycle != Long.MaxValue
+    
+    if(isSramReductionValid) {
+      sramReducedArchResult
+    } else {
+//      log("\t\t\tSRAM reduction failed to build. Trying combined reduction next")
+      if(currentArch.streamingDimensionSize <= 1){
+//        log(s"\t\t\tCannot reduce streaming dimension further (minimum reached: 1")
+        currentArchResult
+      } else {
+        val nextStreamingDimensionSize = math.max(1, currentArch.streamingDimensionSize / 2)
+        val combinedReducedArch = currentArch
+          .withUniformSramSizes(nextSramSize)
+          .withStreamingDimensionSize(nextStreamingDimensionSize)
+
+        val combinedReducedArchResult = buildAndRunSimulation(combinedReducedArch)
+        val isCombinedResultValid = combinedReducedArchResult.simulationResult.cycle != Long.MaxValue
+
+        if(isCombinedResultValid){
+          combinedReducedArchResult
+        } else {
+          currentArchResult
+        }
+      }
+    }
   }
 
   private def halfSingleSramSizes(
@@ -471,7 +622,7 @@ class ArchitectureEvaluator(
       val currentSimulationResult = currentEval.simulationResult
 
       if(currentSingleSramSize <= minSramSize){
-        log(s"\t\t\t${currentArch.arrayConfig.arrayConfigString} cannot reduce SRAM size further (minimum reached: ${minSramSize}KB)")
+//        log(s"\t\t\t${currentArch.arrayConfig.arrayConfigString} cannot reduce SRAM size further (minimum reached: ${minSramSize}KB)")
         return currentEval
       }
 
@@ -485,34 +636,21 @@ class ArchitectureEvaluator(
 
       val newEval = buildAndRunSimulation(nextArchitecture)
 
-      simConfig.metric match {
-        case SystemArchitectureOptimizer.OptimizationMetric.Cycle =>
-          if (newEval.simulationResult.cycle < currentSimulationResult.cycle)
-            halfSingleSramSize(newEval)
-          else
-            currentEval
-
-        case SystemArchitectureOptimizer.OptimizationMetric.Energy =>
-          if (newEval.simulationResult.energyPj.get < currentSimulationResult.energyPj.get)
-            halfSingleSramSize(newEval)
-          else
-            currentEval
-
-        case SystemArchitectureOptimizer.OptimizationMetric.Area =>
-          if (newEval.simulationResult.areaUm2.get <=currentSimulationResult.areaUm2.get)
-            halfSingleSramSize(newEval)
-          else
-            currentEval
+      if(isImproved(currentResult = currentSimulationResult, newResult  = newEval.simulationResult)){
+        halfSingleSramSize(newEval)
+      } else {
+        currentEval
       }
 
     }
 
-    archResultBuffer.map(result =>halfSingleSramSize(result))
+    archResultBuffer.par.map(halfSingleSramSize).to(ArrayBuffer)
 
   }
 
   private def rankResults(
     results: ArrayBuffer[ArchitectureResult],
+    marginPercent: Double,
   ): ArrayBuffer[ArchitectureResult] = {
 
     val metric = simConfig.metric
