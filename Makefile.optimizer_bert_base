@@ -1,0 +1,19 @@
+TEST_OPTION_1024 := input/simulation/configs/architecture_explorer/ddr4_total_multiplier_1024.cfg
+TEST_OPTION_DRAM_REF := input/simulation/hardware_reference/DRAMsim3/ddr4_dram.cfg
+TEST_OPTION_SRAM_REF := input/simulation/hardware_reference/nvsim/sram.cfg
+TEST_OPTION_RTL_RESULT_REF := input/simulation/synthesis/weight.bin
+
+BERT_PATH := input/simulation/layer/bert
+BERT_BASE := $(BERT_PATH)/base
+
+QKV:= $(BERT_BASE)/qkv.cfg
+QKT:= $(BERT_BASE)/qkt.cfg
+QKTV:= $(BERT_BASE)/qktv.cfg
+FINAL:= $(BERT_BASE)/final.cfg
+
+.PHONY: all
+all:
+	sbt "runMain simulation.SystemArchitectureOptimizer ${QKV} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	sbt "runMain simulation.SystemArchitectureOptimizer ${QKT} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	sbt "runMain simulation.SystemArchitectureOptimizer ${QKTV} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	sbt "runMain simulation.SystemArchitectureOptimizer ${FINAL} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"

@@ -501,7 +501,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     val capacityC = (simConfig.singleBufferLimitKbC * 8 * 1024)/ tileSizeC
 
     if(!(capacityA > 0 && capacityB > 0 && capacityC > 0 ))
-      throw RunTimeError("SRAM Cannot contain even 1 tile increase SRAM size")
+      throw SramBuildError("SRAM Cannot contain even 1 tile increase SRAM size")
 
     val sramReferenceDataA: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
       vector.find{ data =>
@@ -523,7 +523,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
 
     if(simConfig.sramReferenceDataVector.isDefined &&
       (sramReferenceDataA.isEmpty || sramReferenceDataB.isEmpty || sramReferenceDataC.isEmpty)){
-      throw RunTimeError("Cannot find SRAM data from external reports ...")
+      throw ParseError("Cannot find SRAM data from external reports ...")
     }
 
     val sramA = new DoubleBufferSram(

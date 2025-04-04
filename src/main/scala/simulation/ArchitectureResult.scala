@@ -1,6 +1,6 @@
 package simulation
 
-case class ArchitectureEvaluation(
+case class ArchitectureResult(
   architecture: Architecture,
   simulationResult: SimulationResult
 )

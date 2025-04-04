@@ -204,7 +204,8 @@ final class Dram(
         case DataType.B =>
           interface.sramB.existsInInBuffers(tile) || sendingTileQueueB.exists(_.id == tile.id)
         case _ =>
-          throw RunTimeError("Invalid data type in DRAM Tile Queue")
+          Console.err.println("[error] Invalid data type in DRAM Tile Queue")
+          sys.exit(1)
       }
     }
 
@@ -215,7 +216,8 @@ final class Dram(
         case DataType.B =>
           skipTileCountB += 1
         case _ =>
-          throw RunTimeError("Invalid data type in DRAM Tile Queue")
+          Console.err.println("[error] Invalid data type in DRAM Tile Queue")
+          sys.exit(1)
       }
       currentTileQueue.dequeue()
     }

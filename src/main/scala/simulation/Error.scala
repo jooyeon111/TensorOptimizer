@@ -6,4 +6,4 @@ sealed trait Error extends Throwable {
 }
 case class RunTimeError(message: String) extends Error
 case class ParseError(message: String) extends Error
-case class CompBuildError(message: String) extends Error
+case class SramBuildError(message: String) extends Error

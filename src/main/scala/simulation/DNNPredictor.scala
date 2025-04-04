@@ -533,7 +533,8 @@ object DNNPredictor extends Logger {
     // Create a single neural network for both area and power prediction
     val inputSize = allFeatureNames.length
     val outputSize = 2 // Area and power
-    val hiddenLayers = Array(64, 32, 16) // Architecture with 3 hidden layers
+
+    val hiddenLayers = Array(128, 96, 64, 48, 32, 24, 16, 8)
 
     var network = createNeuralNetwork(inputSize, hiddenLayers, outputSize)
 
@@ -572,10 +573,10 @@ object DNNPredictor extends Logger {
 
     for (epoch <- 1 to epochs) {
       // Shuffle training data
-      val indices = Random.shuffle((0 until normalizedTrainInputs.length).toList)
+      val indices = Random.shuffle(normalizedTrainInputs.indices.toList)
 
       // Mini-batch training
-      for (batchStart <- 0 until normalizedTrainInputs.length by batchSize) {
+      for (batchStart <- normalizedTrainInputs.indices by batchSize) {
         val batchEndIdx = math.min(batchStart + batchSize, normalizedTrainInputs.length)
         val batchIndices = indices.slice(batchStart, batchEndIdx)
 

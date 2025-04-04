@@ -158,8 +158,6 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
       )
     }
 
-    println(s"${dramReferenceData}")
-
     val sramReferenceData = sramDataParser.flatMap(_.getConfig).map(_.sramReferenceDataVector)
 
     println("Parsing END")
@@ -184,21 +182,18 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
 
     println("Building Initial Architecture END")
 
-    println("Architecture Evaluator START")
+    println("[Architecture Evaluator START]")
 
     val architectureEvaluator = new ArchitectureEvaluator(
       simConfig = simulationConfig,
       architectureCandidates = architectureCandidates,
+      minSramSize = minimumSingleBufferLimitKb,
       loggerOption = loggerOption
     )
 
     architectureEvaluator.run()
-//    val finalArchitectureResults = architectureEvaluator.returnTopK(10)
-
-    println("Architecture Evaluator END")
-
-//    logResults(finalArchitectureResults)
-
+    architectureEvaluator.showTopK(10)
+    println("[Architecture Evaluator END]")
 
   }
 
@@ -343,32 +338,8 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
     log("")
   }
 
-  private def logResults(evaluatedResults: ArrayBuffer[ArchitectureEvaluation]): Unit = {
-
-    evaluatedResults.foreach { result =>
-      if(result.simulationResult.isEnergyReportValid && result.simulationResult.isAreaReportValid){
-        log(s"\t[${result.architecture.arrayConfig.arrayConfigString}]")
-        log(s"\t\tCycle: ${result.simulationResult.cycle}")
-        log(s"\t\tArea: ${String.format("%.2f", result.simulationResult.areaUm2.get)} mm^2")
-        log(s"\t\tEnergy: ${String.format("%.2f", result.simulationResult.energyPj.get)} pJ")
-        log(s"\t\tStreaming Dimension Size: ${result.architecture.streamingDimensionSize}")
-        log(s"\t\tSingleBuffer A: ${result.architecture.singleBufferLimitKbA} KB")
-        log(s"\t\tSingleBuffer B: ${result.architecture.singleBufferLimitKbB} KB")
-        log(s"\t\tSingleBuffer C: ${result.architecture.singleBufferLimitKbC} KB\n")
-      } else {
-        log(s"\t\tCycle: ${result.simulationResult.cycle},")
-        log(s"\t\tStreaming Dimension Size: ${result.architecture.streamingDimensionSize}")
-        log(s"\t\tSingleBuffer A: ${result.architecture.singleBufferLimitKbA} KB")
-        log(s"\t\tSingleBuffer B: ${result.architecture.singleBufferLimitKbB} KB")
-        log(s"\t\tSingleBuffer C: ${result.architecture.singleBufferLimitKbC} KB\n")
-      }
-
-    }
-
-  }
-
 }
-//private case class ArchitectureEvaluation(
+//private case class ArchitectureResult(
 //                                           architecture: Architecture,
 //                                           simulationResult: SimulationResult
 //                                         ) {
