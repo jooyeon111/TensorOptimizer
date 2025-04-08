@@ -639,6 +639,8 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
         averageMemoryUsageKbC = simulation.getAverageMemoryUsageKbC,
         averageMemoryUtilizationC = simulation.getAverageMemoryUtilizationC,
 
+        averageMemoryUtilization = simulation.getAverageMemoryUtilization,
+
         dramReferenceData = simulation.getDramRefData,
         sramReferenceDataTable = simulation.getSramRefDataTable,
         arraySynthesisSource = simulation.getArraySynthesisSource,

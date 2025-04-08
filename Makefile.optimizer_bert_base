@@ -13,7 +13,7 @@ FINAL:= $(BERT_BASE)/final.cfg
 
 .PHONY: all
 all:
-	sbt "runMain simulation.SystemArchitectureOptimizer ${QKV} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	#sbt "runMain simulation.SystemArchitectureOptimizer ${QKV} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
 	sbt "runMain simulation.SystemArchitectureOptimizer ${QKT} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
 	sbt "runMain simulation.SystemArchitectureOptimizer ${QKTV} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
 	sbt "runMain simulation.SystemArchitectureOptimizer ${FINAL} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"

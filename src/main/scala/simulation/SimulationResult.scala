@@ -67,6 +67,8 @@ case class SimulationResult(
   averageMemoryUsageKbC: Double,
   averageMemoryUtilizationC: Double,
 
+  averageMemoryUtilization: Double,
+
   //6. Reference Data
   dramReferenceData: Option[DramReferenceData],
   sramReferenceDataTable: Option[SramDataTable],
@@ -169,6 +171,7 @@ case class SimulationResult(
     log(s"\t\tSRAM B Average Memory Utilization: ${String.format("%.2f", averageMemoryUtilizationB)} %")
     log(s"\t\tSRAM C Average Memory Usage: ${String.format("%.2f", averageMemoryUsageKbC)} KB")
     log(s"\t\tSRAM C Average Memory Utilization: ${String.format("%.2f", averageMemoryUtilizationC)} %")
+    log(s"\t\tSRAM Average Memory Utilization: ${String.format("%.2f", averageMemoryUtilization)} %")
     log(s"")
     log(s"\t[SRAM Tile Capacity Information]")
     log(s"\t\tSRAM A: $singleBufferTileCapacityA tiles per buffer (${singleBufferTileCapacityA * 2} tiles total)")
@@ -413,6 +416,8 @@ object SimulationResult {
 
       averageMemoryUsageKbC = defaults.doubleValue,
       averageMemoryUtilizationC = defaults.doubleValue,
+
+      averageMemoryUtilization = defaults.doubleValue,
 
       //6. Reference Data
       dramReferenceData = None,

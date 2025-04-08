@@ -40,18 +40,18 @@ patch:
 
 .PHONY: stage1
 stage1:
-#	sbt "runMain simulation.SystemArchitectureOptimizer ${STAGE1_QKV} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
-	sbt "runMain simulation.SystemArchitectureOptimizer ${STAGE1_QKT} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
-#	sbt "runMain simulation.SystemArchitectureOptimizer ${STAGE1_QKTV} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
-#	sbt "runMain simulation.SystemArchitectureOptimizer ${STAGE1_FINAL} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	sbt "runMain simulation.SystemArchitectureOptimizer ${STAGE1_QKV} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	#sbt "runMain simulation.SystemArchitectureOptimizer ${STAGE1_QKT} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	#sbt "runMain simulation.SystemArchitectureOptimizer ${STAGE1_QKTV} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	#sbt "runMain simulation.SystemArchitectureOptimizer ${STAGE1_FINAL} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
 
 .PHONY: stage2
 stage2:
-	#sbt "runMain simulation.SystemArchitectureOptimizer ${SAGE2_DOWN_SAMPLE} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
-	#sbt "runMain simulation.SystemArchitectureOptimizer ${STAGE2_QKV} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	sbt "runMain simulation.SystemArchitectureOptimizer ${SAGE2_DOWN_SAMPLE} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	sbt "runMain simulation.SystemArchitectureOptimizer ${STAGE2_QKV} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
 	sbt "runMain simulation.SystemArchitectureOptimizer ${STAGE2_QKT} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
-	#sbt "runMain simulation.SystemArchitectureOptimizer ${STAGE2_QKTV} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
-	#sbt "runMain simulation.SystemArchitectureOptimizer ${STAGE2_FINAL} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	sbt "runMain simulation.SystemArchitectureOptimizer ${STAGE2_QKTV} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
+	sbt "runMain simulation.SystemArchitectureOptimizer ${STAGE2_FINAL} ${TEST_OPTION_1024} ${TEST_OPTION_DRAM_REF} ${TEST_OPTION_SRAM_REF} ${TEST_OPTION_RTL_RESULT_REF}"
 
 .PHONY: stage3
 stage3:

@@ -119,63 +119,40 @@ class SystemSimulator(
   def getTileSizeC: Int = layer.operationVector.head.generateTileC.dims.memorySize
 
   def getSingleBufferTileCapacityA: Int = sramA.singleBufferTileCapacity
-
   def getSingleBufferTileCapacityB: Int = sramB.singleBufferTileCapacity
-
   def getSingleBufferTileCapacityC: Int = sramC.singleBufferTileCapacity
-
   def getSkipTileCountA: Int = dram.skipTileCountA
-
   def getSkipTileCountB: Int = dram.skipTileCountB
 
   //2. Bandwidth info
   def getArrayInputBandwidthA: Int = array.arrayConfig.bandwidthOfInputA
-
   def getArrayInputBandwidthB: Int = array.arrayConfig.bandwidthOfInputB
-
   def getArrayOutputBandwidthC: Int = array.arrayConfig.outputBandwidth
-
   def getArrayCapacityA: Int = array.arrayConfig.capacityOfTileA
-
   def getArrayCapacityB: Int = array.arrayConfig.capacityOfTileB
 
   //3. Performance Metrics
   def getTotalCycle: Long = cycle
-
   def getArrayActiveCount: Int = array.getArrayActiveCount
 
   //Pipeline state
   def getDramStallCount: Int = dram.dramStall
-
   def getFirstFillUptCycleA: Long = sramA.getFirstFillUpCycle
-
   def getFirstFillUptCycleB: Long = sramB.getFirstFillUpCycle
-
   def getFirstFillUptCycleC: Long = sramC.getFirstFillUpCycle
-
   def getBufferSwapCountA: Int = sramA.getBufferSwapCount
-
   def getBufferSwapCountB: Int = sramB.getBufferSwapCount
-
   def getBufferSwapCountC: Int = sramC.getBufferSwapCount
-
   def getBufferSwapStallCountA: Int = sramA.getBufferSwapStallCount
-
   def getBufferSwapStallCountB: Int = sramB.getBufferSwapStallCount
-
   def getBufferSwapStallCountC: Int = sramC.getBufferSwapStallCount
 
   //Read write log
   def getDramReadAccessCount: Long = dram.getReadAccessCount
-
   def getDramWriteAccessCount: Long = dram.getWriteAccessCount
-
   def getSramReadAccessCountA: Long = sramA.getReadAccessCount
-
   def getSramWriteAccessCountA: Long = sramA.getWriteAccessCount
-
   def getSramReadAccessCountB: Long = sramB.getReadAccessCount
-
   def getSramWriteAccessCountB: Long = sramB.getWriteAccessCount
 
   //DRAM hit miss ratio
@@ -193,26 +170,20 @@ class SystemSimulator(
     (array.getMemoryAccessCountA + array.getMemoryAccessCountB)
 
   def getSramHitRatioA: Double = array.getMemoryHitCountA / array.getMemoryAccessCountA
-
   def getSramMissRatioA: Double = array.getMemoryMissCountA / array.getMemoryAccessCountA
-
   def getSramHitRatioB: Double = array.getMemoryHitCountB / array.getMemoryAccessCountB
-
   def getSramMissRatioB: Double = array.getMemoryMissCountB / array.getMemoryAccessCountB
 
   //4. Memory Utilization
 
   def getAverageMemoryUsageKbA: Double = (sramA.getAccumulatedMemoryUsage / 8.0 / 1024.0) / cycle.toDouble
-
   def getAverageMemoryUsageKbB: Double = (sramB.getAccumulatedMemoryUsage / 8.0 / 1024.0) / cycle.toDouble
-
   def getAverageMemoryUsageKbC: Double = (sramC.getAccumulatedMemoryUsage / 8.0 / 1024.0) / cycle.toDouble
 
   def getAverageMemoryUtilizationA: Double = sramA.getAccumulateMemoryUtilization / cycle.toDouble
-
   def getAverageMemoryUtilizationB: Double = sramB.getAccumulateMemoryUtilization / cycle.toDouble
-
   def getAverageMemoryUtilizationC: Double = sramC.getAccumulateMemoryUtilization / cycle.toDouble
+  def getAverageMemoryUtilization: Double = (getAverageMemoryUtilizationA + getAverageMemoryUtilizationB + getAverageMemoryUtilizationC) / 3.0
 
   //5. Energy Report
 
