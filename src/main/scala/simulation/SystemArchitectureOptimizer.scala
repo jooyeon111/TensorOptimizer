@@ -191,7 +191,7 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
     )
 
     architectureEvaluator.run()
-    architectureEvaluator.showTopK(10)
+    architectureEvaluator.logTopResults()
     println("[Architecture Evaluator END]")
 
   }

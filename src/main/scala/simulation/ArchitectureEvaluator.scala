@@ -59,9 +59,9 @@ class ArchitectureEvaluator(
 
   }
 
-  def showTopK(k: Int): Unit = {
-    log(s"[Show Top $k]")
-    rankedSingleSramOptimizedResults.take(k).foreach(logSummary)
+  def logTopResults(): Unit = {
+    log(s"[Show Top Results]")
+    rankedSingleSramOptimizedResults.foreach(logSummary)
   }
 
   private def validateCandidates(archBuffer: ArrayBuffer[Architecture]): ArrayBuffer[Architecture] = {
@@ -300,7 +300,19 @@ class ArchitectureEvaluator(
       log(s"\t\tSingleBuffer A: ${architecture.singleBufferLimitKbA} KB")
       log(s"\t\tSingleBuffer B: ${architecture.singleBufferLimitKbB} KB")
       log(s"\t\tSingleBuffer C: ${architecture.singleBufferLimitKbC} KB")
-      log(s"\t\tMemory Utilization: ${String.format("%.2f", simulationResult.averageMemoryUtilization)} %\n")
+      log(s"\t\tAverage Memory Utilization: ${String.format("%.2f", simulationResult.averageMemoryUtilization)} %\n")
+
+      log(s"\t\t[CSV Format]")
+      log(s"\t\t${simulationResult.cycle}, " +
+        s"${String.format("%.2f", simulationResult.areaUm2.get)}, " +
+        s"${String.format("%.2f", simulationResult.energyPj.get)}, " +
+        s"${architecture.streamingDimensionSize}, " +
+        s"${architecture.singleBufferLimitKbA}, " +
+        s"${architecture.singleBufferLimitKbB}, " +
+        s"${architecture.singleBufferLimitKbC}, " +
+        s"${String.format("%.2f", simulationResult.averageMemoryUtilization)}\n"
+      )
+
     } else {
       log(s"\t[${architecture.arrayConfig.arrayConfigString}]")
       log(s"\t\tCycle: ${simulationResult.cycle},")
@@ -308,7 +320,19 @@ class ArchitectureEvaluator(
       log(s"\t\tSingleBuffer A: ${architecture.singleBufferLimitKbA} KB")
       log(s"\t\tSingleBuffer B: ${architecture.singleBufferLimitKbB} KB")
       log(s"\t\tSingleBuffer C: ${architecture.singleBufferLimitKbC} KB")
-      log(s"\t\tMemory Utilization: ${String.format("%.2f", simulationResult.averageMemoryUtilization)} %\n")
+      log(s"\t\tAverage Memory Utilization: ${String.format("%.2f", simulationResult.averageMemoryUtilization)} %\n")
+
+      log(s"\t\t[CSV Format]")
+      log(s"\t\t${simulationResult.cycle}, " +
+        s"${String.format("%.2f", simulationResult.areaUm2.get)}, " +
+        s"${String.format("%.2f", simulationResult.energyPj.get)}, " +
+        s"${architecture.streamingDimensionSize}, " +
+        s"${architecture.singleBufferLimitKbA}, " +
+        s"${architecture.singleBufferLimitKbB}, " +
+        s"${architecture.singleBufferLimitKbC}," +
+        s"${String.format("%.2f", simulationResult.averageMemoryUtilization)}\n"
+      )
+
     }
 
   }

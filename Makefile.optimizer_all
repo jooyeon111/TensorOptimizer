@@ -1,6 +1,6 @@
 .PHONY: all
 all:
 	make -f Makefile.optimizer_swin_all all
-	#make -f Makefile.optimizer_vit_all all
-	#make -f Makefile.optimizer_bert_all all
-	#make -f Makefile.optimizer_resnet18 all
+	make -f Makefile.optimizer_vit_all all
+	make -f Makefile.optimizer_bert_all all
+	make -f Makefile.optimizer_resnet18 all
