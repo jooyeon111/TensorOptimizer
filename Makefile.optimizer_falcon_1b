@@ -12,8 +12,8 @@ TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
 TEST_OPTION_RTL_RESULT_REF := $(SYNTHESIS)/weight.bin
 
 # Define layer model (can be easily changed)
-MODEL := bert
-MODEL_VARIANT := base
+MODEL := falcon
+MODEL_VARIANT := 1b
 
 # Layer configuration paths (generic format)
 LAYER_PATH := $(LAYER_DIR)/$(MODEL)

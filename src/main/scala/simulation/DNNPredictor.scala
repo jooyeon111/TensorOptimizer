@@ -8,24 +8,14 @@ import scala.collection.mutable.ArrayBuffer
 import scala.math.{exp, pow, sqrt, abs, log}
 import scala.util.Random
 
-/**
- * A deep neural network module for predicting array synthesis data (area and power)
- * based on the array configuration parameters.
- */
 object DNNPredictor extends Logger {
 
-  /**
-   * Class to represent a neural network layer
-   */
   case class Layer(
     weights: Array[Array[Double]],
     biases: Array[Double],
     activation: String // "relu", "linear", or "sigmoid"
   ) extends Serializable
 
-  /**
-   * Deep Neural Network model containing multiple layers
-   */
   case class DNNModel(
     layers: Array[Layer],
 
@@ -99,9 +89,6 @@ object DNNPredictor extends Logger {
     }
   }
 
-  /**
-   * Parse a CSV file and return the dataset with improved error handling
-   */
   private def parseCSV(filePath: String): Try[Vector[(FeatureVector, (Double, Double))]] = {
     Try {
       val source = Source.fromResource(filePath)
@@ -202,9 +189,6 @@ object DNNPredictor extends Logger {
     }
   }
 
-  /**
-   * Compute the mean and standard deviation for a set of values
-   */
   private def computeStats(values: Vector[Double]): (Double, Double) = {
     val mean = values.sum / values.size
     val variance = values.map(x => math.pow(x - mean, 2)).sum / values.size
@@ -212,9 +196,6 @@ object DNNPredictor extends Logger {
     (mean, std)
   }
 
-  /**
-   * Normalize a feature map using z-score normalization
-   */
   private def normalizeFeatures(
                                  featureMap: Map[String, Double],
                                  means: Map[String, Double],
@@ -227,16 +208,10 @@ object DNNPredictor extends Logger {
     }
   }
 
-  /**
-   * Normalize a vector of values using z-score normalization
-   */
   private def normalizeValues(values: Vector[Double], mean: Double, std: Double): Vector[Double] = {
     values.map(v => (v - mean) / std)
   }
 
-  /**
-   * Create a neural network with specified architecture
-   */
   private def createNeuralNetwork(
                                    inputSize: Int,
                                    hiddenLayers: Array[Int],
@@ -269,32 +244,17 @@ object DNNPredictor extends Logger {
     layers.toArray
   }
 
-  /**
-   * ReLU activation function
-   */
   private def relu(x: Double): Double = math.max(0.0, x)
 
-  /**
-   * Derivative of ReLU
-   */
   private def reluDerivative(x: Double): Double = if (x > 0) 1.0 else 0.0
 
-  /**
-   * Sigmoid activation function
-   */
   private def sigmoid(x: Double): Double = 1.0 / (1.0 + math.exp(-x))
 
-  /**
-   * Derivative of sigmoid
-   */
   private def sigmoidDerivative(x: Double): Double = {
     val s = sigmoid(x)
     s * (1 - s)
   }
 
-  /**
-   * Apply activation function based on layer type
-   */
   private def applyActivation(x: Double, activationType: String): Double = {
     activationType match {
       case "relu" => relu(x)
@@ -304,9 +264,6 @@ object DNNPredictor extends Logger {
     }
   }
 
-  /**
-   * Get activation function derivative
-   */
   private def activationDerivative(x: Double, activationType: String): Double = {
     activationType match {
       case "relu" => reluDerivative(x)
@@ -316,9 +273,6 @@ object DNNPredictor extends Logger {
     }
   }
 
-  /**
-   * Forward pass through the neural network
-   */
   private def forwardPass(
                            inputs: Array[Double],
                            layers: Array[Layer]
@@ -352,9 +306,6 @@ object DNNPredictor extends Logger {
     (activations, preActivations)
   }
 
-  /**
-   * Backpropagation to compute gradients
-   */
   private def backpropagation(
                                inputs: Array[Double],
                                target: Array[Double],
@@ -425,9 +376,6 @@ object DNNPredictor extends Logger {
     (weightGradients, biasGradients)
   }
 
-  /**
-   * Update network parameters using calculated gradients
-   */
   private def updateParameters(
                                 layers: Array[Layer],
                                 weightGradients: Array[Array[Array[Double]]],
@@ -465,9 +413,6 @@ object DNNPredictor extends Logger {
     updatedLayers
   }
 
-  /**
-   * Mean Squared Error loss function
-   */
   private def mseError(predictions: Array[Double], targets: Array[Double]): Double = {
     var loss = 0.0
     for (i <- predictions.indices) {
@@ -476,9 +421,6 @@ object DNNPredictor extends Logger {
     loss / predictions.length
   }
 
-  /**
-   * Predict using the neural network model
-   */
   private def predict(
                        inputs: Array[Double],
                        layers: Array[Layer]
@@ -487,9 +429,6 @@ object DNNPredictor extends Logger {
     activations.last
   }
 
-  /**
-   * Train a neural network model for area and power prediction
-   */
   private def trainNeuralNetworks(
     trainData: Vector[(FeatureVector, (Double, Double))],
     validationData: Vector[(FeatureVector, (Double, Double))],
@@ -534,7 +473,8 @@ object DNNPredictor extends Logger {
     val inputSize = allFeatureNames.length
     val outputSize = 2 // Area and power
 
-    val hiddenLayers = Array(128, 96, 64, 48, 32, 24, 16, 8)
+//    val hiddenLayers = Array(256, 128, 64)
+    val hiddenLayers = Array(512, 256, 128)
 
     var network = createNeuralNetwork(inputSize, hiddenLayers, outputSize)
 

@@ -1,4 +1,0 @@
-.PHONY: all
-all:
-	make -f Makefile.sim.resnet18_buffer_128 all
-	make -f Makefile.sim.resnet18_buffer_512 all

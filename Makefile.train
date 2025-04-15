@@ -11,7 +11,7 @@ TEST := $(BASE_PATH)/test.csv
 
 SYNTHESIS_RESULTS := input/simulation/hardware_reference/design_compiler/os_sta_32x32x1x1x1_sd32.cfg
 
-.PHNOY: train
+.PHONY: train
 train:
 	sbt "runMain simulation.AnalyzerMain ${TRAIN} ${VALID} ${TEST}"
 

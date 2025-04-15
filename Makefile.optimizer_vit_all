@@ -1,5 +1,0 @@
-.PHONY: all
-all:
-	make -f Makefile.optimizer_vit_small all
-	make -f Makefile.optimizer_vit_base all
-	make -f Makefile.optimizer_vit_large all

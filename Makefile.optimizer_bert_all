@@ -1,4 +1,0 @@
-.PHONY: all
-all:
-	make -f Makefile.optimizer_bert_base all
-	make -f Makefile.optimizer_bert_large all
