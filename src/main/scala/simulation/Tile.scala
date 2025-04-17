@@ -9,7 +9,7 @@ trait Tile extends Logger {
   val id : Any
   val dims: MatrixDimension
   final var memoryOccupiedBySram: Int = 0
-  final var memoryOccupiedByDram: Int = 0
+  final var memoryOccupiedByOffChipMemory: Int = 0
   final var memoryOccupiedByArray: Int = 0
   final var memoryCalculatedByArray: Int = 0
   final protected var state: TileState.Value = TileState.waiting
@@ -17,7 +17,7 @@ trait Tile extends Logger {
 
   final def ownedBySram: Boolean = {
     if(memoryOccupiedBySram == dims.memorySize) {
-      assert(memoryOccupiedByDram == 0, "[error] Wrong data movement")
+      assert(memoryOccupiedByOffChipMemory == 0, "[error] Wrong data movement")
       assert(memoryOccupiedByArray == 0, "[error] Wrong data movement")
       assert(memoryCalculatedByArray == 0, "[error] Wrong data movement")
       true
@@ -25,8 +25,8 @@ trait Tile extends Logger {
       false
   }
 
-  final def ownedByDram: Boolean = {
-    if(memoryOccupiedByDram == dims.memorySize){
+  final def ownedByOffChipMemory: Boolean = {
+    if(memoryOccupiedByOffChipMemory == dims.memorySize){
       assert(memoryOccupiedBySram == 0, "[error] Wrong data movement")
       assert(memoryOccupiedByArray == 0, "[error] Wrong data movement")
       assert(memoryCalculatedByArray == 0, "[error] Wrong data movement")
@@ -38,7 +38,7 @@ trait Tile extends Logger {
   final def ownedByArray: Boolean = {
 
     if((memoryOccupiedByArray + memoryCalculatedByArray) == dims.memorySize){
-      assert(memoryOccupiedByDram == 0, "[error] Wrong data movement")
+      assert(memoryOccupiedByOffChipMemory == 0, "[error] Wrong data movement")
       assert(memoryOccupiedBySram == 0, "[error] Wrong data movement")
       true
     } else
@@ -50,12 +50,12 @@ trait Tile extends Logger {
 
     assert(memoryOccupiedByArray == dims.memorySize)
     assert(memoryOccupiedBySram == 0)
-    assert(memoryOccupiedByDram == 0)
+    assert(memoryOccupiedByOffChipMemory == 0)
     assert(memoryCalculatedByArray == 0)
 
     memoryOccupiedByArray = 0
     memoryOccupiedBySram = dims.memorySize
-    memoryOccupiedByDram = 0
+    memoryOccupiedByOffChipMemory = 0
     memoryCalculatedByArray = 0
 
     state = TileState.waiting
@@ -68,7 +68,7 @@ trait Tile extends Logger {
   final def copyDataTransferData(that: Tile): Unit = {
 
     this.memoryOccupiedBySram = that.memoryOccupiedBySram
-    this.memoryOccupiedByDram = that.memoryOccupiedByDram
+    this.memoryOccupiedByOffChipMemory = that.memoryOccupiedByOffChipMemory
     this.memoryOccupiedByArray = that.memoryOccupiedByArray - this.memoryCalculatedByArray
 
   }
@@ -118,7 +118,7 @@ trait Tile extends Logger {
 
 //    log(s"\t\tDataType: $dataType ID: $id")
 //    dims.printDimension()
-    logWithoutNewLine(s"\t\tDataType: $dataType ID: $id (DRAM: $memoryOccupiedByDram, SRAM: $memoryOccupiedBySram, Array: $memoryOccupiedByArray, Calculated: $memoryCalculatedByArray) ")
+    logWithoutNewLine(s"\t\tDataType: $dataType ID: $id (OffChipMemory: $memoryOccupiedByOffChipMemory, SRAM: $memoryOccupiedBySram, Array: $memoryOccupiedByArray, Calculated: $memoryCalculatedByArray) ")
     logWithoutNewLine("(State: ")
     state match {
       case TileState.waiting =>
@@ -152,7 +152,7 @@ final class TileA(
   setMode(loggerOption)
 
   override val dataType: DataType = DataType.A
-  memoryOccupiedByDram = dims.memorySize
+  memoryOccupiedByOffChipMemory = dims.memorySize
   assert(dataType == dims.dataType, s"[error] Tile id = $id data type and matrix dimension type do not match")
 
   type T = TileA
@@ -163,7 +163,7 @@ final class TileA(
       dims = this.dims,
       loggerOption = this.loggerOption,
     )
-    copiedTile.memoryOccupiedByDram = this.memoryOccupiedByDram
+    copiedTile.memoryOccupiedByOffChipMemory = this.memoryOccupiedByOffChipMemory
     copiedTile.memoryOccupiedByArray = this.memoryOccupiedByArray
     copiedTile.memoryOccupiedBySram = this.memoryOccupiedBySram
     copiedTile.state = this.state
@@ -183,7 +183,7 @@ final class TileB(
   setMode(loggerOption)
 
   override val dataType: DataType = DataType.B
-  memoryOccupiedByDram = dims.memorySize
+  memoryOccupiedByOffChipMemory = dims.memorySize
   require(dataType == dims.dataType, s"[error] Tile id = $id data type and matrix dimension type do not match")
 
   type T = TileB
@@ -194,7 +194,7 @@ final class TileB(
       dims = this.dims,
       loggerOption = this.loggerOption
     )
-    copiedTile.memoryOccupiedByDram = this.memoryOccupiedByDram
+    copiedTile.memoryOccupiedByOffChipMemory = this.memoryOccupiedByOffChipMemory
     copiedTile.memoryOccupiedByArray = this.memoryOccupiedByArray
     copiedTile.memoryOccupiedBySram = this.memoryOccupiedBySram
     copiedTile.state = this.state
@@ -226,7 +226,7 @@ final class TileC(
       dims = this.dims,
       loggerOption = loggerOption
     )
-    copiedTile.memoryOccupiedByDram = this.memoryOccupiedByDram
+    copiedTile.memoryOccupiedByOffChipMemory = this.memoryOccupiedByOffChipMemory
     copiedTile.memoryOccupiedByArray = this.memoryOccupiedByArray
     copiedTile.memoryOccupiedBySram = this.memoryOccupiedBySram
     copiedTile.state = this.state
@@ -244,7 +244,7 @@ final class TileC(
   override def printTile(): Unit = {
 //    log(s"\t\tDataType: $dataType ID: $id")
 //    dims.printDimension()
-    logWithoutNewLine(s"\t\tDataType: $dataType ID: $id (DRAM: $memoryOccupiedByDram SRAM: $memoryOccupiedBySram Array: $memoryOccupiedByArray Calculated: $memoryCalculatedByArray) ")
+    logWithoutNewLine(s"\t\tDataType: $dataType ID: $id (Off Chip Memory: $memoryOccupiedByOffChipMemory SRAM: $memoryOccupiedBySram Array: $memoryOccupiedByArray Calculated: $memoryCalculatedByArray) ")
 
     logWithoutNewLine("(State: ")
     state match {

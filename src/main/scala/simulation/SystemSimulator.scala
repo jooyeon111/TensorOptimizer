@@ -4,7 +4,7 @@ import scala.util.control.Breaks._
 
 //TODO ordering the arguments
 class SystemSimulator(
-  private val dram: Dram,
+  private val offChipMemory: OffChipMemory,
   private val sramA: DoubleBufferSram,
   private val sramB: DoubleBufferSram,
   private val sramC: OutputDoubleBufferSram,
@@ -24,8 +24,7 @@ class SystemSimulator(
   private var cycle: Long = -1
   private var lastProgressPercent: Int = -1
 
-  def getDramRefData: Option[DramReferenceData] = dram.referenceData
-
+  def getOffChipMemoryRefData: Option[OffChipMemoryReferenceData] = offChipMemory.referenceData
 
   def getSramRefDataTable: Option[SramDataTable] =
     for {
@@ -51,7 +50,7 @@ class SystemSimulator(
     var cycle: Long = 0
 
     require(layer.operationVector.nonEmpty, "Empty operation vector function is called in wrong place")
-    dram.initDram(layer.operationVector, array.arrayConfig.dataflow)
+    offChipMemory.initOffChipMemory(layer.operationVector, array.arrayConfig.dataflow)
     array.uploadOperationVector(layer.operationVector)
     sramA.initTileSchedule(layer.operationVector)
     sramB.initTileSchedule(layer.operationVector)
@@ -74,7 +73,7 @@ class SystemSimulator(
           } else if (debugEndCycle == cycle)
             break()
 
-        dram.update(interface)
+        offChipMemory.update(interface)
         sramA.update(interface)
         sramB.update(interface)
         array.update(interface)
@@ -121,8 +120,8 @@ class SystemSimulator(
   def getSingleBufferTileCapacityA: Int = sramA.singleBufferTileCapacity
   def getSingleBufferTileCapacityB: Int = sramB.singleBufferTileCapacity
   def getSingleBufferTileCapacityC: Int = sramC.singleBufferTileCapacity
-  def getSkipTileCountA: Int = dram.skipTileCountA
-  def getSkipTileCountB: Int = dram.skipTileCountB
+  def getSkipTileCountA: Int = offChipMemory.skipTileCountA
+  def getSkipTileCountB: Int = offChipMemory.skipTileCountB
 
   //2. Bandwidth info
   def getArrayInputBandwidthA: Int = array.arrayConfig.bandwidthOfInputA
@@ -136,7 +135,7 @@ class SystemSimulator(
   def getArrayActiveCount: Int = array.getArrayActiveCount
 
   //Pipeline state
-  def getDramStallCount: Int = dram.dramStall
+  def getOffChipMemoryStallCount: Int = offChipMemory.offChipMemoryStall
   def getFirstFillUptCycleA: Long = sramA.getFirstFillUpCycle
   def getFirstFillUptCycleB: Long = sramB.getFirstFillUpCycle
   def getFirstFillUptCycleC: Long = sramC.getFirstFillUpCycle
@@ -148,19 +147,18 @@ class SystemSimulator(
   def getBufferSwapStallCountC: Int = sramC.getBufferSwapStallCount
 
   //Read write log
-  def getDramReadAccessCount: Long = dram.getReadAccessCount
-  def getDramWriteAccessCount: Long = dram.getWriteAccessCount
+  def getOffChipMemoryReadAccessCount: Long = offChipMemory.getReadAccessCount
+  def getOffChipMemoryWriteAccessCount: Long = offChipMemory.getWriteAccessCount
   def getSramReadAccessCountA: Long = sramA.getReadAccessCount
   def getSramWriteAccessCountA: Long = sramA.getWriteAccessCount
   def getSramReadAccessCountB: Long = sramB.getReadAccessCount
   def getSramWriteAccessCountB: Long = sramB.getWriteAccessCount
 
-  //DRAM hit miss ratio
-  def getTotalDramHitCount: Double = (sramA.getDramHitCount + sramB.getDramHitCount) /
-    (sramA.getDramAccessCount + sramB.getDramAccessCount)
+  def getTotalOffChipMemoryHitCount: Double = (sramA.getOffChipMemoryHitCount + sramB.getOffChipMemoryHitCount) /
+    (sramA.getOffChipMemoryAccessCount + sramB.getOffChipMemoryAccessCount)
 
-  def getTotalDramMissCount: Double = (sramA.getDramMissCount + sramB.getDramMissCount) /
-    (sramA.getDramAccessCount + sramB.getDramAccessCount)
+  def getTotalOffChipMemoryMissCount: Double = (sramA.getOffChipMemoryMissCount + sramB.getOffChipMemoryMissCount) /
+    (sramA.getOffChipMemoryAccessCount + sramB.getOffChipMemoryAccessCount)
 
   //SRAM hit miss ratio
   def getTotalSramHitRatio: Double = (array.getMemoryHitCountA + array.getMemoryHitCountB) /
@@ -187,10 +185,10 @@ class SystemSimulator(
 
   //5. Energy Report
 
-  // DRAM
-  def getDramReadEnergy: Option[Double] = dram.getDramReadEnergy
-  def getDramWriteEnergy: Option[Double] = dram.getDramWriteEnergy
-  def getDramEnergy: Option[Double] = dram.getDramEnergy
+  // Off Chip Memory
+  def getOffChipMemoryReadEnergy: Option[Double] = offChipMemory.getOffChipMemoryReadEnergy
+  def getOffChipMemoryWriteEnergy: Option[Double] = offChipMemory.getOffChipMemoryWriteEnergy
+  def getOffChipMemoryEnergy: Option[Double] = offChipMemory.getOffChipMemoryEnergy
 
   // SRAM A
   def getSramReadEnergyA: Option[Double] = sramA.getSramReadEnergy
@@ -253,14 +251,14 @@ class SystemSimulator(
 
   def getTotalEnergy: Option[Double] =
     for {
-      dramEnergy <- getDramEnergy
+      offChipMemoryEnergy <- getOffChipMemoryEnergy
       sramEnergyA <- getSramEnergyA
       sramEnergyB <- getSramEnergyB
       arrayEnergy <- getArrayEnergy
       sramEnergyC <- getSramEnergyC
 
 
-    } yield dramEnergy + sramEnergyA + sramEnergyB + sramEnergyC + arrayEnergy
+    } yield offChipMemoryEnergy + sramEnergyA + sramEnergyB + sramEnergyC + arrayEnergy
 
   //6. Area Report
   def getSramAreaA: Option[Double] = sramA.referenceData.map(_.areaUm2)
@@ -284,7 +282,7 @@ class SystemSimulator(
 
   //Util functions
   private def areAllHardwareQueueEmpty: Boolean = {
-    dram.isHardwareEmpty &&
+    offChipMemory.isHardwareEmpty &&
       sramA.isHardwareEmpty &&
       sramB.isHardwareEmpty &&
       sramC.isHardwareEmpty &&
@@ -294,7 +292,7 @@ class SystemSimulator(
   private def printCompilationState(cycle: Long): Unit = {
     log("")
     log(s"[Current Cycle: $cycle]")
-    dram.printTiles()
+    offChipMemory.printTiles()
     sramA.printTiles()
     sramB.printTiles()
     array.printTiles()

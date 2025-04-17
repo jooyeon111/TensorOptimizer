@@ -1,7 +1,7 @@
 package simulation
 
 class Interface(
-  val dram: Dram,
+  val offChipMemory: OffChipMemory,
   val sramA: DoubleBufferSram,
   val sramB: DoubleBufferSram,
   val sramC: OutputDoubleBufferSram,
@@ -22,7 +22,7 @@ class Interface(
 
   def checkTraffic(): Either[RunTimeError, Unit] = {
 
-    val isTransmissionStuck = dram.isFailedToSend &&
+    val isTransmissionStuck = offChipMemory.isFailedToSend &&
       sramA.isFailedToSend &&
       sramB.isFailedToSend &&
       array.isFailedToSend &&

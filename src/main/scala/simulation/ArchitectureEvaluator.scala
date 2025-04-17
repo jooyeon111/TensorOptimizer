@@ -419,7 +419,7 @@ class ArchitectureEvaluator(
           gemmDimension = simConfig.layerGemmDimension,
           arrayConfig = arch.arrayConfig,
           streamingDimensionSize = arch.streamingDimensionSize,
-          dramUploadOrder = arch.dramUploadOrder,
+          offChipMemoryUploadOrder = arch.offChipMemoryUploadOrder,
           loggerOption = loggerOption
         )
 
@@ -784,7 +784,7 @@ class ArchitectureEvaluator(
         loggerOption = loggerOption
       )
       val sramC = new OutputDoubleBufferSram(
-        outputBandwidth = simConfig.dramBandwidth,
+        outputBandwidth = simConfig.offChipMemoryBandwidth,
         singleBufferTileCapacity = capacityC,
         singleBufferLimitKb = singleBufferLimitKbC,
         referenceData = sramReferenceDataC,
@@ -798,20 +798,20 @@ class ArchitectureEvaluator(
 
   private def buildSimulationComp(
     architecture: Architecture
-  ): Either[SramBuildError,(Layer, Dram, Array, (DoubleBufferSram, DoubleBufferSram, OutputDoubleBufferSram), Interface)] = {
+  ): Either[SramBuildError,(Layer, OffChipMemory, Array, (DoubleBufferSram, DoubleBufferSram, OutputDoubleBufferSram), Interface)] = {
 
     val layer = new Layer(
       layerName = simConfig.layerName,
       gemmDimension = simConfig.layerGemmDimension,
       arrayConfig = architecture.arrayConfig,
       streamingDimensionSize = architecture.streamingDimensionSize,
-      dramUploadOrder = architecture.dramUploadOrder,
+      offChipMemoryUploadOrder = architecture.offChipMemoryUploadOrder,
       loggerOption = loggerOption
     )
 
-    val dram = new Dram(
-      outputBandwidth = simConfig.dramBandwidth,
-      referenceData = simConfig.dramReferenceData,
+    val offChipMemory = new OffChipMemory(
+      outputBandwidth = simConfig.offChipMemoryBandwidth,
+      referenceData = simConfig.offChipMemoryReferenceData,
       loggerOption = loggerOption
     )
 
@@ -833,13 +833,13 @@ class ArchitectureEvaluator(
     ) match {
       case Right(srams@(sramA, sramB, sramC)) =>
         val interface = new Interface(
-          dram = dram,
+          offChipMemory = offChipMemory,
           sramA = sramA,
           sramB = sramB,
           sramC = sramC,
           array = array
         )
-        Right((layer, dram, array, srams, interface))
+        Right((layer, offChipMemory, array, srams, interface))
 
       case Left(error) =>
         Left(error)
@@ -849,14 +849,14 @@ class ArchitectureEvaluator(
 
 
   private def runSimulation(
-    components: (Layer, Dram, Array, (DoubleBufferSram, DoubleBufferSram, OutputDoubleBufferSram), Interface)
+    components: (Layer, OffChipMemory, Array, (DoubleBufferSram, DoubleBufferSram, OutputDoubleBufferSram), Interface)
   ): SimulationResult = {
 
-    val (layer, dram, array, srams, interface)= components
+    val (layer, offChipMemory, array, srams, interface)= components
     val (sramA, sramB, sramC) = srams
     
     val simulation = new SystemSimulator(
-      dram = dram,
+      offChipMemory = offChipMemory,
       sramA = sramA,
       sramB = sramB,
       sramC = sramC,
@@ -890,15 +890,15 @@ class ArchitectureEvaluator(
         cycle = simulation.getTotalCycle,
         arrayActiveCount = simulation.getArrayActiveCount,
 
-        dramReadAccessCount = simulation.getDramReadAccessCount,
-        dramWriteAccessCount = simulation.getDramWriteAccessCount,
+        offChipMemoryReadAccessCount = simulation.getOffChipMemoryReadAccessCount,
+        offChipMemoryWriteAccessCount = simulation.getOffChipMemoryWriteAccessCount,
         sramReadAccessCountA = simulation.getSramReadAccessCountA,
         sramWriteAccessCountA = simulation.getSramWriteAccessCountA,
         sramReadAccessCountB = simulation.getSramReadAccessCountB,
         sramWriteAccessCountB = simulation.getSramWriteAccessCountB,
 
-        dramHitRatio = simulation.getTotalDramHitCount,
-        dramMissRatio = simulation.getTotalDramMissCount,
+        offChipMemoryHitRatio = simulation.getTotalOffChipMemoryHitCount,
+        offChipMemoryMissRatio = simulation.getTotalOffChipMemoryMissCount,
 
         sramHitRatioA = simulation.getSramHitRatioA,
         sramHitRatioB = simulation.getSramHitRatioB,
@@ -907,7 +907,7 @@ class ArchitectureEvaluator(
         sramHitRatio = simulation.getTotalSramHitRatio,
         sramMissRatio = simulation.getTotalSramMissRatio,
 
-        dramStallCount = simulation.getDramStallCount,
+        offChipMemoryStallCount = simulation.getOffChipMemoryStallCount,
 
         firstFillUpCycleA = simulation.getFirstFillUptCycleA,
         bufferSwapCountA = simulation.getBufferSwapCountA,
@@ -930,7 +930,7 @@ class ArchitectureEvaluator(
 
         averageMemoryUtilization = simulation.getAverageMemoryUtilization,
 
-        dramReferenceData = simulation.getDramRefData,
+        offChipMemoryReferenceData = simulation.getOffChipMemoryRefData,
         sramReferenceDataTable = simulation.getSramRefDataTable,
         arraySynthesisSource = simulation.getArraySynthesisSource,
         arraySynthesisData = simulation.getArraySynthesisData,
@@ -950,9 +950,9 @@ class ArchitectureEvaluator(
         sramLeakageEnergyPjC = simulation.getSramLeakageEnergyC,
         sramEnergyPjC = simulation.getSramEnergyC,
 
-        dramReadEnergyPj = simulation.getDramReadEnergy,
-        dramWriteEnergyPj = simulation.getDramWriteEnergy,
-        dramEnergyPj = simulation.getDramEnergy,
+        offChipMemoryReadEnergyPj = simulation.getOffChipMemoryReadEnergy,
+        offChipMemoryWriteEnergyPj = simulation.getOffChipMemoryWriteEnergy,
+        offChipMemoryEnergyPj = simulation.getOffChipMemoryEnergy,
 
         arrayDynamicEnergyPj = simulation.getArrayDynamicEnergy,
         arrayLeakageEnergyPj = simulation.getArrayLeakageEnergy,

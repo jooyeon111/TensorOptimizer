@@ -1,6 +1,6 @@
 package simulation
 
-case class DramReferenceData(
+case class OffChipMemoryReferenceData(
   readEnergyPj: Double, //pJ
   writeEnergyPj: Double, //pJ
 ) {

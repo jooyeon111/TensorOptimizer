@@ -26,7 +26,7 @@ object AnalyzerMain extends App
     |[5 arguments] - Cycle and Energy Report Mode (with array data or ML inference):
     |  First argument is target MNK layer
     |  Second argument is test setting argument
-    |  Third argument is DRAM Reference Data
+    |  Third argument is off chip memory Reference Data
     |  Fourth argument is SRAM Reference Data
     |  Fifth argument is either Array Synthesis Reference Data or ML weight file (.bin)
   """.stripMargin
@@ -103,7 +103,7 @@ object AnalyzerMain extends App
             runLayerSimulation(
               layerPath = args(0),
               testPath = args(1),
-              dramDataPath = Option(args(2)),
+              offChipMemoryDataPath = Option(args(2)),
               sramDataPath = Option(args(3)),
               dnnModelWeights = Some(modelWeights),
               help = help
@@ -120,7 +120,7 @@ object AnalyzerMain extends App
         runLayerSimulation(
           layerPath = args(0),
           testPath = args(1),
-          dramDataPath = Option(args(2)),
+          offChipMemoryDataPath = Option(args(2)),
           sramDataPath = Option(args(3)),
           arrayDataPath = Option(args(4)),
           help = help

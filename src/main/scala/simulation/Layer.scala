@@ -1,14 +1,14 @@
 package simulation
 
 import common.Dataflow
-import simulation.DramUploadOrder.DramUploadOrder
+import simulation.OffChipMemoryUploadOrder.OffChipMemoryUploadOrder
 
 class Layer(
   val layerName: String,
   val gemmDimension: GemmDimension,
   val arrayConfig: ArrayConfig,
   val streamingDimensionSize: Int,
-  val dramUploadOrder: DramUploadOrder,
+  val offChipMemoryUploadOrder: OffChipMemoryUploadOrder,
   val loggerOption: LoggerOption
 ) extends Logger {
 
@@ -122,8 +122,8 @@ class Layer(
 
   //Create operation function determines the order of operations
   private def createOperation(): Vector[Vector[Vector[MultiplicationOperation]]] = {
-    dramUploadOrder match {
-      case DramUploadOrder.mnk =>
+    offChipMemoryUploadOrder match {
+      case OffChipMemoryUploadOrder.mnk =>
         Vector.tabulate(tileIndexTuple._1, tileIndexTuple._2, tileIndexTuple._3)(
           (m,n,k) => new MultiplicationOperation(
             layerName,
@@ -134,7 +134,7 @@ class Layer(
             loggerOption
           )
         )
-      case DramUploadOrder.mkn =>
+      case OffChipMemoryUploadOrder.mkn =>
         Vector.tabulate(tileIndexTuple._1, tileIndexTuple._3, tileIndexTuple._2)(
           (m,k,n) => new MultiplicationOperation(
             layerName,
@@ -145,7 +145,7 @@ class Layer(
             loggerOption
           )
         )
-      case DramUploadOrder.nmk =>
+      case OffChipMemoryUploadOrder.nmk =>
         Vector.tabulate(tileIndexTuple._2, tileIndexTuple._1, tileIndexTuple._3)(
           (n,m,k) => new MultiplicationOperation(
             layerName,
@@ -156,7 +156,7 @@ class Layer(
             loggerOption
           )
         )
-      case DramUploadOrder.nkm =>
+      case OffChipMemoryUploadOrder.nkm =>
         Vector.tabulate(tileIndexTuple._2, tileIndexTuple._3, tileIndexTuple._1)(
           (n,k,m) => new MultiplicationOperation(
             layerName,
@@ -167,7 +167,7 @@ class Layer(
             loggerOption
           )
         )
-      case DramUploadOrder.kmn =>
+      case OffChipMemoryUploadOrder.kmn =>
         Vector.tabulate(tileIndexTuple._3, tileIndexTuple._1, tileIndexTuple._2)(
           (k,m,n) => new MultiplicationOperation(
             layerName,
@@ -178,7 +178,7 @@ class Layer(
             loggerOption
           )
         )
-      case DramUploadOrder.knm =>
+      case OffChipMemoryUploadOrder.knm =>
         Vector.tabulate(tileIndexTuple._3, tileIndexTuple._2, tileIndexTuple._1)(
           (k,n,m) => new MultiplicationOperation(
             layerName,

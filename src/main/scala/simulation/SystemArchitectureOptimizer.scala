@@ -22,9 +22,9 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
     bitWidthPortA: Int,
     bitWidthPortB: Int,
     bitWidthPortC: Int,
-    dramBandwidth: Int,
+    offChipMemoryBandwidth: Int,
     totalNumberOfMultipliers: Int,
-    dramReferenceData: Option[DramReferenceData],
+    offChipMemoryReferenceData: Option[OffChipMemoryReferenceData],
     sramReferenceDataVector: Option[Vector[SramReferenceData]],
     dnnModelWeightsPath: Option[String],
   ) {
@@ -35,11 +35,11 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
         bitWidthPortA > 0 &&
         bitWidthPortB > 0 &&
         bitWidthPortC > 0 &&
-        dramBandwidth > 0
+        offChipMemoryBandwidth > 0
 
-      val energyValidation = (dramReferenceData, sramReferenceDataVector) match {
-        case (Some(dram), Some(sram)) =>
-          dram.validate && sram.forall(_.validate)
+      val energyValidation = (offChipMemoryReferenceData, sramReferenceDataVector) match {
+        case (Some(offChipMemory), Some(sram)) =>
+          offChipMemory.validate && sram.forall(_.validate)
         case (None, None) =>
           true
         case _ =>
@@ -61,7 +61,7 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
     |[5 arguments] - Cycle and Energy Report Mode with ML inference for Array Synthesis Data:
     |  First argument is target MNK layer
     |  Second argument is test setting argument
-    |  Third argument is DRAM Reference Data
+    |  Third argument is off chip memory Reference Data
     |  Fourth argument is SRAM Reference Data
     |  Fifth argument is ML weight file (.bin)
   """.stripMargin
@@ -84,7 +84,7 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
       run(
         layerPath = args(0),
         testPath = args(1),
-        dramDataPath = Option(args(2)),
+        offChipMemoryDataPath = Option(args(2)),
         sramDataPath = Option(args(3)),
         dnnModelWeightsPath = Option(args(4)),
         help = help
@@ -105,7 +105,7 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
   private def run(
     layerPath: String,
     testPath: String,
-    dramDataPath: Option[String] = None,
+    offChipMemoryDataPath: Option[String] = None,
     sramDataPath: Option[String] = None,
     dnnModelWeightsPath: Option[String]= None,
     help: String
@@ -115,7 +115,7 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
     val layerConfigParser = new ConfigManager(layerPath)
     val testConfigParser = new ConfigManager(testPath)
     val sramDataParser = sramDataPath.map(new ConfigManager(_))
-    val dramDataParser = dramDataPath.map(new ConfigManager(_))
+    val offChipMemoryDataParser = offChipMemoryDataPath.map(new ConfigManager(_))
 
     println("Parsing START")
 
@@ -133,9 +133,9 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
       }
     )
 
-    dramDataParser.foreach(parser =>
+    offChipMemoryDataParser.foreach(parser =>
       if(!parser.parse()) {
-        throw ParseError("DRAM Energy configuration parsing failed" + help)
+        throw ParseError("Off Chip Memory Energy configuration parsing failed" + help)
       }
     )
 
@@ -146,13 +146,13 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
       throw ParseError("Test Config not found")
     )
 
-    val dramReferenceData = dramDataParser.flatMap(_.getConfig).map { config =>
-      DramReferenceData(
+    val offChipMemoryReferenceData = offChipMemoryDataParser.flatMap(_.getConfig).map { config =>
+      OffChipMemoryReferenceData(
         readEnergyPj = config.getDouble("Read Energy").getOrElse(
-          throw ParseError("DRAM Read Energy Not found")
+          throw ParseError("Off Chip Memory Read Energy Not found")
         ),
         writeEnergyPj = config.getDouble("Write Energy").getOrElse(
-          throw ParseError("DRAM Write Energy Not found")
+          throw ParseError("Off Chip Memory Write Energy Not found")
         )
       )
     }
@@ -164,7 +164,7 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
     //build simulation config
     println("Building Simulation Config START")
     val simulationConfig = buildSimulationConfig(
-     layerConfig, testConfig, dramReferenceData, sramReferenceData, dnnModelWeightsPath
+     layerConfig, testConfig, offChipMemoryReferenceData, sramReferenceData, dnnModelWeightsPath
     )
     println("Building Simulation Config END")
 
@@ -199,7 +199,7 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
   private def buildSimulationConfig(
     layerConfig: ConfigParser.Config,
     testConfig: ConfigParser.Config,
-    dramReferenceData: Option[DramReferenceData] = None,
+    offChipMemoryReferenceData: Option[OffChipMemoryReferenceData] = None,
     sramReferenceData: Option[Vector[SramReferenceData]] = None,
     dnnModelWeightsPath: Option[String] = None,
   ): SimulationConfig = {
@@ -240,8 +240,8 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
       throw ParseError("Port B Bit Width")
     )
 
-    val dramBandwidth = testConfig.getInt("DRAM Bandwidth").getOrElse(
-      throw ParseError("DRAM Bandwidth not found")
+    val offChipMemoryBandwidth = testConfig.getInt("Off Chip Memory Bandwidth").getOrElse(
+      throw ParseError("Off Chip Memory Bandwidth not found")
     )
 
     val totalNumberOfMultipliers = testConfig.getInt("Total Number of Multipliers").getOrElse(
@@ -255,9 +255,9 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
       bitWidthPortA = bitWidthPortA,
       bitWidthPortB = bitWidthPortB,
       bitWidthPortC = bitWidthPortC,
-      dramBandwidth = dramBandwidth,
+      offChipMemoryBandwidth = offChipMemoryBandwidth,
       totalNumberOfMultipliers = totalNumberOfMultipliers,
-      dramReferenceData = dramReferenceData,
+      offChipMemoryReferenceData = offChipMemoryReferenceData,
       sramReferenceDataVector = sramReferenceData,
       dnnModelWeightsPath= dnnModelWeightsPath,
     )
@@ -310,7 +310,7 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
   }
 
   private def generateLogFileName(config: SimulationConfig): String = {
-    s"/result_${config.layerName}_dram_bandwidth:${config.dramBandwidth}_mult:${config.totalNumberOfMultipliers}"
+    s"/result_${config.layerName}_mult:${config.totalNumberOfMultipliers}"
   }
 
   private def logSimulation(simConfig: SimulationConfig): Unit = {
@@ -327,8 +327,8 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
     log(s"\t[Optimization Metric]")
     log(s"\t\tMetric: ${simConfig.metric}")
     log(s"")
-    log(s"\t[DRAM]")
-    log(s"\t\tDRAM Bandwidth: ${simConfig.dramBandwidth}")
+    log(s"\t[Off Chip Memory]")
+    log(s"\t\tOff Chip Memory Bandwidth: ${simConfig.offChipMemoryBandwidth}")
     log("")
     log(s"[Systolic Tensor Array]")
     log(s"\t\tPort A Bit Width: ${simConfig.bitWidthPortA}")
@@ -338,27 +338,3 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
   }
 
 }
-//private case class ArchitectureResult(
-//                                           architecture: Architecture,
-//                                           simulationResult: SimulationResult
-//                                         ) {
-//  def showSummary(): Unit = {
-//    if(simulationResult.isEnergyReportValid && simulationResult.isAreaReportValid){
-//      log(s"\t[${architecture.arrayConfig.arrayConfigString}]")
-//      log(s"\t\tCycle: ${simulationResult.cycle}")
-//      log(s"\t\tArea: ${String.format("%.2f", simulationResult.areaUm2.get)} mm^2")
-//      log(s"\t\tEnergy: ${String.format("%.2f", simulationResult.energyPj.get)} pJ")
-//      log(s"\t\tStreaming Dimension Size: ${architecture.streamingDimensionSize}")
-//      log(s"\t\tSingleBuffer A: ${architecture.singleBufferLimitKbA} KB")
-//      log(s"\t\tSingleBuffer B: ${architecture.singleBufferLimitKbB} KB")
-//      log(s"\t\tSingleBuffer C: ${architecture.singleBufferLimitKbC} KB\n")
-//    } else {
-//      log(s"\t[$architecture.arrayConfig.arrayConfigString]")
-//      log(s"\t\tCycle: ${simulationResult.cycle},")
-//      log(s"\t\tStreaming Dimension Size: ${architecture.streamingDimensionSize}")
-//      log(s"\t\tSingleBuffer A: ${architecture.singleBufferLimitKbA} KB")
-//      log(s"\t\tSingleBuffer B: ${architecture.singleBufferLimitKbB} KB")
-//      log(s"\t\tSingleBuffer C: ${architecture.singleBufferLimitKbC} KB\n")
-//    }
-//  }
-//}

@@ -49,7 +49,7 @@ class OutputDoubleBufferSram(
       swapBuffers(interface)
     }
 
-    judgeDramReadWriteState(interface)
+    judgeOffChipMemoryReadWriteState(interface)
     updateMemoryMonitor()
 
   }
@@ -60,12 +60,12 @@ class OutputDoubleBufferSram(
 
       if ((availableOutputBandwidth - readBuffer(i).memoryOccupiedBySram) >= 0) {
         availableOutputBandwidth = availableOutputBandwidth - readBuffer(i).memoryOccupiedBySram
-        readBuffer(i).memoryOccupiedByDram = readBuffer(i).dims.memorySize
+        readBuffer(i).memoryOccupiedByOffChipMemory = readBuffer(i).dims.memorySize
         readBuffer(i).memoryOccupiedBySram = 0
       } else {
-        readBuffer(i).memoryOccupiedByDram += availableOutputBandwidth
+        readBuffer(i).memoryOccupiedByOffChipMemory += availableOutputBandwidth
         readBuffer(i).memoryOccupiedBySram =
-          readBuffer(i).dims.memorySize - readBuffer(i).memoryOccupiedByDram
+          readBuffer(i).dims.memorySize - readBuffer(i).memoryOccupiedByOffChipMemory
         availableOutputBandwidth = 0
       }
 
@@ -83,8 +83,8 @@ class OutputDoubleBufferSram(
     loop.breakable {
 
       while (readBuffer.nonEmpty) {
-        if (readBuffer.front.memoryOccupiedByDram > 0) {
-          if (readBuffer.front.ownedByDram) {
+        if (readBuffer.front.memoryOccupiedByOffChipMemory > 0) {
+          if (readBuffer.front.ownedByOffChipMemory) {
 
             temporalTileQueue += readBuffer.front
             readBuffer.dequeue()
@@ -101,7 +101,7 @@ class OutputDoubleBufferSram(
     }
 
     if (temporalTileQueue.nonEmpty) {
-      interface.dram.receive()
+      interface.offChipMemory.receive()
       incrementReadAccessCount()
       markTileSendSuccessful()
     } else
@@ -187,11 +187,11 @@ class OutputDoubleBufferSram(
 
   }
 
-  private def judgeDramReadWriteState(interface: Interface): Unit = {
+  private def judgeOffChipMemoryReadWriteState(interface: Interface): Unit = {
     if(readBuffer.nonEmpty)
-      interface.dram.pauseTileSending()
+      interface.offChipMemory.pauseTileSending()
     else
-      interface.dram.resumeTileSending()
+      interface.offChipMemory.resumeTileSending()
 
   }
 

@@ -24,13 +24,13 @@ class DoubleBufferSram(
   private val tileOperationOrder: mutable.ListBuffer[TileScheduleEntry] = mutable.ListBuffer.empty[TileScheduleEntry]
   private var availableOutputBandwidth: Int = outputBandwidth
 
-  private var totalDramAccessCount: Double = 0.0
-  private var totalDramHitCount: Double = 0.0
-  private var totalDramMissCount: Double = 0.0
+  private var totalOffChipMemoryAccessCount: Double = 0.0
+  private var totalOffChipMemoryHitCount: Double = 0.0
+  private var totalOffChipMemoryMissCount: Double = 0.0
 
-  def getDramAccessCount: Double = totalDramAccessCount
-  def getDramHitCount: Double = totalDramHitCount
-  def getDramMissCount: Double = totalDramMissCount
+  def getOffChipMemoryAccessCount: Double = totalOffChipMemoryAccessCount
+  def getOffChipMemoryHitCount: Double = totalOffChipMemoryHitCount
+  def getOffChipMemoryMissCount: Double = totalOffChipMemoryMissCount
 
   def getSramReadEnergy: Option[Double] =
     referenceData.map( data => getReadAccessCount * data.readEnergyPj )
@@ -68,7 +68,7 @@ class DoubleBufferSram(
 
   }
 
-  //Functions are called by DRAM
+  //Functions are called by Off chip memory
   def existsInInBuffers(targetTile: Tile): Boolean = {
     assert(dataType == targetTile.dataType, "[error] Tile data type mismatch")
     readBuffer.exists(tile => tile.id == targetTile.id) || writeBuffer.exists(tile => tile.id == targetTile.id)
@@ -167,7 +167,7 @@ class DoubleBufferSram(
       resetTileIdToSend()
     }
 
-    countDramAccess()
+    countOffChipMemoryAccess()
     updateState()
 
     if(!isFirstFillUpDone)
@@ -267,7 +267,7 @@ class DoubleBufferSram(
     val shouldSwitch = {
 
       val isWriteBufferFull = isBufferIntactAndFull(writeBuffer)
-      val isBufferStateReady = isWriteBufferFull || interface.dram.isHardwareEmpty
+      val isBufferStateReady = isWriteBufferFull || interface.offChipMemory.isHardwareEmpty
 
       val isOtherSramWriteBufferTilesIntact = otherSram.isWriteBufferTilesIntact
       val isOtherSramWriteBufferNothingToUpdate = otherSram.isNothingToUpdateInWriteBuffer
@@ -295,16 +295,16 @@ class DoubleBufferSram(
 
   }
 
-  private def countDramAccess(): Unit = {
+  private def countOffChipMemoryAccess(): Unit = {
     val unscheduledTiles = tileOperationOrder.filter(!_.isInReadBuffer).map(_.id).toSet
     if(unscheduledTiles.nonEmpty){
       val bufferIds = (readBuffer.map(_.id.asInstanceOf[(Int, Int)]) ++ writeBuffer.map(_.id.asInstanceOf[(Int, Int)])).toSet
       if(!unscheduledTiles.subsetOf(bufferIds)){
-        totalDramAccessCount += 1.0
+        totalOffChipMemoryAccessCount += 1.0
         if(writePendingBuffer.nonEmpty){
-          totalDramHitCount += 1.0
+          totalOffChipMemoryHitCount += 1.0
         } else {
-          totalDramMissCount += 1.0
+          totalOffChipMemoryMissCount += 1.0
         }
       }
     }

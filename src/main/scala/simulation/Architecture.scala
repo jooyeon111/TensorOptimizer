@@ -10,10 +10,10 @@ case class Architecture(
   singleBufferLimitKbC: Int,
 ) {
 
-  val dramUploadOrder: DramUploadOrder.Value = arrayConfig.dataflow match {
-    case Dataflow.Is => DramUploadOrder.mkn
-    case Dataflow.Os => DramUploadOrder.mnk
-    case Dataflow.Ws => DramUploadOrder.knm
+  val offChipMemoryUploadOrder: OffChipMemoryUploadOrder.Value = arrayConfig.dataflow match {
+    case Dataflow.Is => OffChipMemoryUploadOrder.mkn
+    case Dataflow.Os => OffChipMemoryUploadOrder.mnk
+    case Dataflow.Ws => OffChipMemoryUploadOrder.knm
   }
 
   def withStreamingDimensionSize(newSize: Int): Architecture =

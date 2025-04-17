@@ -4,16 +4,13 @@ import common.Dataflow
 import scala.collection.mutable
 import simulation.DataType.DataType
 
-final class Dram(
+final class OffChipMemory(
   val outputBandwidth: Int,
-  val referenceData: Option[DramReferenceData] = None,
+  val referenceData: Option[OffChipMemoryReferenceData] = None,
   val loggerOption: LoggerOption
 ) extends Hardware with Logger with AccessCounter {
 
   setMode(loggerOption)
-
-  //TODO parameterize it to include HBM
-  private val ddr4CapacityBit: Long = 68719476736L
 
   private val currentTileQueue: mutable.Queue[Tile] = mutable.Queue.empty[Tile]
   private val nextTileQueue: mutable.Queue[Tile] = mutable.Queue.empty[Tile]
@@ -32,17 +29,17 @@ final class Dram(
   //TODO change variable names below
   var skipTileCountA: Int = 0
   var skipTileCountB: Int = 0
-  var dramStall = 0
+  var offChipMemoryStall = 0
 
   //Function called by Compiler
 
-  def getDramReadEnergy: Option[Double] =
+  def getOffChipMemoryReadEnergy: Option[Double] =
     referenceData.map( data => getReadAccessCount * data.readEnergyPj )
 
-  def getDramWriteEnergy: Option[Double] =
+  def getOffChipMemoryWriteEnergy: Option[Double] =
     referenceData.map( data => getWriteAccessCount * data.writeEnergyPj )
 
-  def getDramEnergy: Option[Double] =
+  def getOffChipMemoryEnergy: Option[Double] =
     referenceData.map{ data =>
       getReadAccessCount * data.readEnergyPj +
         getWriteAccessCount * data.writeEnergyPj
@@ -71,10 +68,6 @@ final class Dram(
 
   }
 
-  private def checkCapacity(): Unit = {
-    assert (currentTileQueue.map(_.dims.memorySize).sum <= ddr4CapacityBit, "[error] Cannot contain tiles ")
-  }
-
   def getTileIdsFromCurrentTileQueue(dataType: DataType): Set[(Int, Int)] = {
 
     val currentTiles = dataType match {
@@ -85,7 +78,7 @@ final class Dram(
         currentTileQueue
           .filter(tile => tile.dataType == DataType.A)
       case _ =>
-        Console.err.println(s"[error] Invalid data type for DRAM")
+        Console.err.println(s"[error] Invalid data type for Off Chip Memory")
         sys.exit(1)
     }
 
@@ -95,9 +88,8 @@ final class Dram(
 
   }
 
-  def initDram(operationVector: Vector[MultiplicationOperation], dataflow: Dataflow.Value) : Unit = {
+  def initOffChipMemory(operationVector: Vector[MultiplicationOperation], dataflow: Dataflow.Value) : Unit = {
     uploadInitialTiles(operationVector, dataflow)
-    checkCapacity()
   }
 
   //Function called by array
@@ -148,7 +140,7 @@ final class Dram(
       if(currentTileQueue.isEmpty){
         currentTileQueue.enqueue(nextTileQueue.dequeue())
       } else {
-        if(currentTileQueue.last == nextTileQueue.front && !currentTileQueue.last.ownedByDram){
+        if(currentTileQueue.last == nextTileQueue.front && !currentTileQueue.last.ownedByOffChipMemory){
           currentTileQueue.removeLast()
           currentTileQueue.enqueue(nextTileQueue.dequeue())
         } else {
@@ -163,29 +155,29 @@ final class Dram(
 
     if(tile.memoryOccupiedBySram > 0){
 
-      if(availableOutputBandwidth - tile.memoryOccupiedByDram >= 0){
-        availableOutputBandwidth = availableOutputBandwidth - tile.memoryOccupiedByDram
+      if(availableOutputBandwidth - tile.memoryOccupiedByOffChipMemory >= 0){
+        availableOutputBandwidth = availableOutputBandwidth - tile.memoryOccupiedByOffChipMemory
         tile.memoryOccupiedBySram = tile.dims.memorySize
-        tile.memoryOccupiedByDram = 0
+        tile.memoryOccupiedByOffChipMemory = 0
 
         tile.dataType match {
           case DataType.A => sendingTileQueueA.enqueue(currentTileQueue.dequeue())
           case DataType.B => sendingTileQueueB.enqueue(currentTileQueue.dequeue())
           case _ =>
-            Console.err.println("[error] DRAM cannot handle this type of tile")
+            Console.err.println("[error] OffChipMemory cannot handle this type of tile")
             sys.exit(1)
         }
 
       } else {
         tile.memoryOccupiedBySram += availableOutputBandwidth
-        tile.memoryOccupiedByDram = tile.dims.memorySize - tile.memoryOccupiedBySram
+        tile.memoryOccupiedByOffChipMemory = tile.dims.memorySize - tile.memoryOccupiedBySram
         availableOutputBandwidth = 0
 
         tile.dataType match {
           case DataType.A => sendingTileQueueA.enqueue(tile.copyTile())
           case DataType.B => sendingTileQueueB.enqueue(tile.copyTile())
           case _ =>
-            Console.err.println("[error] DRAM cannot handle this type of tile")
+            Console.err.println("[error] OffChipMemory cannot handle this type of tile")
             sys.exit(1)
         }
 
@@ -196,7 +188,7 @@ final class Dram(
 
   private def trim(interface: Interface): Unit = {
     def shouldTrimTile(tile: Tile): Boolean = {
-      if (!tile.ownedByDram) return false
+      if (!tile.ownedByOffChipMemory) return false
 
       tile.dataType match {
         case DataType.A =>
@@ -204,7 +196,7 @@ final class Dram(
         case DataType.B =>
           interface.sramB.existsInInBuffers(tile) || sendingTileQueueB.exists(_.id == tile.id)
         case _ =>
-          Console.err.println("[error] Invalid data type in DRAM Tile Queue")
+          Console.err.println("[error] Invalid data type in OffChipMemory Tile Queue")
           sys.exit(1)
       }
     }
@@ -216,7 +208,7 @@ final class Dram(
         case DataType.B =>
           skipTileCountB += 1
         case _ =>
-          Console.err.println("[error] Invalid data type in DRAM Tile Queue")
+          Console.err.println("[error] Invalid data type in OffChipMemory Tile Queue")
           sys.exit(1)
       }
       currentTileQueue.dequeue()
@@ -233,16 +225,16 @@ final class Dram(
 
     def processTile(sramCapacity: Int, sendingQueue: mutable.Queue[Tile]): Unit = {
       if (sramCapacity > 0) {
-        val remainingBandwidth = availableOutputBandwidth - tile.memoryOccupiedByDram
+        val remainingBandwidth = availableOutputBandwidth - tile.memoryOccupiedByOffChipMemory
 
         if (remainingBandwidth >= 0) {
-          availableOutputBandwidth -= tile.memoryOccupiedByDram
+          availableOutputBandwidth -= tile.memoryOccupiedByOffChipMemory
           tile.memoryOccupiedBySram = tile.dims.memorySize
-          tile.memoryOccupiedByDram = 0
+          tile.memoryOccupiedByOffChipMemory = 0
           sendingQueue.enqueue(currentTileQueue.dequeue())
         } else {
           tile.memoryOccupiedBySram += availableOutputBandwidth
-          tile.memoryOccupiedByDram = tile.dims.memorySize - tile.memoryOccupiedBySram
+          tile.memoryOccupiedByOffChipMemory = tile.dims.memorySize - tile.memoryOccupiedBySram
           availableOutputBandwidth = 0
           sendingQueue.enqueue(tile.copyTile())
         }
@@ -257,7 +249,7 @@ final class Dram(
         processTile(singleBufferTileCapacityOfSramB, sendingTileQueueB)
         singleBufferTileCapacityOfSramB -= 1
       case _ =>
-        Console.err.println("[error] DRAM cannot handle this type of tile")
+        Console.err.println("[error] Off chip memory cannot handle this type of tile")
         sys.exit(1)
     }
   }
@@ -268,7 +260,7 @@ final class Dram(
 
     if(sendingTileQueueA.isEmpty && sendingTileQueueB.isEmpty) {
       markTileSendFailed()
-      dramStall += 1
+      offChipMemoryStall += 1
     } else {
       markTileSendSuccessful()
       incrementReadAccessCount()
@@ -284,7 +276,7 @@ final class Dram(
 
   //Util functions
   def printTiles(): Unit = {
-    log("\t[DRAM]")
+    log("\t[Off Chip Memory]")
     if(isHardwareEmpty){
       log("\tEmpty\n")
     } else {

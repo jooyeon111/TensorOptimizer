@@ -23,7 +23,7 @@ object ArrayConfigGenerator extends OutputPortCalculator {
 
   private def generateValidDimensionConfigs(
     multNumber: Int,
-    minDimension: Int = 8
+    minDimension: Int = 16
   ): Set[DimensionConfig] = {
     val divisors = getDivisors(multNumber)
 

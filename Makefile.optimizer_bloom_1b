@@ -6,8 +6,8 @@ SYNTHESIS := $(INPUT_SIM)/synthesis
 LAYER_DIR := $(INPUT_SIM)/layer
 
 # Test options
-TEST_OPTION_1024 := $(CONFIG_DIR)/ddr4_total_multiplier_1024.cfg
-TEST_OPTION_DRAM_REF := $(HARDWARE_REF)/DRAMsim3/ddr4_dram.cfg
+TEST_OPTION_4096 := $(CONFIG_DIR)/hbm2_total_multiplier_4096.cfg
+TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
 TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
 TEST_OPTION_RTL_RESULT_REF := $(SYNTHESIS)/weight.bin
 
@@ -24,7 +24,7 @@ QKTV := $(VARIANT_PATH)/qktv.cfg
 FINAL := $(VARIANT_PATH)/representation_projection.cfg
 
 # Common arguments for all SBT runs
-COMMON_ARGS := $(TEST_OPTION_1024) $(TEST_OPTION_DRAM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_RTL_RESULT_REF)
+COMMON_ARGS := $(TEST_OPTION_4096) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_RTL_RESULT_REF)
 
 # Define targets for specific layers
 .PHONY: all run-layer

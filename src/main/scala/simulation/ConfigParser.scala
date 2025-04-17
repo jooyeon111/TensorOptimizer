@@ -29,7 +29,6 @@ object ConfigParser {
         lines.foreach { line =>
           line.trim match {
             case "[SRAM REPORT]" => parsingSection = "SRAM"
-//            case "[DRAM ENERGY]" => parsingEnergies = "DRAM"
             case l if l.startsWith("#") => // Skip comments
             case l if !l.startsWith("[") =>
               parsingSection match {

@@ -25,15 +25,15 @@ case class SimulationResult(
   cycle: Long,
   arrayActiveCount: Int,
 
-  dramReadAccessCount: Long,
-  dramWriteAccessCount: Long,
+  offChipMemoryReadAccessCount: Long,
+  offChipMemoryWriteAccessCount: Long,
   sramReadAccessCountA: Long,
   sramWriteAccessCountA: Long,
   sramReadAccessCountB: Long,
   sramWriteAccessCountB: Long,
 
-  dramHitRatio: Double,
-  dramMissRatio: Double,
+  offChipMemoryHitRatio: Double,
+  offChipMemoryMissRatio: Double,
 
   sramHitRatioA: Double,
   sramHitRatioB: Double,
@@ -43,7 +43,7 @@ case class SimulationResult(
   sramMissRatio: Double,
 
   //4. Pipeline State
-  dramStallCount: Int,
+  offChipMemoryStallCount: Int,
 
   firstFillUpCycleA: Long,
   bufferSwapCountA: Int,
@@ -70,7 +70,7 @@ case class SimulationResult(
   averageMemoryUtilization: Double,
 
   //6. Reference Data
-  dramReferenceData: Option[DramReferenceData],
+  offChipMemoryReferenceData: Option[OffChipMemoryReferenceData],
   sramReferenceDataTable: Option[SramDataTable],
   arraySynthesisSource: Option[ArraySynthesisSource.Value],
   arraySynthesisData: Option[ArraySynthesisData],
@@ -91,9 +91,9 @@ case class SimulationResult(
   sramLeakageEnergyPjC: Option[Double],
   sramEnergyPjC: Option[Double],
 
-  dramReadEnergyPj: Option[Double],
-  dramWriteEnergyPj: Option[Double],
-  dramEnergyPj: Option[Double],
+  offChipMemoryReadEnergyPj: Option[Double],
+  offChipMemoryWriteEnergyPj: Option[Double],
+  offChipMemoryEnergyPj: Option[Double],
 
   arrayDynamicEnergyPj: Option[Double],
   arrayLeakageEnergyPj: Option[Double],
@@ -132,15 +132,15 @@ case class SimulationResult(
     log(s"\t\tTotal Cycle: $cycle")
     log(s"\t\tArray Active Count: $arrayActiveCount")
     log(s"")
-    log(s"\t\tDRAM Read Access Count: $dramReadAccessCount")
-    log(s"\t\tDRAM Write Access Count: $dramWriteAccessCount")
+    log(s"\t\tOff Chip Memory Read Access Count: $offChipMemoryReadAccessCount")
+    log(s"\t\tOff Chip Memory Write Access Count: $offChipMemoryWriteAccessCount")
     log(s"\t\tSRAM A Read Access Count: $sramReadAccessCountA")
     log(s"\t\tSRAM A Write Access Count: $sramWriteAccessCountA")
     log(s"\t\tSRAM B Read Access Count: $sramReadAccessCountB")
     log(s"\t\tSRAM B Write Access Count: $sramWriteAccessCountB")
     log(s"")
-    log(s"\t\tDRAM Hit Ratio: ${String.format("%.2f", dramHitRatio)} %")
-    log(s"\t\tDRAM Miss Ratio: ${String.format("%.2f", dramMissRatio)} %")
+    log(s"\t\tOff Chip Memory Hit Ratio: ${String.format("%.2f", offChipMemoryHitRatio)} %")
+    log(s"\t\tOff Chip Memory Miss Ratio: ${String.format("%.2f", offChipMemoryMissRatio)} %")
     log(s"")
     log(s"\t\tSRAM A Hit Ratio: ${String.format("%.2f", sramHitRatioA)} %")
     log(s"\t\tSRAM B Hit Ratio: ${String.format("%.2f", sramHitRatioB)} %")
@@ -150,7 +150,7 @@ case class SimulationResult(
     log(s"\t\tSRAM Miss Ratio: ${String.format("%.2f", sramMissRatio)} %")
     log(s"")
     log("\t[Pipeline State]")
-    log(s"\t\tDRAM Stall Cycle: $dramStallCount")
+    log(s"\t\tOff Chip Memory Stall Cycle: $offChipMemoryStallCount")
     log(s"")
     log(s"\t\tSRAM A First Fill Up Cycle: $firstFillUpCycleA")
     log(s"\t\tSRAM A Buffer swap Success Count: $bufferSwapCountA")
@@ -180,9 +180,9 @@ case class SimulationResult(
     log(s"")
 
     if(isReferenceDataValid){
-      log(s"\t[DRAM Data from DRAMSim3]")
-      log(s"\t\tDRAM Read Energy per Access: ${String.format("%.2f", dramReferenceData.get.readEnergyPj)} pJ ")
-      log(s"\t\tDRAM Read Energy per Access: ${String.format("%.2f", dramReferenceData.get.writeEnergyPj)} pJ ")
+      log(s"\t[Off Chip Memory Data from DRAMSim3]")
+      log(s"\t\tOff Chip Memory Read Energy per Access: ${String.format("%.2f", offChipMemoryReferenceData.get.readEnergyPj)} pJ ")
+      log(s"\t\tOff Chip Memory Read Energy per Access: ${String.format("%.2f", offChipMemoryReferenceData.get.writeEnergyPj)} pJ ")
       log(s"")
       log(s"\t[SRAM Data from NVSim]")
       log(s"\t\t[Input SRAM A]")
@@ -237,10 +237,10 @@ case class SimulationResult(
     if (isEnergyReportValid) {
       log("\t[Energy Analysis (pJ)]")
 
-      log("\t\t[DRAM]")
-      log(s"\t\tDRAM Read Energy: ${String.format("%.2f", dramReadEnergyPj.get)} pJ")
-      log(s"\t\tDRAM Write Energy: ${String.format("%.2f", dramWriteEnergyPj.get)} pJ")
-      log(s"\t\tDRAM Total Energy: ${String.format("%.2f", dramEnergyPj.get)} pJ")
+      log("\t\t[Off Chip Memory]")
+      log(s"\t\tOff Chip Memory Read Energy: ${String.format("%.2f", offChipMemoryReadEnergyPj.get)} pJ")
+      log(s"\t\tOff Chip Memory Write Energy: ${String.format("%.2f", offChipMemoryWriteEnergyPj.get)} pJ")
+      log(s"\t\tOff Chip Memory Total Energy: ${String.format("%.2f", offChipMemoryEnergyPj.get)} pJ")
       log("")
 
       log("\t\t[Input SRAM A]")
@@ -273,8 +273,8 @@ case class SimulationResult(
       log("\t\t[Total Energy]")
       log(s"\t\t${String.format("%.2f", energyPj.get)} pJ")
       log("")
-      log(s"\t\t[CSV Format (DRAM, SRAM A, SRAM B, SRAM C, ARRAY)] Energy")
-      log(s"\t\t${String.format("%.2f", dramEnergyPj.get)}, " +
+      log(s"\t\t[CSV Format (Off Chip Memory, SRAM A, SRAM B, SRAM C, ARRAY)] Energy")
+      log(s"\t\t${String.format("%.2f", offChipMemoryEnergyPj.get)}, " +
         s"${String.format("%.2f", sramEnergyPjA.get)}, " +
         s"${String.format("%.2f", sramEnergyPjB.get)}, " +
         s"${String.format("%.2f", sramEnergyPjC.get)}, " +
@@ -305,7 +305,7 @@ case class SimulationResult(
   }
 
   private def isReferenceDataValid: Boolean = {
-    dramReferenceData.isDefined && sramReferenceDataTable.isDefined && dramReferenceData.isDefined
+    offChipMemoryReferenceData.isDefined && sramReferenceDataTable.isDefined && offChipMemoryReferenceData.isDefined
   }
 
   def isEnergyReportValid: Boolean = {
@@ -322,9 +322,9 @@ case class SimulationResult(
       sramWriteEnergyPjC.isDefined &&
       sramLeakageEnergyPjC.isDefined &&
       sramEnergyPjC.isDefined &&
-      dramReadEnergyPj.isDefined &&
-      dramWriteEnergyPj.isDefined &&
-      dramEnergyPj.isDefined &&
+      offChipMemoryReadEnergyPj.isDefined &&
+      offChipMemoryWriteEnergyPj.isDefined &&
+      offChipMemoryEnergyPj.isDefined &&
       energyPj.isDefined
   }
 
@@ -375,15 +375,15 @@ object SimulationResult {
       cycle = wrongCycle,
       arrayActiveCount = defaults.intValue,
 
-      dramReadAccessCount = defaults.longValue,
-      dramWriteAccessCount = defaults.longValue,
+      offChipMemoryReadAccessCount = defaults.longValue,
+      offChipMemoryWriteAccessCount = defaults.longValue,
       sramReadAccessCountA = defaults.longValue,
       sramWriteAccessCountA = defaults.longValue,
       sramReadAccessCountB = defaults.longValue,
       sramWriteAccessCountB = defaults.longValue,
 
-      dramHitRatio = defaults.doubleValue,
-      dramMissRatio = defaults.doubleValue,
+      offChipMemoryHitRatio = defaults.doubleValue,
+      offChipMemoryMissRatio = defaults.doubleValue,
 
       sramHitRatioA = defaults.doubleValue,
       sramHitRatioB = defaults.doubleValue,
@@ -393,7 +393,7 @@ object SimulationResult {
       sramMissRatio = defaults.doubleValue,
 
       // 4. Pipeline state
-      dramStallCount = defaults.intValue,
+      offChipMemoryStallCount = defaults.intValue,
 
       firstFillUpCycleA = defaults.longValue,
       bufferSwapCountA = defaults.intValue,
@@ -420,7 +420,7 @@ object SimulationResult {
       averageMemoryUtilization = defaults.doubleValue,
 
       //6. Reference Data
-      dramReferenceData = None,
+      offChipMemoryReferenceData = None,
       sramReferenceDataTable = None,
       arraySynthesisSource = None,
       arraySynthesisData = None,
@@ -441,9 +441,9 @@ object SimulationResult {
       sramLeakageEnergyPjC = None,
       sramEnergyPjC = None,
 
-      dramReadEnergyPj = None,
-      dramWriteEnergyPj = None,
-      dramEnergyPj = None,
+      offChipMemoryReadEnergyPj = None,
+      offChipMemoryWriteEnergyPj = None,
+      offChipMemoryEnergyPj = None,
 
       arrayDynamicEnergyPj = None,
       arrayLeakageEnergyPj = None,
