@@ -410,7 +410,7 @@ class ArchitectureEvaluator(
       var currentArch = arch
       var success = false
       var attempts = 0
-      val maxAttempts = 5
+      val maxAttempts = 10
 
       while (!success && attempts < maxAttempts) {
 

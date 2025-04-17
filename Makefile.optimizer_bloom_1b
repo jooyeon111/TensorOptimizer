@@ -6,7 +6,7 @@ SYNTHESIS := $(INPUT_SIM)/synthesis
 LAYER_DIR := $(INPUT_SIM)/layer
 
 # Test options
-TEST_OPTION_4096 := $(CONFIG_DIR)/hbm2_total_multiplier_4096.cfg
+TEST_OPTION_4096 := $(CONFIG_DIR)/hbm2_total_multiplier_16384.cfg
 TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
 TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
 TEST_OPTION_RTL_RESULT_REF := $(SYNTHESIS)/weight.bin

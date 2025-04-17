@@ -208,8 +208,16 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/rtl/os_sta_8x16x1x4x1_sd1024.sv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	output/simulation[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation[0m
+[0m[[0m[0mdebug[0m] [0m[0m	output/simulation/result_bert_base_qkt_mult:4096.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/result_bert_base_qkt_mult:4096.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	output/simulation/result_bert_base_qkt_mult:16384.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/result_bert_base_qkt_mult:16384.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	output/simulation/result_bert_base_projection_mult:16384.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/result_bert_base_projection_mult:16384.txt[0m
 [0m[[0m[0mdebug[0m] [0m[0m	output/simulation/result_bert_base_projection_mult:4096.txt[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/result_bert_base_projection_mult:4096.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	output/simulation/result_bert_base_qktv_mult:16384.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/result_bert_base_qktv_mult:16384.txt[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/RunTimeError$.class[0m
@@ -452,8 +460,8 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/configs/designExplorer[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/configs/architecture_explorer[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/configs/architecture_explorer[0m
-[0m[[0m[0mdebug[0m] [0m[0m	input/simulation/configs/architecture_explorer/hbm2_total_multiplier_4096.cfg[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/configs/architecture_explorer/hbm2_total_multiplier_4096.cfg[0m
+[0m[[0m[0mdebug[0m] [0m[0m	input/simulation/configs/architecture_explorer/hbm2_total_multiplier_16384.cfg[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/configs/architecture_explorer/hbm2_total_multiplier_16384.cfg[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/configs/analyzer[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/configs/analyzer[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/configs/analyzer/oneLayer[0m
