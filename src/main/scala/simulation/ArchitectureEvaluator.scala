@@ -313,6 +313,8 @@ class ArchitectureEvaluator(
         s"${String.format("%.2f", simulationResult.averageMemoryUtilization)}\n"
       )
 
+
+
     } else {
       log(s"\t[${architecture.arrayConfig.arrayConfigString}]")
       log(s"\t\tCycle: ${simulationResult.cycle},")
@@ -575,14 +577,14 @@ class ArchitectureEvaluator(
   }
 
   private def trySingleOptimizationStep(currentArchResult: ArchitectureResult): ArchitectureResult = {
-    
+
     val currentArch = currentArchResult.architecture
 
     if(currentArch.singleBufferLimitKbA <= minSramSize){
 //      log(s"\t\t\tCannot reduce SRAM size further (minimum reached: $minSramSize")
       return currentArchResult
     }
-    
+
     val nextSramSize = math.max(minSramSize, currentArch.singleBufferLimitKbA/2)
     assert(
       (currentArch.singleBufferLimitKbA == currentArch.singleBufferLimitKbB)
@@ -591,12 +593,12 @@ class ArchitectureEvaluator(
     )
 
     val sramReducedArch = currentArch.withUniformSramSizes(nextSramSize)
-    
+
 //    log(s"\t\t\tTrying to reduce SRAM size from ${currentArch.singleBufferLimitKbA} KB to $nextSramSize KB")
-    
+
     val sramReducedArchResult = buildAndRunSimulation(sramReducedArch)
     val isSramReductionValid = sramReducedArchResult.simulationResult.cycle != Long.MaxValue
-    
+
     if(isSramReductionValid) {
       sramReducedArchResult
     } else {
@@ -772,7 +774,6 @@ class ArchitectureEvaluator(
         outputBandwidth = arrayConfig.bandwidthOfInputA,
         singleBufferTileCapacity = capacityA,
         singleBufferLimitKb = singleBufferLimitKbA,
-        referenceData = sramReferenceDataA,
         loggerOption = loggerOption
       )
       val sramB = new DoubleBufferSram(
@@ -780,14 +781,12 @@ class ArchitectureEvaluator(
         outputBandwidth = arrayConfig.bandwidthOfInputB,
         singleBufferTileCapacity = capacityB,
         singleBufferLimitKb = singleBufferLimitKbB,
-        referenceData = sramReferenceDataB,
         loggerOption = loggerOption
       )
       val sramC = new OutputDoubleBufferSram(
         outputBandwidth = simConfig.offChipMemoryBandwidth,
         singleBufferTileCapacity = capacityC,
         singleBufferLimitKb = singleBufferLimitKbC,
-        referenceData = sramReferenceDataC,
         loggerOption = loggerOption
       )
 
@@ -854,19 +853,22 @@ class ArchitectureEvaluator(
 
     val (layer, offChipMemory, array, srams, interface)= components
     val (sramA, sramB, sramC) = srams
-    
-    val simulation = new SystemSimulator(
-      offChipMemory = offChipMemory,
-      sramA = sramA,
-      sramB = sramB,
-      sramC = sramC,
-      interface = interface,
-      layer = layer,
-      array = array,
-      loggerOption = loggerOption,
-    )
+
 
     try {
+
+      val simulation = new SystemSimulator(
+        offChipMemory = offChipMemory,
+        sramA = sramA,
+        sramB = sramB,
+        sramC = sramC,
+        interface = interface,
+        layer = layer,
+        array = array,
+        sramReferenceDataVector = simConfig.sramReferenceDataVector,
+        loggerOption = loggerOption,
+      )
+
       simulation.startSimulation()
 
       SimulationResult(
@@ -931,7 +933,7 @@ class ArchitectureEvaluator(
         averageMemoryUtilization = simulation.getAverageMemoryUtilization,
 
         offChipMemoryReferenceData = simulation.getOffChipMemoryRefData,
-        sramReferenceDataTable = simulation.getSramRefDataTable,
+        sramModelDataTable = simulation.getSramModelDataTable,
         arraySynthesisSource = simulation.getArraySynthesisSource,
         arraySynthesisData = simulation.getArraySynthesisData,
 

@@ -9,7 +9,7 @@ class DoubleBufferSram(
   val outputBandwidth: Int,
   override val singleBufferTileCapacity: Int,
   override val singleBufferLimitKb: Int,
-  val referenceData: Option[SramReferenceData] = None,
+//  val referenceData: Option[SramReferenceData] = None,
   val loggerOption: LoggerOption,
 ) extends Sram with AccessCounter{
 
@@ -32,11 +32,11 @@ class DoubleBufferSram(
   def getOffChipMemoryHitCount: Double = totalOffChipMemoryHitCount
   def getOffChipMemoryMissCount: Double = totalOffChipMemoryMissCount
 
-  def getSramReadEnergy: Option[Double] =
-    referenceData.map( data => getReadAccessCount * data.readEnergyPj )
+//  def getSramReadEnergy: Option[Double] =
+//    referenceData.map( data => getReadAccessCount * data.readEnergyPj )
 
-  def getSramWriteEnergy: Option[Double] =
-    referenceData.map( data => getWriteAccessCount * data.writeEnergyPj )
+//  def getSramWriteEnergy: Option[Double] =
+//    referenceData.map( data => getWriteAccessCount * data.writeEnergyPj )
 
   def getReadBufferIDs: mutable.Queue[(Int, Int)] = {
     readBuffer.map(tile =>tile.id.asInstanceOf[(Int,Int)])

@@ -71,7 +71,7 @@ case class SimulationResult(
 
   //6. Reference Data
   offChipMemoryReferenceData: Option[OffChipMemoryReferenceData],
-  sramReferenceDataTable: Option[SramDataTable],
+  sramModelDataTable: Option[DividedSramModelTable],
   arraySynthesisSource: Option[ArraySynthesisSource.Value],
   arraySynthesisData: Option[ArraySynthesisData],
 
@@ -186,28 +186,37 @@ case class SimulationResult(
       log(s"")
       log(s"\t[SRAM Data from NVSim]")
       log(s"\t\t[Input SRAM A]")
-      log(s"\t\tSize: ${sramReferenceDataTable.get.sramA.get.capacityKb} KB")
-      log(s"\t\tBandwidth bit: ${sramReferenceDataTable.get.sramA.get.bandwidthBits}")
-      log(s"\t\tRead Energy Per Access: ${sramReferenceDataTable.get.sramA.get.readEnergyPj} pJ")
-      log(s"\t\tWrite Energy Per Access: ${sramReferenceDataTable.get.sramA.get.writeEnergyPj} pJ")
-      log(s"\t\tLeakage Power: ${sramReferenceDataTable.get.sramA.get.leakagePowerPw} pW")
-      log(s"\t\tArea: ${sramReferenceDataTable.get.sramA.get.areaUm2} pJ")
+      log(s"\t\t\tBank Count: ${sramModelDataTable.get.sramA.bankCount}")
+      log(s"\t\t\tBank Capacity: ${sramModelDataTable.get.sramA.referenceData.capacityKb} KB")
+      log(s"\t\t\tBank Bandwidth: ${sramModelDataTable.get.sramA.referenceData.bandwidthBits}")
+      log(s"\t\t\tBank Read Energy Per Access: ${sramModelDataTable.get.sramA.referenceData.readEnergyPj} pJ")
+      log(s"\t\t\tBank Write Energy Per Access: ${sramModelDataTable.get.sramA.referenceData.writeEnergyPj} pJ")
+      log(s"\t\t\tBank Leakage Power: ${sramModelDataTable.get.sramA.referenceData.leakagePowerPw} pW")
+      log(s"\t\t\tBank Area: ${sramModelDataTable.get.sramA.referenceData.areaUm2} um^2\n")
+      log(s"\t\t\tTotal SRAM Capacity: ${sramModelDataTable.get.sramA.totalSramCapacityKb} KB")
+      log(s"\t\t\tTotal SRAM Area: ${sramModelDataTable.get.sramA.totalSramSizeUm2} um^2")
       log(s"")
-      log(s"\t\t[Weight SRAM B]")
-      log(s"\t\tSize: ${sramReferenceDataTable.get.sramB.get.capacityKb} KB")
-      log(s"\t\tBandwidth bit: ${sramReferenceDataTable.get.sramB.get.bandwidthBits}")
-      log(s"\t\tRead Energy Per Access: ${sramReferenceDataTable.get.sramB.get.readEnergyPj} pJ")
-      log(s"\t\tWrite Energy Per Access: ${sramReferenceDataTable.get.sramB.get.writeEnergyPj} pJ")
-      log(s"\t\tLeakage Power: ${sramReferenceDataTable.get.sramB.get.leakagePowerPw} pW")
-      log(s"\t\tArea: ${sramReferenceDataTable.get.sramB.get.areaUm2} pJ")
+      log(s"\t\t\t[Weight SRAM B]")
+      log(s"\t\t\tBank Count: ${sramModelDataTable.get.sramB.bankCount}")
+      log(s"\t\t\tBank Capacity: ${sramModelDataTable.get.sramB.referenceData.capacityKb} KB")
+      log(s"\t\t\tBank Bandwidth: ${sramModelDataTable.get.sramB.referenceData.bandwidthBits}")
+      log(s"\t\t\tBank Read Energy Per Access: ${sramModelDataTable.get.sramB.referenceData.readEnergyPj} pJ")
+      log(s"\t\t\tBank Write Energy Per Access: ${sramModelDataTable.get.sramB.referenceData.writeEnergyPj} pJ")
+      log(s"\t\t\tBank Leakage Power: ${sramModelDataTable.get.sramB.referenceData.leakagePowerPw} pW")
+      log(s"\t\t\tBank Area: ${sramModelDataTable.get.sramB.referenceData.areaUm2} um^2\n")
+      log(s"\t\t\tTotal SRAM Capacity: ${sramModelDataTable.get.sramB.totalSramCapacityKb} KB")
+      log(s"\t\t\tTotal SRAM Area: ${sramModelDataTable.get.sramB.totalSramSizeUm2} um^2")
       log(s"")
-      log(s"\t\t[Output SRAM C]")
-      log(s"\t\tSize: ${sramReferenceDataTable.get.sramC.get.capacityKb} KB")
-      log(s"\t\tBandwidth bit: ${sramReferenceDataTable.get.sramC.get.bandwidthBits}")
-      log(s"\t\tRead Energy Per Access: ${sramReferenceDataTable.get.sramC.get.readEnergyPj} pJ")
-      log(s"\t\tWrite Energy Per Access: ${sramReferenceDataTable.get.sramC.get.writeEnergyPj} pJ")
-      log(s"\t\tLeakage Power: ${sramReferenceDataTable.get.sramC.get.leakagePowerPw} pW")
-      log(s"\t\tArea: ${sramReferenceDataTable.get.sramC.get.areaUm2} pJ")
+      log(s"\t\t\t[Output SRAM C]")
+      log(s"\t\t\tBank Count: ${sramModelDataTable.get.sramC.bankCount}")
+      log(s"\t\t\tBank Capacity: ${sramModelDataTable.get.sramC.referenceData.capacityKb} KB")
+      log(s"\t\t\tBank Bandwidth: ${sramModelDataTable.get.sramC.referenceData.bandwidthBits}")
+      log(s"\t\t\tBank Read Energy Per Access: ${sramModelDataTable.get.sramC.referenceData.readEnergyPj} pJ")
+      log(s"\t\t\tBank Write Energy Per Access: ${sramModelDataTable.get.sramC.referenceData.writeEnergyPj} pJ")
+      log(s"\t\t\tBank Leakage Power: ${sramModelDataTable.get.sramC.referenceData.leakagePowerPw} pW")
+      log(s"\t\t\tBank Area: ${sramModelDataTable.get.sramC.referenceData.areaUm2} um^2\n")
+      log(s"\t\t\tTotal SRAM Capacity: ${sramModelDataTable.get.sramC.totalSramCapacityKb} KB")
+      log(s"\t\t\tTotal SRAM Area: ${sramModelDataTable.get.sramC.totalSramSizeUm2} um^2")
       log(s"")
 
       if(arraySynthesisSource.isEmpty){
@@ -305,7 +314,7 @@ case class SimulationResult(
   }
 
   private def isReferenceDataValid: Boolean = {
-    offChipMemoryReferenceData.isDefined && sramReferenceDataTable.isDefined && offChipMemoryReferenceData.isDefined
+    offChipMemoryReferenceData.isDefined && sramModelDataTable.isDefined && offChipMemoryReferenceData.isDefined
   }
 
   def isEnergyReportValid: Boolean = {
@@ -421,7 +430,7 @@ object SimulationResult {
 
       //6. Reference Data
       offChipMemoryReferenceData = None,
-      sramReferenceDataTable = None,
+      sramModelDataTable = None,
       arraySynthesisSource = None,
       arraySynthesisData = None,
 

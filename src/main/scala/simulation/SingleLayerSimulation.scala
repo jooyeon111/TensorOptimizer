@@ -6,28 +6,28 @@ import common.{ArrayDimension, Dataflow, FilePaths, OutputPortCalculator}
 trait SingleLayerSimulation extends OutputPortCalculator with Logger {
 
   private case class SimulationConfig(
-                                       debugPrint: Boolean,
-                                       debugStartCycle: Int,
-                                       debugEndCycle: Int,
-                                       layerName: String,
-                                       layerGemmDimension: GemmDimension,
-                                       streamingDimensionSize: Int,
-                                       dataflow: Dataflow.Value,
-                                       groupPeRow: Int,
-                                       groupPeCol: Int,
-                                       vectorPeRow: Int,
-                                       vectorPeCol: Int,
-                                       numMultiplier: Int,
-                                       portBitWidth: PortBitWidth,
-                                       offChipMemoryBandwidth: Int,
-                                       offChipMemoryUploadOrder: OffChipMemoryUploadOrder.Value,
-                                       singleBufferLimitKbA: Int,
-                                       singleBufferLimitKbB: Int,
-                                       singleBufferLimitKbC: Int,
-                                       offChipMemoryReferenceData: Option[OffChipMemoryReferenceData],
-                                       sramReferenceDataVector: Option[Vector[SramReferenceData]],
-                                       arraySynthesisSource: Option[ArraySynthesisSource.Value],
-                                       arraySynthesisData: Option[ArraySynthesisData]
+    debugPrint: Boolean,
+    debugStartCycle: Int,
+    debugEndCycle: Int,
+    layerName: String,
+    layerGemmDimension: GemmDimension,
+    streamingDimensionSize: Int,
+    dataflow: Dataflow.Value,
+    groupPeRow: Int,
+    groupPeCol: Int,
+    vectorPeRow: Int,
+    vectorPeCol: Int,
+    numMultiplier: Int,
+    portBitWidth: PortBitWidth,
+    offChipMemoryBandwidth: Int,
+    offChipMemoryUploadOrder: OffChipMemoryUploadOrder.Value,
+    singleBufferLimitKbA: Int,
+    singleBufferLimitKbB: Int,
+    singleBufferLimitKbC: Int,
+    offChipMemoryReferenceData: Option[OffChipMemoryReferenceData],
+    sramReferenceDataVector: Option[Vector[SramReferenceData]],
+    arraySynthesisSource: Option[ArraySynthesisSource.Value],
+    arraySynthesisData: Option[ArraySynthesisData]
   ) {
     def validate: Boolean = {
       val baseValidation = streamingDimensionSize > 0 &&
@@ -503,35 +503,35 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     if(!(capacityA > 0 && capacityB > 0 && capacityC > 0 ))
       throw SramBuildError("SRAM Cannot contain even 1 tile increase SRAM size")
 
-    val sramReferenceDataA: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
-      vector.find{ data =>
-        data.capacityKb == simConfig.singleBufferLimitKbA && data.bandwidthBits >= arrayConfig.bandwidthOfInputA
-      }
-    }
-
-    val sramReferenceDataB: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
-      vector.find{ data =>
-        data.capacityKb == simConfig.singleBufferLimitKbB && data.bandwidthBits >= arrayConfig.bandwidthOfInputB
-      }
-    }
-
-    val sramReferenceDataC: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
-      vector.find{ data =>
-        data.capacityKb == simConfig.singleBufferLimitKbC && data.bandwidthBits >= arrayConfig.outputBandwidth
-      }
-    }
-
-    if(simConfig.sramReferenceDataVector.isDefined &&
-      (sramReferenceDataA.isEmpty || sramReferenceDataB.isEmpty || sramReferenceDataC.isEmpty)){
-      throw ParseError("Cannot find SRAM data from external reports ...")
-    }
+//    val sramReferenceDataA: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+//      vector.find{ data =>
+//        data.capacityKb == simConfig.singleBufferLimitKbA && data.bandwidthBits >= arrayConfig.bandwidthOfInputA
+//      }
+//    }
+//
+//    val sramReferenceDataB: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+//      vector.find{ data =>
+//        data.capacityKb == simConfig.singleBufferLimitKbB && data.bandwidthBits >= arrayConfig.bandwidthOfInputB
+//      }
+//    }
+//
+//    val sramReferenceDataC: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+//      vector.find{ data =>
+//        data.capacityKb == simConfig.singleBufferLimitKbC && data.bandwidthBits >= arrayConfig.outputBandwidth
+//      }
+//    }
+//
+//    if(simConfig.sramReferenceDataVector.isDefined &&
+//      (sramReferenceDataA.isEmpty || sramReferenceDataB.isEmpty || sramReferenceDataC.isEmpty)){
+//      throw ParseError("Cannot find SRAM data from external reports ...")
+//    }
 
     val sramA = new DoubleBufferSram(
       dataType = DataType.A,
       outputBandwidth = arrayConfig.bandwidthOfInputA,
       singleBufferTileCapacity = capacityA,
       singleBufferLimitKb = simConfig.singleBufferLimitKbA,
-      referenceData = sramReferenceDataA,
+//      referenceData = sramReferenceDataA,
       loggerOption = loggerOption
     )
     val sramB = new DoubleBufferSram(
@@ -539,14 +539,14 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       outputBandwidth = arrayConfig.bandwidthOfInputB,
       singleBufferTileCapacity = capacityB,
       singleBufferLimitKb = simConfig.singleBufferLimitKbB,
-      referenceData = sramReferenceDataB,
+//      referenceData = sramReferenceDataB,
       loggerOption = loggerOption
     )
     val sramC = new OutputDoubleBufferSram(
       outputBandwidth = simConfig.offChipMemoryBandwidth,
       singleBufferTileCapacity = capacityC,
       singleBufferLimitKb = simConfig.singleBufferLimitKbC,
-      referenceData = sramReferenceDataC,
+//      referenceData = sramReferenceDataC,
       loggerOption = loggerOption
     )
 
@@ -562,21 +562,22 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     val (layer, array, interface, offChipMemory, srams, loggerOption) = components
     val (sramA, sramB, sramC) = srams
 
-    val simulation = new SystemSimulator(
-      offChipMemory = offChipMemory,
-      sramA = sramA,
-      sramB = sramB,
-      sramC = sramC,
-      interface = interface,
-      layer = layer,
-      array = array,
-      debugStartCycle = simConfig.debugStartCycle,
-      debugEndCycle = simConfig.debugEndCycle,
-      debugMode = simConfig.debugPrint,
-      loggerOption = loggerOption,
-    )
-
     try {
+
+      val simulation = new SystemSimulator(
+        offChipMemory = offChipMemory,
+        sramA = sramA,
+        sramB = sramB,
+        sramC = sramC,
+        interface = interface,
+        layer = layer,
+        array = array,
+        sramReferenceDataVector = simConfig.sramReferenceDataVector,
+        debugStartCycle = simConfig.debugStartCycle,
+        debugEndCycle = simConfig.debugEndCycle,
+        debugMode = simConfig.debugPrint,
+        loggerOption = loggerOption,
+      )
 
       simulation.startSimulation()
 
@@ -642,7 +643,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
         averageMemoryUtilization = simulation.getAverageMemoryUtilization,
 
         offChipMemoryReferenceData = simulation.getOffChipMemoryRefData,
-        sramReferenceDataTable = simulation.getSramRefDataTable,
+        sramModelDataTable = simulation.getSramModelDataTable,
         arraySynthesisSource = simulation.getArraySynthesisSource,
         arraySynthesisData = simulation.getArraySynthesisData,
 

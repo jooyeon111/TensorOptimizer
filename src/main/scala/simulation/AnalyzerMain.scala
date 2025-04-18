@@ -2,7 +2,6 @@ package simulation
 
 import common.FilePaths
 import scala.util.{Failure, Success, Try}
-import java.io.File
 
 object AnalyzerMain extends App
   with RtlSynthesisManager
@@ -129,6 +128,7 @@ object AnalyzerMain extends App
 
     } else {
       Console.err.println(s"Invalid number of arguments It is ${args.length}" + help)
+      args.foreach(Console.err.println)
       sys.exit(1)
     }
 
