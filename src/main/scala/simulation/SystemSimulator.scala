@@ -323,7 +323,7 @@ class SystemSimulator(
       } match {
         case Some(refData) => Some(DividedSramModel(bankCount, refData))
         case None =>
-          throw SramBuildError("Cannot slice SRAM!")
+          throw SramBuildError(s"Cannot find the SRAM Size: ${(singleBufferLimitKb / bankCount)} KB and Bandwidth: ${bandwidth}")
       }
     }
   }

@@ -726,7 +726,7 @@ class ArchitectureEvaluator(
         ArchitectureResult(architecture = architecture, simulationResult = SimulationResult(Long.MaxValue, Double.MaxValue, Double.MaxValue))
     }
   }
-
+//
   private def buildSrams(
     arrayConfig: ArrayConfig,
     simConfig: SystemArchitectureOptimizer.SimulationConfig,
@@ -976,6 +976,10 @@ class ArchitectureEvaluator(
       case _: RunTimeError =>
         Console.err.println("Program Wrong")
         sys.exit(1)
+
+      case error: SramBuildError =>
+        log(s"\t\t$error")
+        SimulationResult(Long.MaxValue, Double.MaxValue, Double.MaxValue)
     }
 
   }
