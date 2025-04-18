@@ -308,7 +308,11 @@ class ArchitectureEvaluator(
       log(s"\t\tSingleBuffer B: ${architecture.singleBufferLimitKbB} KB")
       log(s"\t\tSingleBuffer C: ${architecture.singleBufferLimitKbC} KB")
       log(s"\t\tAverage Memory Utilization: ${String.format("%.2f", simulationResult.averageMemoryUtilization)} %\n")
-      log(s"\t\t[SRAM Modeling information]")
+      log(s"\t\t[Array Bandwidth Information]")
+      log(s"\t\t\tInput Bandwidth A: ${architecture.arrayConfig.bandwidthOfInputA}")
+      log(s"\t\t\tInput Bandwidth B: ${architecture.arrayConfig.bandwidthOfInputB}")
+      log(s"\t\t\tOutput Bandwidth C: ${architecture.arrayConfig.outputBandwidth}\n")
+      log(s"\t\t[SRAM Modeling Information]")
       log(s"\t\t[Input SRAM A]")
       log(s"\t\t\tBank Count: ${simulationResult.sramModelDataTable.get.sramA.bankCount}")
       log(s"\t\t\tBank Capacity: ${simulationResult.sramModelDataTable.get.sramA.referenceData.capacityKb} KB")
@@ -350,7 +354,10 @@ class ArchitectureEvaluator(
       log(s"\t\tSingleBuffer B: ${architecture.singleBufferLimitKbB} KB")
       log(s"\t\tSingleBuffer C: ${architecture.singleBufferLimitKbC} KB")
       log(s"\t\tAverage Memory Utilization: ${String.format("%.2f", simulationResult.averageMemoryUtilization)} %\n")
-
+      log(s"\t\t[Array Bandwidth Information]")
+      log(s"\t\t\tInput Bandwidth A: ${architecture.arrayConfig.bandwidthOfInputA}")
+      log(s"\t\t\tInput Bandwidth B: ${architecture.arrayConfig.bandwidthOfInputB}")
+      log(s"\t\t\tOutput Bandwidth C: ${architecture.arrayConfig.outputBandwidth}\n")
       log(s"\t\t[SRAM Modeling information]")
       log(s"\t\t[Input SRAM A]")
       log(s"\t\t\tBank Count: ${simulationResult.sramModelDataTable.get.sramA.bankCount}")
@@ -395,8 +402,7 @@ class ArchitectureEvaluator(
     val architecture = ArchitectureResult.architecture
 
     if(simulationResult.isEnergyReportValid && simulationResult.isAreaReportValid) {
-      log(s"\t\t[CSV Format]")
-      log(s"\t\t${architecture.arrayConfig.dataflow}," +
+      log(s"\t${architecture.arrayConfig.dataflow}," +
         s"${architecture.arrayConfig.asArrayDimension.arrayDimensionString}," +
         s" ${simulationResult.cycle}, " +
         s"${String.format("%.2f", simulationResult.areaUm2.get)}, " +
@@ -405,11 +411,10 @@ class ArchitectureEvaluator(
         s"${architecture.singleBufferLimitKbA}, " +
         s"${architecture.singleBufferLimitKbB}, " +
         s"${architecture.singleBufferLimitKbC}, " +
-        s"${String.format("%.2f", simulationResult.averageMemoryUtilization)}\n"
+        s"${String.format("%.2f", simulationResult.averageMemoryUtilization)}"
       )
     } else {
-      log(s"\t\t[CSV Format]")
-      log(s"\t\t${architecture.arrayConfig.dataflow}," +
+      log(s"\t${architecture.arrayConfig.dataflow}," +
         s"${architecture.arrayConfig.asArrayDimension.arrayDimensionString}," +
         s"${simulationResult.cycle}, " +
         s"${String.format("%.2f", simulationResult.areaUm2.get)}, " +
@@ -418,7 +423,7 @@ class ArchitectureEvaluator(
         s"${architecture.singleBufferLimitKbA}, " +
         s"${architecture.singleBufferLimitKbB}, " +
         s"${architecture.singleBufferLimitKbC}," +
-        s"${String.format("%.2f", simulationResult.averageMemoryUtilization)}\n"
+        s"${String.format("%.2f", simulationResult.averageMemoryUtilization)}"
       )
     }
   }
@@ -547,7 +552,6 @@ class ArchitectureEvaluator(
       }
 
       if (!success) {
-
         log(s"\t\tFailed to build arch ${arch.arrayConfig.arrayConfigString}")
         log(s"\t\tInitial streaming dimension is too high change max attempts current maximum attempts is $maxAttempts")
         log("")
@@ -830,32 +834,15 @@ class ArchitectureEvaluator(
 
     if(!(capacityA > 0 && capacityB > 0 && capacityC > 0 )) {
       if(isFirstTrial) {
-        log(s"\t\tBuilding SRAM is failed: ${arrayConfig.arrayConfigString}")
-        log(s"\t\t\tSRAM A Capacity: $capacityA, SRAM B Capacity: $capacityB, SRAM C Capacity: $capacityC ")
-        log(s"\t\t\tTile Size A: $tileSizeA, Tile Size B: $tileSizeB, Tile Size C: $tileSizeC ")
+        log(s"\t\tBuilding SRAM is failed: ${arrayConfig.arrayConfigString}\n" +
+          s"\t\t\tSRAM A Capacity: $capacityA, SRAM B Capacity: $capacityB, SRAM C Capacity: $capacityC\n" +
+          s"\t\t\tTile Size A: $tileSizeA, Tile Size B: $tileSizeB, Tile Size C: $tileSizeC ")
+//        log(s"\t\t\tSRAM A Capacity: $capacityA, SRAM B Capacity: $capacityB, SRAM C Capacity: $capacityC ")
+//        log(s"\t\t\tTile Size A: $tileSizeA, Tile Size B: $tileSizeB, Tile Size C: $tileSizeC ")
 
       }
       Left(SramBuildError("SRAM Cannot contain even 1 tile"))
     } else {
-
-      val sramReferenceDataA: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
-        vector.find{ data =>
-          data.capacityKb == singleBufferLimitKbA && data.bandwidthBits >= arrayConfig.bandwidthOfInputA
-        }
-      }
-
-      val sramReferenceDataB: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
-        vector.find{ data =>
-          data.capacityKb == singleBufferLimitKbB && data.bandwidthBits >= arrayConfig.bandwidthOfInputB
-        }
-      }
-
-      val sramReferenceDataC: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
-        vector.find{ data =>
-          data.capacityKb == singleBufferLimitKbC && data.bandwidthBits >= arrayConfig.outputBandwidth
-        }
-      }
-
       val sramA = new DoubleBufferSram(
         dataType = DataType.A,
         outputBandwidth = arrayConfig.bandwidthOfInputA,
@@ -876,9 +863,7 @@ class ArchitectureEvaluator(
         singleBufferLimitKb = singleBufferLimitKbC,
         loggerOption = loggerOption
       )
-
       Right((sramA, sramB, sramC))
-
     }
   }
 
