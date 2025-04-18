@@ -344,7 +344,7 @@ class ArchitectureEvaluator(
       log(s"\t\t\tBank Leakage Power: ${simulationResult.sramModelDataTable.get.sramC.referenceData.leakagePowerPw} pW")
       log(s"\t\t\tBank Area: ${simulationResult.sramModelDataTable.get.sramC.referenceData.areaUm2} um^2\n")
       log(s"\t\t\tTotal SRAM Capacity: ${simulationResult.sramModelDataTable.get.sramC.totalSramCapacityKb} KB")
-      log(s"\t\t\tTotal SRAM Area: ${simulationResult.sramModelDataTable.get.sramC.totalSramSizeUm2} um^2")
+      log(s"\t\t\tTotal SRAM Area: ${simulationResult.sramModelDataTable.get.sramC.totalSramSizeUm2} um^2\n")
 
     } else {
       log(s"\t[${architecture.arrayConfig.arrayConfigString}]")
@@ -390,7 +390,7 @@ class ArchitectureEvaluator(
       log(s"\t\t\tBank Leakage Power: ${simulationResult.sramModelDataTable.get.sramC.referenceData.leakagePowerPw} pW")
       log(s"\t\t\tBank Area: ${simulationResult.sramModelDataTable.get.sramC.referenceData.areaUm2} um^2\n")
       log(s"\t\t\tTotal SRAM Capacity: ${simulationResult.sramModelDataTable.get.sramC.totalSramCapacityKb} KB")
-      log(s"\t\t\tTotal SRAM Area: ${simulationResult.sramModelDataTable.get.sramC.totalSramSizeUm2} um^2")
+      log(s"\t\t\tTotal SRAM Area: ${simulationResult.sramModelDataTable.get.sramC.totalSramSizeUm2} um^2\n")
 
     }
 
@@ -508,9 +508,9 @@ class ArchitectureEvaluator(
         val layer = new Layer(
           layerName = simConfig.layerName,
           gemmDimension = simConfig.layerGemmDimension,
-          arrayConfig = arch.arrayConfig,
-          streamingDimensionSize = arch.streamingDimensionSize,
-          offChipMemoryUploadOrder = arch.offChipMemoryUploadOrder,
+          arrayConfig = currentArch.arrayConfig,
+          streamingDimensionSize = currentArch.streamingDimensionSize,
+          offChipMemoryUploadOrder = currentArch.offChipMemoryUploadOrder,
           loggerOption = loggerOption
         )
 
@@ -519,16 +519,15 @@ class ArchitectureEvaluator(
         val tileSizeC = layer.operationVector.head.generateTileC.dims.memorySize
 
         buildSrams(
-          arrayConfig = arch.arrayConfig,
+          arrayConfig = currentArch.arrayConfig,
           simConfig = simConfig,
-          singleBufferLimitKbA = arch.singleBufferLimitKbA,
-          singleBufferLimitKbB = arch.singleBufferLimitKbB,
-          singleBufferLimitKbC = arch.singleBufferLimitKbC,
+          singleBufferLimitKbA = currentArch.singleBufferLimitKbA,
+          singleBufferLimitKbB = currentArch.singleBufferLimitKbB,
+          singleBufferLimitKbC = currentArch.singleBufferLimitKbC,
           tileSizeA = tileSizeA,
           tileSizeB = tileSizeB,
           tileSizeC = tileSizeC,
-          isFirstTrial = attempts == 0,
-          loggerOption = loggerOption
+          loggerOption = loggerOption,
         ) match {
           case Right(_) =>
             success = true
@@ -537,18 +536,18 @@ class ArchitectureEvaluator(
           case Left(_) =>
             if (currentArch.streamingDimensionSize > 1) {
 
-              log(s"\t\tStreaming Dimension ${currentArch.streamingDimensionSize} is too high to build SRAM")
+              log(s"\t\t\tStreaming Dimension ${currentArch.streamingDimensionSize} is too high to build SRAM")
               val newStreamingDimSize = Math.max(1, currentArch.streamingDimensionSize / 2)
 
-              log(s"\t\thalf the streaming dimension as $newStreamingDimSize")
+              log(s"\t\t\thalf the streaming dimension as $newStreamingDimSize\n")
               currentArch = currentArch.withStreamingDimensionSize(newStreamingDimSize)
-
               attempts += 1
 
             } else {
               attempts = maxAttempts
             }
         }
+
       }
 
       if (!success) {
@@ -824,7 +823,6 @@ class ArchitectureEvaluator(
     tileSizeA: Int,
     tileSizeB: Int,
     tileSizeC: Int,
-    isFirstTrial: Boolean = true,
     loggerOption: LoggerOption
   ): Either[SramBuildError,(DoubleBufferSram, DoubleBufferSram, OutputDoubleBufferSram)] = {
 
@@ -833,14 +831,13 @@ class ArchitectureEvaluator(
     val capacityC = singleBufferLimitKbC * 8 * 1024 / tileSizeC
 
     if(!(capacityA > 0 && capacityB > 0 && capacityC > 0 )) {
-      if(isFirstTrial) {
         log(s"\t\tBuilding SRAM is failed: ${arrayConfig.arrayConfigString}\n" +
           s"\t\t\tSRAM A Capacity: $capacityA, SRAM B Capacity: $capacityB, SRAM C Capacity: $capacityC\n" +
-          s"\t\t\tTile Size A: $tileSizeA, Tile Size B: $tileSizeB, Tile Size C: $tileSizeC ")
+          s"\t\t\tTile Size A: $tileSizeA, Tile Size B: $tileSizeB, Tile Size C: $tileSizeC")
 //        log(s"\t\t\tSRAM A Capacity: $capacityA, SRAM B Capacity: $capacityB, SRAM C Capacity: $capacityC ")
 //        log(s"\t\t\tTile Size A: $tileSizeA, Tile Size B: $tileSizeB, Tile Size C: $tileSizeC ")
 
-      }
+
       Left(SramBuildError("SRAM Cannot contain even 1 tile"))
     } else {
       val sramA = new DoubleBufferSram(
