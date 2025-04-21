@@ -21,9 +21,9 @@ class ArchitectureEvaluator(
   private val singleSramOptimizedResults = ArrayBuffer.empty[ArchitectureResult]
   private val rankedSingleSramOptimizedResults = ArrayBuffer.empty[ArchitectureResult]
 
-  private val processOneMargin: Double = 5.0
-  private val processTwoMargin: Double = 3.0
-  private val processThreeMargin: Double = 2.0
+  private val processOneMargin: Double = 10.0
+  private val processTwoMargin: Double = 5.0
+  private val processThreeMargin: Double = 5.0
 
   def run(): Unit = {
 
