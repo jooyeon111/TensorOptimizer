@@ -305,7 +305,7 @@ case class SimulationResult(
       log(s"\t\t${String.format("%.2f", sramAreaUm2A.get)}, " +
         s"${String.format("%.2f", sramAreaUm2B.get)}, " +
         s"${String.format("%.2f", sramAreaUm2C.get)}, " +
-        s"${String.format("%.2f", sramAreaUm2C.get)}"
+        s"${String.format("%.2f", arrayAreaUm2.get)}"
       )
     }
 

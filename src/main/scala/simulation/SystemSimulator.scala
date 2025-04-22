@@ -309,9 +309,9 @@ class SystemSimulator(
       val arrayConfig = array.arrayConfig
 
       val (bandwidth, singleBufferLimitKb, bankCountFn) = dataType match {
-        case DataType.A => (arrayConfig.bandwidthOfInputA, sramA.singleBufferLimitKb, calculateInputBankCount _)
-        case DataType.B => (arrayConfig.bandwidthOfInputB, sramB.singleBufferLimitKb, calculateInputBankCount _)
-        case DataType.C => (arrayConfig.outputBandwidth, sramC.singleBufferLimitKb, calculateOutputBankCount _)
+        case DataType.A => (arrayConfig.bandwidthOfInputA, sramA.singleBufferLimitKb, calculateBankCount _)
+        case DataType.B => (arrayConfig.bandwidthOfInputB, sramB.singleBufferLimitKb, calculateBankCount _)
+        case DataType.C => (arrayConfig.outputBandwidth, sramC.singleBufferLimitKb, calculateBankCount _)
       }
 
       val bankCount = bankCountFn(bandwidth)
@@ -328,18 +328,8 @@ class SystemSimulator(
     }
   }
 
-  private def calculateInputBankCount(arrayBandwidth: Int): Int = {
+  private def calculateBankCount(arrayBandwidth: Int): Int = {
     val bandwidthRatio = offChipMemory.outputBandwidth.toDouble / arrayBandwidth.toDouble
-    if (bandwidthRatio > 1.0) {
-      val minBanksNeeded = math.ceil(bandwidthRatio).toInt
-      math.pow(2, math.ceil(math.log(minBanksNeeded) / math.log(2))).toInt
-    } else {
-      1
-    }
-  }
-
-  private def calculateOutputBankCount(arrayBandwidth: Int): Int = {
-    val bandwidthRatio = arrayBandwidth.toDouble / offChipMemory.outputBandwidth.toDouble
     if (bandwidthRatio > 1.0) {
       val minBanksNeeded = math.ceil(bandwidthRatio).toInt
       math.pow(2, math.ceil(math.log(minBanksNeeded) / math.log(2))).toInt

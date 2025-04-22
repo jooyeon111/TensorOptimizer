@@ -22,7 +22,7 @@ class ArchitectureEvaluator(
   private val rankedSingleSramOptimizedResults = ArrayBuffer.empty[ArchitectureResult]
 
   private val processOneMargin: Double = 10.0
-  private val processTwoMargin: Double = 5.0
+  private val processTwoMargin: Double = 100.0
   private val processThreeMargin: Double = 5.0
 
   def run(): Unit = {
@@ -42,6 +42,8 @@ class ArchitectureEvaluator(
       simulatedCandidates = calculatedAllResults,
       rankedSimulatedCandidates = rankedCalculatedResults,
     )
+
+    rankedCalculatedResults.foreach(logSummary)
 
     //optimize arch
     archOptimizedResults ++= process2(rankedCalculatedResults, processTwoMargin)
@@ -317,6 +319,8 @@ class ArchitectureEvaluator(
       log(s"\t\t\tBank Count: ${simulationResult.sramModelDataTable.get.sramA.bankCount}")
       log(s"\t\t\tBank Capacity: ${simulationResult.sramModelDataTable.get.sramA.referenceData.capacityKb} KB")
       log(s"\t\t\tBank Bandwidth: ${simulationResult.sramModelDataTable.get.sramA.referenceData.bandwidthBits}")
+//      log(s"\t\t\tSRAM Read Access Count: ${simulationResult.sramReadAccessCountA}")
+//      log(s"\t\t\tSRAM Write Access Count: ${simulationResult.sramWriteAccessCountA}")
       log(s"\t\t\tBank Read Energy Per Access: ${simulationResult.sramModelDataTable.get.sramA.referenceData.readEnergyPj} pJ")
       log(s"\t\t\tBank Write Energy Per Access: ${simulationResult.sramModelDataTable.get.sramA.referenceData.writeEnergyPj} pJ")
       log(s"\t\t\tBank Leakage Power: ${simulationResult.sramModelDataTable.get.sramA.referenceData.leakagePowerPw} pW")
@@ -328,6 +332,8 @@ class ArchitectureEvaluator(
       log(s"\t\t\tBank Count: ${simulationResult.sramModelDataTable.get.sramB.bankCount}")
       log(s"\t\t\tBank Capacity: ${simulationResult.sramModelDataTable.get.sramB.referenceData.capacityKb} KB")
       log(s"\t\t\tBank Bandwidth: ${simulationResult.sramModelDataTable.get.sramB.referenceData.bandwidthBits}")
+//      log(s"\t\t\tSRAM Read Access Count: ${simulationResult.sramReadAccessCountB}")
+//      log(s"\t\t\tSRAM Write Access Count: ${simulationResult.sramWriteAccessCountB}")
       log(s"\t\t\tBank Read Energy Per Access: ${simulationResult.sramModelDataTable.get.sramB.referenceData.readEnergyPj} pJ")
       log(s"\t\t\tBank Write Energy Per Access: ${simulationResult.sramModelDataTable.get.sramB.referenceData.writeEnergyPj} pJ")
       log(s"\t\t\tBank Leakage Power: ${simulationResult.sramModelDataTable.get.sramB.referenceData.leakagePowerPw} pW")
@@ -608,10 +614,10 @@ class ArchitectureEvaluator(
             ArchitectureState(state.archResult, canOptimize = false)
           }
 
-
         } else {
           ArchitectureState(state.archResult, canOptimize = false)
         }
+
       }
 
       architectureStates = ArrayBuffer.empty[ArchitectureState]
@@ -637,9 +643,6 @@ class ArchitectureEvaluator(
       previousResults = rankedResults.clone()
       iteration += 1
     }
-//
-//    log(s"\t\tOptimization complete after $iteration iterations")
-
 
     val result = architectureStates.map(_.archResult)
     logStatistics(result)
