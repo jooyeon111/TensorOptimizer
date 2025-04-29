@@ -110,6 +110,14 @@ case class SimulationResult(
 
 ) extends Logger {
 
+  def getAreaEnergyProduct: Option[Double] = {
+    if(energyPj.isDefined && areaUm2.isDefined){
+     Some(energyPj.get * areaUm2.get)
+    } else {
+      None
+    }
+  }
+
   def printFullResults(loggerOption: LoggerOption): Unit = {
     setMode(loggerOption)
     log(s"[Simulation Results]")
@@ -307,6 +315,11 @@ case class SimulationResult(
         s"${String.format("%.2f", sramAreaUm2C.get)}, " +
         s"${String.format("%.2f", arrayAreaUm2.get)}"
       )
+    }
+
+    if (isEnergyReportValid && isAreaReportValid) {
+      log("\t[Energy-Area Product]")
+      log(s"\t\tEnergy-Area Product: ${String.format("%.2f", getAreaEnergyProduct.get)} pJ*um^2")
     }
 
     log(s"")

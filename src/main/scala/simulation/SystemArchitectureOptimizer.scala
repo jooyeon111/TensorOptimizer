@@ -12,7 +12,7 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
 
   object OptimizationMetric extends Enumeration{
     type OptimizationMetric = Value
-    val Cycle, Energy, Area = Value
+    val Cycle, Energy, Area, EnergyAreaProduct = Value
   }
 
   case class SimulationConfig(
@@ -226,6 +226,7 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
       case "Cycle" => OptimizationMetric.Cycle
       case "Area" => OptimizationMetric.Area
       case "Energy" => OptimizationMetric.Energy
+      case "Energy Area Product" => OptimizationMetric.EnergyAreaProduct
       case _ =>
         throw ParseError("Invalid Optimization Metric")
     }
@@ -317,16 +318,13 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
   private def logSimulation(simConfig: SimulationConfig): Unit = {
 
     log("[Design Explorer Simulation Overview]")
-    log("\t[Metric]")
+    log("\t[Optimization Metric]")
     log(s"\t\t${simConfig.metric}")
     log("\t[Target Layer]")
     log(s"\t\tLayer Name: ${simConfig.layerName}")
     log(s"\t\tM: ${simConfig.layerGemmDimension.m}, " +
       s"N: ${simConfig.layerGemmDimension.n}, " +
       s"K: ${simConfig.layerGemmDimension.k} ")
-    log("")
-    log(s"\t[Optimization Metric]")
-    log(s"\t\tMetric: ${simConfig.metric}")
     log(s"")
     log(s"\t[Off Chip Memory]")
     log(s"\t\tOff Chip Memory Bandwidth: ${simConfig.offChipMemoryBandwidth}")

@@ -130,6 +130,10 @@ class ArchitectureEvaluator(
     log(s"\t\t\t${postProcess.size} optimized architectures were evaluated")
     log(s"\t\t\t${rankedPostProcess.size} architectures meet performance criteria")
 
+    log(s"\t\tPre Process Results")
+    preProcess.foreach(logSummary)
+    postProcess.foreach(logSummary)
+
     // Calculate improvement statistics
     if (preProcess.nonEmpty && rankedPostProcess.nonEmpty) {
       val preProcessBest = preProcess.head
@@ -178,6 +182,11 @@ class ArchitectureEvaluator(
         log(s"\t\t\tArea: ${String.format("%.2f", areaImprovement)}% improvement")
       }
 
+      if (preProcessBest.simulationResult.getAreaEnergyProduct.isDefined && postProcessBest.simulationResult.getAreaEnergyProduct.isDefined) {
+        val energyAreaProductImprovement= (preProcessBest.simulationResult.getAreaEnergyProduct.get - postProcessBest.simulationResult.getAreaEnergyProduct.get) /
+          preProcessBest.simulationResult.getAreaEnergyProduct.get * 100
+        log(s"\t\t\tArea and Energy Product: ${String.format("%.6f", energyAreaProductImprovement)}% improvement")
+      }
 
     }
 
@@ -246,6 +255,12 @@ class ArchitectureEvaluator(
       log(s"\t\tArea: ${String.format("%.2f", areaImprovement)}% improvement")
     }
 
+    if (preProcessBest.simulationResult.getAreaEnergyProduct.isDefined && postProcessBest.simulationResult.getAreaEnergyProduct.isDefined) {
+      val energyAreaProductImprovement= (preProcessBest.simulationResult.getAreaEnergyProduct.get - postProcessBest.simulationResult.getAreaEnergyProduct.get) /
+        preProcessBest.simulationResult.getAreaEnergyProduct.get * 100
+      log(s"\t\t\tArea and Energy Product: ${String.format("%.6f", energyAreaProductImprovement)}% improvement")
+    }
+
     logStatistics(rankedPostProcess)
 
     log("")
@@ -292,6 +307,19 @@ class ArchitectureEvaluator(
       }
     }
 
+    if (resultBuffer.exists(_.simulationResult.getAreaEnergyProduct.isDefined)) {
+      val energyAreaProductValues = resultBuffer.flatMap(_.simulationResult.getAreaEnergyProduct)
+      if (energyAreaProductValues.nonEmpty) {
+        val minArea = energyAreaProductValues.min
+        val maxArea = energyAreaProductValues.max
+        val avgArea = energyAreaProductValues.sum / energyAreaProductValues.length
+
+        log(s"\t\t\tMinimum area and energy product: ${String.format("%.2f", minArea)} pJ*um^2")
+        log(s"\t\t\tMaximum area and energy product: ${String.format("%.2f", maxArea)} pJ*um^2")
+        log(s"\t\t\tAverage area and energy product: ${String.format("%.2f", avgArea)} pJ*um^2")
+      }
+    }
+
 
   }
 
@@ -305,6 +333,7 @@ class ArchitectureEvaluator(
       log(s"\t\tCycle: ${simulationResult.cycle}")
       log(s"\t\tArea: ${String.format("%.2f", simulationResult.areaUm2.get)} um²")
       log(s"\t\tEnergy: ${String.format("%.2f", simulationResult.energyPj.get)} pJ")
+      log(s"\t\tArea and Energy Product: ${String.format("%.2f", simulationResult.getAreaEnergyProduct.get)} pJ*um^2")
       log(s"\t\tStreaming Dimension Size: ${architecture.streamingDimensionSize}")
       log(s"\t\tSingleBuffer A: ${architecture.singleBufferLimitKbA} KB")
       log(s"\t\tSingleBuffer B: ${architecture.singleBufferLimitKbB} KB")
@@ -413,6 +442,7 @@ class ArchitectureEvaluator(
         s" ${simulationResult.cycle}, " +
         s"${String.format("%.2f", simulationResult.areaUm2.get)}, " +
         s"${String.format("%.2f", simulationResult.energyPj.get)}, " +
+        s"${String.format("%.6f", simulationResult.getAreaEnergyProduct.get)}, " +
         s"${architecture.streamingDimensionSize}, " +
         s"${architecture.singleBufferLimitKbA}, " +
         s"${architecture.singleBufferLimitKbB}, " +
@@ -425,6 +455,7 @@ class ArchitectureEvaluator(
         s"${simulationResult.cycle}, " +
         s"${String.format("%.2f", simulationResult.areaUm2.get)}, " +
         s"${String.format("%.2f", simulationResult.energyPj.get)}, " +
+        s"${String.format("%.6f", simulationResult.getAreaEnergyProduct.get)}, " +
         s"${architecture.streamingDimensionSize}, " +
         s"${architecture.singleBufferLimitKbA}, " +
         s"${architecture.singleBufferLimitKbB}, " +
@@ -663,6 +694,10 @@ class ArchitectureEvaluator(
         newResult.areaUm2.exists( a =>
           currentResult.areaUm2.exists(ca => a < ca)
         )
+      case SystemArchitectureOptimizer.OptimizationMetric.EnergyAreaProduct =>
+        newResult.getAreaEnergyProduct.exists(a =>
+          currentResult.getAreaEnergyProduct.exists(ca => a < ca)
+        )
     }
   }
 
@@ -779,6 +814,9 @@ class ArchitectureEvaluator(
       case SystemArchitectureOptimizer.OptimizationMetric.Area =>
         val minArea = results.flatMap(_.simulationResult.areaUm2).min
         minArea * (1 + marginPercent/100)
+      case SystemArchitectureOptimizer.OptimizationMetric.EnergyAreaProduct =>
+        val minAreaEnergyProduct = results.flatMap(_.simulationResult.getAreaEnergyProduct).min
+        minAreaEnergyProduct * (1 + marginPercent/100)
     }
 
     val filteredResults = results.filter { result =>
@@ -789,6 +827,8 @@ class ArchitectureEvaluator(
           result.simulationResult.energyPj.exists(_ <= threshold)
         case SystemArchitectureOptimizer.OptimizationMetric.Area =>
           result.simulationResult.areaUm2.exists(_ <= threshold)
+        case SystemArchitectureOptimizer.OptimizationMetric.EnergyAreaProduct =>
+          result.simulationResult.getAreaEnergyProduct.exists(_ <= threshold)
       }
     }
 
@@ -799,6 +839,8 @@ class ArchitectureEvaluator(
         filteredResults.sortBy(_.simulationResult.energyPj.get)
       case SystemArchitectureOptimizer.OptimizationMetric.Area =>
         filteredResults.sortBy(_.simulationResult.areaUm2.get)
+      case SystemArchitectureOptimizer.OptimizationMetric.EnergyAreaProduct =>
+        filteredResults.sortBy(_.simulationResult.getAreaEnergyProduct.get)
     }
 
     sortedResults
