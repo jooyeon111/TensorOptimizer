@@ -437,9 +437,9 @@ class ArchitectureEvaluator(
     val architecture = ArchitectureResult.architecture
 
     if(simulationResult.isEnergyReportValid && simulationResult.isAreaReportValid) {
-      log(s"\t${architecture.arrayConfig.dataflow}," +
-        s"${architecture.arrayConfig.asArrayDimension.arrayDimensionString}," +
-        s" ${simulationResult.cycle}, " +
+      log(s"\t${architecture.arrayConfig.dataflow}, " +
+        s"${architecture.arrayConfig.asArrayDimension.arrayDimensionString}, " +
+        s"${simulationResult.cycle}, " +
         s"${String.format("%.2f", simulationResult.areaUm2.get)}, " +
         s"${String.format("%.2f", simulationResult.energyPj.get)}, " +
         s"${String.format("%.6f", simulationResult.getAreaEnergyProduct.get)}, " +
@@ -450,8 +450,8 @@ class ArchitectureEvaluator(
         s"${String.format("%.2f", simulationResult.averageMemoryUtilization)}"
       )
     } else {
-      log(s"\t${architecture.arrayConfig.dataflow}," +
-        s"${architecture.arrayConfig.asArrayDimension.arrayDimensionString}," +
+      log(s"\t${architecture.arrayConfig.dataflow}, " +
+        s"${architecture.arrayConfig.asArrayDimension.arrayDimensionString}, " +
         s"${simulationResult.cycle}, " +
         s"${String.format("%.2f", simulationResult.areaUm2.get)}, " +
         s"${String.format("%.2f", simulationResult.energyPj.get)}, " +

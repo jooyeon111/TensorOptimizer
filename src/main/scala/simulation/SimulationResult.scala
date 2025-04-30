@@ -290,13 +290,13 @@ case class SimulationResult(
       log("\t\t[Total Energy]")
       log(s"\t\t${String.format("%.2f", energyPj.get)} pJ")
       log("")
-      log(s"\t\t[CSV Format (Off Chip Memory, SRAM A, SRAM B, SRAM C, ARRAY)] Energy")
-      log(s"\t\t${String.format("%.2f", offChipMemoryEnergyPj.get)}, " +
-        s"${String.format("%.2f", sramEnergyPjA.get)}, " +
-        s"${String.format("%.2f", sramEnergyPjB.get)}, " +
-        s"${String.format("%.2f", sramEnergyPjC.get)}, " +
-        s"${String.format("%.2f", arrayEnergy.get)}"
-      )
+//      log(s"\t\t[CSV Format (Off Chip Memory, SRAM A, SRAM B, SRAM C, ARRAY)] Energy")
+//      log(s"\t\t${String.format("%.2f", offChipMemoryEnergyPj.get)}, " +
+//        s"${String.format("%.2f", sramEnergyPjA.get)}, " +
+//        s"${String.format("%.2f", sramEnergyPjB.get)}, " +
+//        s"${String.format("%.2f", sramEnergyPjC.get)}, " +
+//        s"${String.format("%.2f", arrayEnergy.get)}"
+//      )
     }
 
     // Area Analysis
@@ -309,12 +309,12 @@ case class SimulationResult(
       log(s"\t\tArray Area: ${String.format("%.2f", arrayAreaUm2.get)} um^2")
       log(s"\t\tTotal Area: ${String.format("%.2f", areaUm2.get)} um^2")
       log(s"")
-      log(s"\t\t[CSV Format (SRAM A, SRAM B, SRAM C, ARRAY)] Area")
-      log(s"\t\t${String.format("%.2f", sramAreaUm2A.get)}, " +
-        s"${String.format("%.2f", sramAreaUm2B.get)}, " +
-        s"${String.format("%.2f", sramAreaUm2C.get)}, " +
-        s"${String.format("%.2f", arrayAreaUm2.get)}"
-      )
+//      log(s"\t\t[CSV Format (SRAM A, SRAM B, SRAM C, ARRAY)] Area")
+//      log(s"\t\t${String.format("%.2f", sramAreaUm2A.get)}, " +
+//        s"${String.format("%.2f", sramAreaUm2B.get)}, " +
+//        s"${String.format("%.2f", sramAreaUm2C.get)}, " +
+//        s"${String.format("%.2f", arrayAreaUm2.get)}"
+//      )
     }
 
     if (isEnergyReportValid && isAreaReportValid) {
@@ -323,7 +323,13 @@ case class SimulationResult(
     }
 
     log(s"")
+    log(s"\t[Final CSV Format (Area, Energy, Area*Energy, Average Memory Utilization)]")
+    log(s"\t\t${String.format("%.2f", areaUm2.get)}, " +
+      s"${String.format("%.2f", energyPj.get)}, " +
+      s"${String.format("%.2f", getAreaEnergyProduct.get)}, " +
+      s"${String.format("%.2f", averageMemoryUtilization)}")
     log(s"")
+
   }
 
   private def isReferenceDataValid: Boolean = {

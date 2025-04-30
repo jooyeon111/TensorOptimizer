@@ -6,5 +6,6 @@ all:
 	make -f Makefile.optimizer_phi_2 all
 	make -f Makefile.optimizer_llama_3b all
 	make -f Makefile.optimizer_mistral_7b all
+	make -f Makefile.optimizer_resnet_18 all
 
 

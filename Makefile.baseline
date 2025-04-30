@@ -1,6 +1,6 @@
 # Common paths
 INPUT_SIM := input/simulation
-CONFIG_DIR := $(INPUT_SIM)/configs/architecture_explorer
+CONFIG_DIR := $(INPUT_SIM)/configs/analyzer/oneLayer
 HARDWARE_REF := $(INPUT_SIM)/hardware_reference
 SYNTHESIS := $(INPUT_SIM)/synthesis
 LAYER_DIR := $(INPUT_SIM)/layer
