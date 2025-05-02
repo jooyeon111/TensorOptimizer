@@ -34,8 +34,6 @@ class ArchitectureEvaluator(
       validCandidates = executableCandidates,
     )
 
-    executableCandidates.foreach(logSummary)
-
     //simulate all configs
     calculatedAllResults ++= process1(executableCandidates)
     rankedCalculatedResults ++= rankResults(calculatedAllResults, processOneMargin)
