@@ -677,7 +677,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
         sramAreaUm2C = simulation.getSramAreaC,
 
         arrayAreaUm2 = simulation.getArrayArea,
-        areaUm2 = simulation.getArea
+        areaUm2 = simulation.getArea,
+
+        edap = simulation.calculateEDAP
 
       )
 

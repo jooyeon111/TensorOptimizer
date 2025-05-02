@@ -35,7 +35,7 @@ all: run-layer
 # Target to run a specific layer model
 run-layer:
 	sbt "runMain simulation.SystemArchitectureOptimizer $(QKV) $(COMMON_ARGS)"
-	#sbt "runMain simulation.SystemArchitectureOptimizer $(QKT) $(COMMON_ARGS)"
-	#sbt "runMain simulation.SystemArchitectureOptimizer $(QKTV) $(COMMON_ARGS)"
-	#sbt "runMain simulation.SystemArchitectureOptimizer $(FINAL) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(QKT) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(QKTV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FINAL) $(COMMON_ARGS)"
 

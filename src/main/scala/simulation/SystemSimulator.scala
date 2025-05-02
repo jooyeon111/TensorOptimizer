@@ -237,6 +237,13 @@ class SystemSimulator(
       arrayArea <- getArrayArea
     } yield sramAreaA + sramAreaB + sramAreaC + arrayArea
 
+  def calculateEDAP: Option[Double] =  {
+    for {
+      energy <- getTotalEnergy
+      area <- getArea
+    } yield energy * area * cycle
+  }
+
 
   private def runSimulationLoop(): Long = {
 
@@ -329,13 +336,18 @@ class SystemSimulator(
   }
 
   private def calculateBankCount(arrayBandwidth: Int): Int = {
+//    val bandwidthRatio = offChipMemory.outputBandwidth.toDouble / arrayBandwidth.toDouble
+//    if (bandwidthRatio > 1.0) {
+//      val minBanksNeeded = math.ceil(bandwidthRatio).toInt
+//      math.pow(2, math.ceil(math.log(minBanksNeeded) / math.log(2))).toInt
+//    } else {
+//      1
+//    }
     val bandwidthRatio = offChipMemory.outputBandwidth.toDouble / arrayBandwidth.toDouble
-    if (bandwidthRatio > 1.0) {
-      val minBanksNeeded = math.ceil(bandwidthRatio).toInt
-      math.pow(2, math.ceil(math.log(minBanksNeeded) / math.log(2))).toInt
-    } else {
-      1
-    }
+    if (bandwidthRatio <= 1.0) return 1
+
+    val powerOf2 = math.floor(math.log(bandwidthRatio) / math.log(2)).toInt
+    math.pow(2, powerOf2).toInt
   }
 
   //Util functions

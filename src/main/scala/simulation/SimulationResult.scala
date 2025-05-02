@@ -108,15 +108,9 @@ case class SimulationResult(
   arrayAreaUm2: Option[Double],
   areaUm2: Option[Double],
 
-) extends Logger {
+  edap: Option[Double],
 
-  def getAreaEnergyProduct: Option[Double] = {
-    if(energyPj.isDefined && areaUm2.isDefined){
-     Some(energyPj.get * areaUm2.get)
-    } else {
-      None
-    }
-  }
+) extends Logger {
 
   def printFullResults(loggerOption: LoggerOption): Unit = {
     setMode(loggerOption)
@@ -318,15 +312,16 @@ case class SimulationResult(
     }
 
     if (isEnergyReportValid && isAreaReportValid) {
-      log("\t[Energy-Area Product]")
-      log(s"\t\tEnergy-Area Product: ${String.format("%.2f", getAreaEnergyProduct.get)} pJ*um^2")
+      log("\t[Energy-Area-Delay Product]")
+      log(s"\t\tEnergy-Area-Delay Product: ${String.format("%.2f", edap.get)} pJ*um^2")
     }
 
     log(s"")
-    log(s"\t[Final CSV Format (Area, Energy, Area*Energy, Average Memory Utilization)]")
-    log(s"\t\t${String.format("%.2f", areaUm2.get)}, " +
+    log(s"\t[Final CSV Format (Cycle, Area, Energy, Area*Energy*Delay, Average Memory Utilization)]")
+    log(s"\t\t$cycle, " +
+      s"${String.format("%.2f", areaUm2.get)}, " +
       s"${String.format("%.2f", energyPj.get)}, " +
-      s"${String.format("%.2f", getAreaEnergyProduct.get)}, " +
+      s"${String.format("%.2f", edap.get)}, " +
       s"${String.format("%.2f", averageMemoryUtilization)}")
     log(s"")
 
@@ -485,6 +480,9 @@ object SimulationResult {
       sramAreaUm2C = None,
       arrayAreaUm2 = None,
       areaUm2 = Some(wrongArea),
+
+      //9. EDAP
+      edap = None,
     )
   }
 }
