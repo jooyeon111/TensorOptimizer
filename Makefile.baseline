@@ -13,36 +13,42 @@ TEST_OPTION_RTL_RESULT_REF := $(SYNTHESIS)/weight.bin
 
 # bert
 BERT_BASE_PATH := $(LAYER_DIR)/bert/base
+BERT_BASE_EMBEDDING := $(BERT_BASE_PATH)/embedding.cfg
 BERT_BASE_QKV := $(BERT_BASE_PATH)/projection.cfg
 BERT_BASE_QKT := $(BERT_BASE_PATH)/qkt.cfg
 BERT_BASE_QKTV := $(BERT_BASE_PATH)/qktv.cfg
 BERT_BASE_FINAL := $(BERT_BASE_PATH)/representation_projection.cfg
 # bloom
 BLOOM_1B_PATH := $(LAYER_DIR)/bloom/1b
+BLOOM_1B_EMBEDDING := $(BLOOM_1B_PATH)/embedding.cfg
 BLOOM_1B_QKV := $(BLOOM_1B_PATH)/projection.cfg
 BLOOM_1B_QKT := $(BLOOM_1B_PATH)/qkt.cfg
 BLOOM_1B_QKTV := $(BLOOM_1B_PATH)/qktv.cfg
 BLOOM_1B_FINAL := $(BLOOM_1B_PATH)/representation_projection.cfg
 # falcon
 FALCON_1B_PATH := $(LAYER_DIR)/falcon/1b
+FALCON_1B_EMBEDDING := $(FALCON_1B_PATH)/embedding.cfg
 FALCON_1B_QKV := $(FALCON_1B_PATH)/projection.cfg
 FALCON_1B_QKT := $(FALCON_1B_PATH)/qkt.cfg
 FALCON_1B_QKTV := $(FALCON_1B_PATH)/qktv.cfg
 FALCON_1B_FINAL := $(FALCON_1B_PATH)/representation_projection.cfg
 # llama
 LLAMA_3B_PATH := $(LAYER_DIR)/llama/3b
+LLAMA_3B_EMBEDDING := $(LLAMA_3B_PATH)/embedding.cfg
 LLAMA_3B_QKV := $(LLAMA_3B_PATH)/projection.cfg
 LLAMA_3B_QKT := $(LLAMA_3B_PATH)/qkt.cfg
 LLAMA_3B_QKTV := $(LLAMA_3B_PATH)/qktv.cfg
 LLAMA_3B_FINAL := $(LLAMA_3B_PATH)/representation_projection.cfg
 # mistral
 MISTRAL_7B_PATH := $(LAYER_DIR)/mistral/7b
+MISTRAL_7B_EMBEDDING := $(MISTRAL_7B_PATH)/embedding.cfg
 MISTRAL_7B_QKV := $(MISTRAL_7B_PATH)/projection.cfg
 MISTRAL_7B_QKT := $(MISTRAL_7B_PATH)/qkt.cfg
 MISTRAL_7B_QKTV := $(MISTRAL_7B_PATH)/qktv.cfg
 MISTRAL_7B_FINAL := $(MISTRAL_7B_PATH)/representation_projection.cfg
 # phi
 PHI_2_PATH := $(LAYER_DIR)/phi/2
+PHI_2_EMBEDDING := $(PHI_2_PATH)/embedding.cfg
 PHI_2_QKV := $(PHI_2_PATH)/projection.cfg
 PHI_2_QKT := $(PHI_2_PATH)/qkt.cfg
 PHI_2_QKTV := $(PHI_2_PATH)/qktv.cfg
@@ -89,36 +95,42 @@ all: bert_base bloom_1b falcon_1b llama_3b mistral_7b phi_2 resnet_18
 
 # Target to run a specific layer model
 bert_base:
+	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_EMBDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKTV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_FINAL) $(COMMON_ARGS)"
 
 bloom_1b:
+	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKTV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_FINAL) $(COMMON_ARGS)"
 
 falcon_1b:
+	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKTV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_FINAL) $(COMMON_ARGS)"
 
 llama_3b:
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_QKTV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_FINAL) $(COMMON_ARGS)"
 
 mistral_7b:
+	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKTV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_FINAL) $(COMMON_ARGS)"
 
 phi_2:
+	sbt "runMain simulation.AnalyzerMain $(PHI_2_EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKTV) $(COMMON_ARGS)"
