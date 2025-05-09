@@ -16,7 +16,7 @@ class SystemSimulator(
   private val debugEndCycle: Long = 0,
   private val debugMode: Boolean = false,
   private val loggerOption: LoggerOption
-) extends Logger with PowerAreaCalculator {
+) extends Logger {
 
   assert(areAllHardwareQueueEmpty, "[error] Hardware is not empty")
   setMode(loggerOption)
@@ -212,11 +212,9 @@ class SystemSimulator(
       offChipMemoryEnergy <- getOffChipMemoryEnergy
       sramEnergyA <- getSramEnergyA
       sramEnergyB <- getSramEnergyB
-      arrayEnergy <- getArrayEnergy
+//      arrayEnergy <- getArrayEnergy
       sramEnergyC <- getSramEnergyC
-
-
-    } yield offChipMemoryEnergy + sramEnergyA + sramEnergyB + sramEnergyC + arrayEnergy
+    } yield offChipMemoryEnergy + sramEnergyA + sramEnergyB + sramEnergyC// + arrayEnergy
 
   //6. Area Report
   def getSramAreaA: Option[Double] = dividedSramModelA.map(_.referenceData.areaUm2)
@@ -234,8 +232,8 @@ class SystemSimulator(
       sramAreaA <- getSramAreaA
       sramAreaB <- getSramAreaB
       sramAreaC <- getSramAreaC
-      arrayArea <- getArrayArea
-    } yield sramAreaA + sramAreaB + sramAreaC + arrayArea
+//      arrayArea <- getArrayArea
+    } yield sramAreaA + sramAreaB + sramAreaC // + arrayArea
 
   def calculateEDAP: Option[Double] =  {
     for {
@@ -336,13 +334,6 @@ class SystemSimulator(
   }
 
   private def calculateBankCount(arrayBandwidth: Int): Int = {
-//    val bandwidthRatio = offChipMemory.outputBandwidth.toDouble / arrayBandwidth.toDouble
-//    if (bandwidthRatio > 1.0) {
-//      val minBanksNeeded = math.ceil(bandwidthRatio).toInt
-//      math.pow(2, math.ceil(math.log(minBanksNeeded) / math.log(2))).toInt
-//    } else {
-//      1
-//    }
     val bandwidthRatio = offChipMemory.outputBandwidth.toDouble / arrayBandwidth.toDouble
     if (bandwidthRatio <= 1.0) return 1
 
