@@ -49,17 +49,20 @@ trait RtlGenerator {
       case Dataflow.Is | Dataflow.Ws=>
         s"${dataflowString}_sta_${arrayConfig.arrayDimensionString}"
       case Dataflow.Os =>
-        s"${dataflowString}_sta_${arrayConfig.arrayDimensionString}_sd$streamingDimensionSize"
+        if(streamingDimensionSize == -1)
+          s"${dataflowString}_sta_${arrayConfig.arrayDimensionString}"
+                  else
+          s"${dataflowString}_sta_${arrayConfig.arrayDimensionString}_sd$streamingDimensionSize"
     }
 
 
     lazy val rtlGenerator =  dataflow match {
       case Dataflow.Is =>
-        new rtl.input.DimensionAlignedSystolicTensorArray(arrayConfig, generatedFileName, portConfig)
+        new rtl.input.SkewedSystolicTensorArray(arrayConfig, generatedFileName, portConfig)
       case Dataflow.Os =>
-        new rtl.output.DimensionAlignedSystolicTensorArray(arrayConfig, generatedFileName, portConfig)
+        new rtl.output.SkewedSystolicTensorArray(arrayConfig, generatedFileName, portConfig)
       case Dataflow.Ws =>
-        new rtl.weight.DimensionAlignedSystolicTensorArray(arrayConfig, generatedFileName, portConfig)
+        new rtl.weight.SkewedSystolicTensorArray(arrayConfig, generatedFileName, portConfig)
     }
 
     if(splitVerilogOutput){

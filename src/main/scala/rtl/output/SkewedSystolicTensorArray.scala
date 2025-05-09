@@ -1,10 +1,11 @@
-package rtl.input
+package rtl.output
 
 import chisel3._
 import common.ArrayDimension
-import rtl.commonRtl.{Arithmetic, PortConfig, PreProcessor, PreProcessorType}
+import rtl.commonRtl.{Arithmetic, PortConfig, PreProcessor, PreProcessorType, VerilogNaming}
 
-class DimensionAlignedSystolicTensorArray[ T <: Data ] (
+//Pod = Pre Processing Unit +  Systolic Tensor Array + Post Processing Unit
+class SkewedSystolicTensorArray[T <: Data](
   groupPeRow: Int,
   groupPeCol : Int,
   vectorPeRow : Int,
@@ -12,8 +13,8 @@ class DimensionAlignedSystolicTensorArray[ T <: Data ] (
   numMultiplier : Int,
   dedicatedName: String,
   portConfig: PortConfig[T],
-)(implicit ev: Arithmetic[T]) extends Module {
-
+)(implicit ev: Arithmetic[T]) extends Module with VerilogNaming
+ {
   def this(arrayDimension: ArrayDimension, dedicatedName: String, portConfig: PortConfig[T])(implicit ev: Arithmetic[T]) =
     this(
       arrayDimension.groupPeRow,
@@ -29,17 +30,21 @@ class DimensionAlignedSystolicTensorArray[ T <: Data ] (
 
   val numInputA: Int = groupPeRow * vectorPeRow * numMultiplier
   val numInputB: Int = groupPeCol * vectorPeCol * numMultiplier
-  val numPropagateA: Int = groupPeCol * vectorPeCol
-  val numOutput : Int = groupPeRow * vectorPeRow
+  val numPartialSumReset = groupPeRow * groupPeCol
+  val numPropagateOutput = (groupPeRow - 1) * (groupPeCol - 1)
+
+  val numOutput: Int = (groupPeCol + groupPeRow - 1)* vectorPeRow * vectorPeCol
+  val outputTypeC = portConfig.getStaOutputTypeC
 
   val preProcessorInputA = Module (new PreProcessor(
     groupPeRow,
     vectorPeRow,
     numMultiplier,
-    skewFlag = false,
+    skewFlag = true,
     PreProcessorType.A,
     portConfig.inputTypeA
   ))
+
   val preProcessorInputB = Module (new PreProcessor(
     groupPeCol,
     vectorPeCol,
@@ -48,25 +53,21 @@ class DimensionAlignedSystolicTensorArray[ T <: Data ] (
     PreProcessorType.B,
     portConfig.inputTypeB
   ))
+
   val systolicTensorArray = Module (new SystolicTensorArray(
     groupPeRow,
     groupPeCol,
     vectorPeRow,
     vectorPeCol,
     numMultiplier,
-    portConfig,
-  ))
-  val postProcessor = Module ( new PostProcessor(
-    groupPeRow,
-    vectorPeRow,
-    systolicTensorArray.outputTypeC
-  ))
+    portConfig))
 
   val io = IO(new Bundle {
     val inputA = Input(Vec(numInputA, portConfig.inputTypeA))
     val inputB = Input(Vec(numInputB, portConfig.inputTypeB))
-    val propagateA = Input(Vec(numPropagateA, Bool()))
-    val outputC = Output(Vec(numOutput, systolicTensorArray.outputTypeC))
+    val propagateOutput =  Input(Vec(numPropagateOutput, Bool()))
+    val partialSumReset =  Input(Vec(numPartialSumReset, Bool()))
+    val outputC = Output(Vec(numOutput, outputTypeC))
   })
 
   //Wiring Input
@@ -74,14 +75,15 @@ class DimensionAlignedSystolicTensorArray[ T <: Data ] (
   preProcessorInputB.io.input := io.inputB
   systolicTensorArray.io.inputA := preProcessorInputA.io.output
   systolicTensorArray.io.inputB := preProcessorInputB.io.output
-  postProcessor.io.input := systolicTensorArray.io.outputC
 
-  //Wiring Control
-  systolicTensorArray.io.propagateA := RegNext(io.propagateA, VecInit.fill(numPropagateA)(false.B))
+  //Wiring propagate signal
+  systolicTensorArray.io.partialSumReset := RegNext(io.partialSumReset, VecInit.fill(numPartialSumReset)(false.B))
+
+  //Wiring partial sum signals
+  systolicTensorArray.io.propagateOutput := RegNext( io.propagateOutput, VecInit.fill(numPropagateOutput)(false.B))
+
 
   //Wiring Output
-  io.outputC := postProcessor.io.output
-
-
+   io.outputC := systolicTensorArray.io.outputC
 
 }
