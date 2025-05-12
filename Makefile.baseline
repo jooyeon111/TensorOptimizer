@@ -57,7 +57,7 @@ PHI_2_FINAL := $(PHI_2_PATH)/representation_projection.cfg
 #resnet18
 RESNET_18_PATH := $(LAYER_DIR)/resnet/18
 
-CONV1 := $(RESNET_18_PATH)/conv1.cfg
+RESNET_18_CONV1 := $(RESNET_18_PATH)/conv1.cfg
 
 STAGE1_BLOCK1_CONV1 := $(RESNET_18_PATH)/stage1_block1_conv1.cfg
 STAGE1_BLOCK1_CONV2 := $(RESNET_18_PATH)/stage1_block1_conv2.cfg
@@ -82,62 +82,138 @@ STAGE4_BLOCK1_SHORTCUT := $(RESNET_18_PATH)/stage4_block1_shortcut.cfg
 STAGE4_BLOCK2_CONV1 := $(RESNET_18_PATH)/stage4_block2_conv1.cfg
 STAGE4_BLOCK2_CONV2 := $(RESNET_18_PATH)/stage4_block2_conv2.cfg
 
-FC := $(RESNET_18_PATH)/fc.cfg
+RESNET_18_FC := $(RESNET_18_PATH)/fc.cfg
+
+#mobile net v2 path
+MOBILENET_V2_PATH := $(LAYER_DIR)/mobilenet/v2
+
+MOBILENET_V2_CONV1 := $(MOBILENET_V2_PATH)/conv1.cfg
+
+STAGE1_BLOCK1_DEPTHWISE := $(MOBILENET_V2_PATH)/stage1_block1_depthwise.cfg
+STAGE1_BLOCK1_PROJECTION := $(MOBILENET_V2_PATH)/stage1_block1_projection.cfg
+
+STAGE2_BLOCK1_DEPTHWISE := $(MOBILENET_V2_PATH)/stage2_block1_depthwise.cfg
+STAGE2_BLOCK1_PROJECTION := $(MOBILENET_V2_PATH)/stage2_block1_projection.cfg
+STAGE2_BLOCK1_BOTTLENECK := $(MOBILENET_V2_PATH)/stage2_block1_bottleneck.cfg
+
+STAGE2_BLOCK2_DEPTHWISE := $(MOBILENET_V2_PATH)/stage2_block2_depthwise.cfg
+STAGE2_BLOCK2_PROJECTION := $(MOBILENET_V2_PATH)/stage2_block2_projection.cfg
+STAGE2_BLOCK2_BOTTLENECK := $(MOBILENET_V2_PATH)/stage2_block2_bottleneck.cfg
+
+STAGE3_BLOCK1_DEPTHWISE := $(MOBILENET_V2_PATH)/stage3_block1_depthwise.cfg
+STAGE3_BLOCK1_PROJECTION := $(MOBILENET_V2_PATH)/stage3_block1_projection.cfg
+STAGE3_BLOCK1_BOTTLENECK := $(MOBILENET_V2_PATH)/stage3_block1_bottleneck.cfg
+
+STAGE3_BLOCK2_DEPTHWISE := $(MOBILENET_V2_PATH)/stage3_block2_depthwise.cfg
+STAGE3_BLOCK2_PROJECTION := $(MOBILENET_V2_PATH)/stage3_block2_projection.cfg
+STAGE3_BLOCK2_BOTTLENECK := $(MOBILENET_V2_PATH)/stage3_block2_bottleneck.cfg
+
+STAGE3_BLOCK3_DEPTHWISE := $(MOBILENET_V2_PATH)/stage3_block3_depthwise.cfg
+STAGE3_BLOCK3_PROJECTION := $(MOBILENET_V2_PATH)/stage3_block3_projection.cfg
+STAGE3_BLOCK3_BOTTLENECK := $(MOBILENET_V2_PATH)/stage3_block3_bottleneck.cfg
+
+STAGE4_BLOCK1_DEPTHWISE := $(MOBILENET_V2_PATH)/stage4_block1_depthwise.cfg
+STAGE4_BLOCK1_PROJECTION := $(MOBILENET_V2_PATH)/stage4_block1_projection.cfg
+STAGE4_BLOCK1_BOTTLENECK := $(MOBILENET_V2_PATH)/stage4_block1_bottleneck.cfg
+
+STAGE4_BLOCK2_DEPTHWISE := $(MOBILENET_V2_PATH)/stage4_block2_depthwise.cfg
+STAGE4_BLOCK2_PROJECTION := $(MOBILENET_V2_PATH)/stage4_block2_projection.cfg
+STAGE4_BLOCK2_BOTTLENECK := $(MOBILENET_V2_PATH)/stage4_block2_bottleneck.cfg
+
+STAGE4_BLOCK3_DEPTHWISE := $(MOBILENET_V2_PATH)/stage4_block3_depthwise.cfg
+STAGE4_BLOCK3_PROJECTION := $(MOBILENET_V2_PATH)/stage4_block3_projection.cfg
+STAGE4_BLOCK3_BOTTLENECK := $(MOBILENET_V2_PATH)/stage4_block3_bottleneck.cfg
+
+STAGE4_BLOCK4_DEPTHWISE := $(MOBILENET_V2_PATH)/stage4_block4_depthwise.cfg
+STAGE4_BLOCK4_PROJECTION := $(MOBILENET_V2_PATH)/stage4_block4_projection.cfg
+STAGE4_BLOCK4_BOTTLENECK := $(MOBILENET_V2_PATH)/stage4_block4_bottleneck.cfg
+
+STAGE5_BLOCK1_DEPTHWISE := $(MOBILENET_V2_PATH)/stage5_block1_depthwise.cfg
+STAGE5_BLOCK1_PROJECTION := $(MOBILENET_V2_PATH)/stage5_block1_projection.cfg
+STAGE5_BLOCK1_BOTTLENECK := $(MOBILENET_V2_PATH)/stage5_block1_bottleneck.cfg
+
+STAGE5_BLOCK2_DEPTHWISE := $(MOBILENET_V2_PATH)/stage5_block2_depthwise.cfg
+STAGE5_BLOCK2_PROJECTION := $(MOBILENET_V2_PATH)/stage5_block2_projection.cfg
+STAGE5_BLOCK2_BOTTLENECK := $(MOBILENET_V2_PATH)/stage5_block2_bottleneck.cfg
+
+STAGE5_BLOCK3_DEPTHWISE := $(MOBILENET_V2_PATH)/stage5_block3_depthwise.cfg
+STAGE5_BLOCK3_PROJECTION := $(MOBILENET_V2_PATH)/stage5_block3_projection.cfg
+STAGE5_BLOCK3_BOTTLENECK := $(MOBILENET_V2_PATH)/stage5_block3_bottleneck.cfg
+
+STAGE6_BLOCK1_DEPTHWISE := $(MOBILENET_V2_PATH)/stage6_block1_depthwise.cfg
+STAGE6_BLOCK1_PROJECTION := $(MOBILENET_V2_PATH)/stage6_block1_projection.cfg
+STAGE6_BLOCK1_BOTTLENECK := $(MOBILENET_V2_PATH)/stage6_block1_bottleneck.cfg
+
+STAGE6_BLOCK2_DEPTHWISE := $(MOBILENET_V2_PATH)/stage6_block2_depthwise.cfg
+STAGE6_BLOCK2_PROJECTION := $(MOBILENET_V2_PATH)/stage6_block2_projection.cfg
+STAGE6_BLOCK2_BOTTLENECK := $(MOBILENET_V2_PATH)/stage6_block2_bottleneck.cfg
+
+STAGE6_BLOCK3_DEPTHWISE := $(MOBILENET_V2_PATH)/stage6_block3_depthwise.cfg
+STAGE6_BLOCK3_PROJECTION := $(MOBILENET_V2_PATH)/stage6_block3_projection.cfg
+STAGE6_BLOCK3_BOTTLENECK := $(MOBILENET_V2_PATH)/stage6_block3_bottleneck.cfg
+
+STAGE7_BLOCK1_DEPTHWISE := $(MOBILENET_V2_PATH)/stage7_block1_depthwise.cfg
+STAGE7_BLOCK1_PROJECTION := $(MOBILENET_V2_PATH)/stage7_block1_projection.cfg
+STAGE7_BLOCK1_BOTTLENECK := $(MOBILENET_V2_PATH)/stage7_block1_bottleneck.cfg
+
+MOBILENET_V2_CONV_LAST := $(MOBILENET_V2_PATH)/conv_last.cfg
+MOBILENET_V2_FC := $(MOBILENET_V2_PATH)/fc.cfg
+
 
 # Common arguments for all SBT runs
 COMMON_ARGS := $(TEST_OPTION_MULT) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_RTL_RESULT_REF)
 
 # Define targets for specific layers
-.PHONY: all bert_base bloom_1b falcon_1b llama_3b mistral_7b phi_2 resnet_18
+.PHONY: all bert_base bloom_1b falcon_1b llama_3b mistral_7b phi_2 resnet_18 mobilenet_v2
 
 # Default target runs all configurations for the specified model/variant
-all: bert_base bloom_1b falcon_1b llama_3b mistral_7b phi_2 resnet_18
+all: bert_base bloom_1b falcon_1b llama_3b mistral_7b phi_2 resnet_18 mobilenet_v2
 
 # Target to run a specific layer model
 bert_base:
-	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_EMBDDING) $(COMMON_ARGS)"
+	#sbt "runMain simulation.AnalyzerMain $(BERT_BASE_EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKTV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_FINAL) $(COMMON_ARGS)"
 
 bloom_1b:
-	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_EMBEDDING) $(COMMON_ARGS)"
+	#sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKTV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_FINAL) $(COMMON_ARGS)"
 
 falcon_1b:
-	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_EMBEDDING) $(COMMON_ARGS)"
+	#sbt "runMain simulation.AnalyzerMain $(FALCON_1B_EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKTV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_FINAL) $(COMMON_ARGS)"
 
 llama_3b:
-	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_EMBEDDING) $(COMMON_ARGS)"
+	#sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_QKTV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_FINAL) $(COMMON_ARGS)"
 
 mistral_7b:
-	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_EMBEDDING) $(COMMON_ARGS)"
+	#sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKTV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_FINAL) $(COMMON_ARGS)"
 
 phi_2:
-	sbt "runMain simulation.AnalyzerMain $(PHI_2_EMBEDDING) $(COMMON_ARGS)"
+	#sbt "runMain simulation.AnalyzerMain $(PHI_2_EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKTV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(PHI_2_FINAL) $(COMMON_ARGS)"
 
 resnet_18:
-	sbt "runMain simulation.AnalyzerMain $(CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(RESNET_18_CONV1) $(COMMON_ARGS)"
 
 	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK1_CONV1) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK1_CONV2) $(COMMON_ARGS)"
@@ -163,4 +239,67 @@ resnet_18:
 	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK2_CONV1) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK2_CONV2) $(COMMON_ARGS)"
 
-	sbt "runMain simulation.AnalyzerMain $(FC) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(RESNET_18_FC) $(COMMON_ARGS)"
+
+mobilenet_v2:
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_CONV1) $(COMMON_ARGS)"
+
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK1_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK1_PROJECTION) $(COMMON_ARGS)"
+
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK1_BOTTLENECK) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK1_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK1_PROJECTION) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK2_BOTTLENECK) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK2_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK2_PROJECTION) $(COMMON_ARGS)"
+
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK1_BOTTLENECK) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK1_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK1_PROJECTION) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK2_BOTTLENECK) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK2_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK2_PROJECTION) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK3_BOTTLENECK) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK3_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK3_PROJECTION) $(COMMON_ARGS)"
+
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK1_BOTTLENECK) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK1_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK1_PROJECTION) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK2_BOTTLENECK) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK2_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK2_PROJECTION) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK3_BOTTLENECK) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK3_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK3_PROJECTION) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK4_BOTTLENECK) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK4_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK4_PROJECTION) $(COMMON_ARGS)"
+
+	sbt "runMain simulation.AnalyzerMain $(STAGE5_BLOCK1_BOTTLENECK) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE5_BLOCK1_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE5_BLOCK1_PROJECTION) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE5_BLOCK2_BOTTLENECK) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE5_BLOCK2_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE5_BLOCK2_PROJECTION) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE5_BLOCK3_BOTTLENECK) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE5_BLOCK3_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE5_BLOCK3_PROJECTION) $(COMMON_ARGS)"
+
+	sbt "runMain simulation.AnalyzerMain $(STAGE6_BLOCK1_BOTTLENECK) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE6_BLOCK1_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE6_BLOCK1_PROJECTION) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE6_BLOCK2_BOTTLENECK) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE6_BLOCK2_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE6_BLOCK2_PROJECTION) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE6_BLOCK3_BOTTLENECK) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE6_BLOCK3_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE6_BLOCK3_PROJECTION) $(COMMON_ARGS)"
+
+	sbt "runMain simulation.AnalyzerMain $(STAGE7_BLOCK1_BOTTLENECK) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE7_BLOCK1_DEPTHWISE) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE7_BLOCK1_PROJECTION) $(COMMON_ARGS)"
+
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_CONV_LAST) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_FC) $(COMMON_ARGS)"

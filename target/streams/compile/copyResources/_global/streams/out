@@ -1,12 +1,4 @@
 [0m[[0m[0mdebug[0m] [0m[0mCopy resource mappings: [0m
-[0m[[0m[0mdebug[0m] [0m[0m	(/home/jooyeon/aigis/src/main/resources/output/rtl/is_sta_16x8x1x4x2.sv,/home/jooyeon/aigis/target/scala-2.13/classes/output/rtl/is_sta_16x8x1x4x2.sv)[0m
-[0m[[0m[0mdebug[0m] [0m[0m	(/home/jooyeon/aigis/src/main/resources/output/rtl/is_sta_64x32x1x1x1.sv,/home/jooyeon/aigis/target/scala-2.13/classes/output/rtl/is_sta_64x32x1x1x1.sv)[0m
-[0m[[0m[0mdebug[0m] [0m[0m	(/home/jooyeon/aigis/src/main/resources/output/rtl/os_sta_32x32x1x1x1.sv,/home/jooyeon/aigis/target/scala-2.13/classes/output/rtl/os_sta_32x32x1x1x1.sv)[0m
-[0m[[0m[0mdebug[0m] [0m[0m	(/home/jooyeon/aigis/src/main/resources/output/rtl/os_sta_16x32x2x1x2.sv,/home/jooyeon/aigis/target/scala-2.13/classes/output/rtl/os_sta_16x32x2x1x2.sv)[0m
-[0m[[0m[0mdebug[0m] [0m[0m	(/home/jooyeon/aigis/src/main/resources/output/rtl/ws_sta_16x16x2x2x1.sv,/home/jooyeon/aigis/target/scala-2.13/classes/output/rtl/ws_sta_16x16x2x2x1.sv)[0m
-[0m[[0m[0mdebug[0m] [0m[0m	(/home/jooyeon/aigis/src/main/resources/output/rtl/ws_sta_32x16x1x1x4.sv,/home/jooyeon/aigis/target/scala-2.13/classes/output/rtl/ws_sta_32x16x1x1x4.sv)[0m
-[0m[[0m[0mdebug[0m] [0m[0m	(/home/jooyeon/aigis/src/main/resources/output/simulation/result_falcon_1b_qkt_mult:16384.txt,/home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/result_falcon_1b_qkt_mult:16384.txt)[0m
-[0m[[0m[0mdebug[0m] [0m[0m	(/home/jooyeon/aigis/src/main/resources/output/simulation/result_bloom_1b__qkt_mult:16384.txt,/home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/result_bloom_1b__qkt_mult:16384.txt)[0m
 [0m[[0m[0mdebug[0m] [0m[0m	(/home/jooyeon/aigis/src/main/resources/input/rtl/is_64x32x1x1x1.cfg,/home/jooyeon/aigis/target/scala-2.13/classes/input/rtl/is_64x32x1x1x1.cfg)[0m
 [0m[[0m[0mdebug[0m] [0m[0m	(/home/jooyeon/aigis/src/main/resources/input/rtl/weight_stationary.cfg,/home/jooyeon/aigis/target/scala-2.13/classes/input/rtl/weight_stationary.cfg)[0m
 [0m[[0m[0mdebug[0m] [0m[0m	(/home/jooyeon/aigis/src/main/resources/input/rtl/os_16x32x2x1x2.cfg,/home/jooyeon/aigis/target/scala-2.13/classes/input/rtl/os_16x32x2x1x2.cfg)[0m

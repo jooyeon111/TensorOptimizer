@@ -70,18 +70,18 @@ class ArchitectureEvaluator(
 
   def logTopResultsCsv(): Unit = {
     log(s"[Show Top Results CSV Format (" +
-      s"Dataflow," +
-      s" STA Config," +
-      s" array Active Cycle," +
-      s" Cycle," +
-      s" Area," +
-      s" Energy," +
-      s" Area Energy Delay Product," +
-      s" Streaming Dimension," +
-      s" Single Buffer Size A," +
-      s" Single Buffer Size B," +
-      s" Single Buffer Size C," +
-      s" Memory Utilization]")
+      s"Dataflow, " +
+      s"STA Config, " +
+      s"array Active Cycle, " +
+      s"Cycle, " +
+      s"Area, " +
+      s"Energy, " +
+      s"Area Energy Delay Product, " +
+      s"Streaming Dimension, " +
+      s"Single Buffer Size A, " +
+      s"Single Buffer Size B, " +
+      s"Single Buffer Size C, " +
+      s"Memory Utilization]")
     rankedSingleSramOptimizedResults.foreach(logCsv)
     log("")
   }

@@ -296,7 +296,6 @@ case class SimulationResult(
     // Area Analysis
     if (isAreaReportValid) {
       log("\t[Area Analysis (um^2)]")
-      log("")
       log(s"\t\tSRAM A Area: ${String.format("%.2f", sramAreaUm2A.get)} um^2")
       log(s"\t\tSRAM B Area: ${String.format("%.2f", sramAreaUm2B.get)} um^2")
       log(s"\t\tSRAM C Area: ${String.format("%.2f", sramAreaUm2C.get)} um^2")
@@ -314,16 +313,18 @@ case class SimulationResult(
     if (isEnergyReportValid && isAreaReportValid) {
       log("\t[Energy-Area-Delay Product]")
       log(s"\t\tEnergy-Area-Delay Product: ${String.format("%.2f", edap.get)} pJ*um^2")
+      log(s"")
+      log(s"\t[Final CSV Format (Array Active Cycle, Cycle, Area, Energy, Area Energy Delay Product, Average Memory Utilization)]")
+      log(s"\t\t$arrayActiveCount, " +
+        s"$cycle, " +
+        s"${String.format("%.2f", areaUm2.get)}, " +
+        s"${String.format("%.2f", energyPj.get)}, " +
+        s"${String.format("%.2f", edap.get)}, " +
+        s"${String.format("%.2f", averageMemoryUtilization)}")
+      log(s"")
     }
 
-    log(s"")
-    log(s"\t[Final CSV Format (Cycle, Area, Energy, Area*Energy*Delay, Average Memory Utilization)]")
-    log(s"\t\t$cycle, " +
-      s"${String.format("%.2f", areaUm2.get)}, " +
-      s"${String.format("%.2f", energyPj.get)}, " +
-      s"${String.format("%.2f", edap.get)}, " +
-      s"${String.format("%.2f", averageMemoryUtilization)}")
-    log(s"")
+
 
   }
 
