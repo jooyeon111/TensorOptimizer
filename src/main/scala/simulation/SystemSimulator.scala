@@ -212,9 +212,9 @@ class SystemSimulator(
       offChipMemoryEnergy <- getOffChipMemoryEnergy
       sramEnergyA <- getSramEnergyA
       sramEnergyB <- getSramEnergyB
-//      arrayEnergy <- getArrayEnergy
+      arrayEnergy <- getArrayEnergy
       sramEnergyC <- getSramEnergyC
-    } yield offChipMemoryEnergy + sramEnergyA + sramEnergyB + sramEnergyC// + arrayEnergy
+    } yield offChipMemoryEnergy + sramEnergyA + sramEnergyB + sramEnergyC + arrayEnergy
 
   //6. Area Report
   def getSramAreaA: Option[Double] = dividedSramModelA.map(_.referenceData.areaUm2)
@@ -232,8 +232,8 @@ class SystemSimulator(
       sramAreaA <- getSramAreaA
       sramAreaB <- getSramAreaB
       sramAreaC <- getSramAreaC
-//      arrayArea <- getArrayArea
-    } yield sramAreaA + sramAreaB + sramAreaC // + arrayArea
+      arrayArea <- getArrayArea
+    } yield sramAreaA + sramAreaB + sramAreaC + arrayArea
 
   def calculateEDAP: Option[Double] =  {
     for {

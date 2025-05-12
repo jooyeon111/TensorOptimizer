@@ -23,7 +23,7 @@ class ArchitectureEvaluator(
 
   private val processOneMargin: Double = 30.0
   private val processTwoMargin: Double = 100.0
-  private val processThreeMargin: Double = 5.0
+  private val processThreeMargin: Double = 50.0
 
   def run(): Unit = {
 
@@ -36,7 +36,7 @@ class ArchitectureEvaluator(
 
     //simulate all configs
     calculatedAllResults ++= process1(executableCandidates)
-    calculatedAllResults.foreach(logSummary)
+//    calculatedAllResults.foreach(logSummary)
     rankedCalculatedResults ++= rankResults(calculatedAllResults, processOneMargin)
     logProcessOne(
       validCandidates = executableCandidates,
@@ -69,7 +69,19 @@ class ArchitectureEvaluator(
   }
 
   def logTopResultsCsv(): Unit = {
-    log(s"[Show Top Results CSV Format]")
+    log(s"[Show Top Results CSV Format (" +
+      s"Dataflow," +
+      s" STA Config," +
+      s" array Active Cycle," +
+      s" Cycle," +
+      s" Area," +
+      s" Energy," +
+      s" Area Energy Delay Product," +
+      s" Streaming Dimension," +
+      s" Single Buffer Size A," +
+      s" Single Buffer Size B," +
+      s" Single Buffer Size C," +
+      s" Memory Utilization]")
     rankedSingleSramOptimizedResults.foreach(logCsv)
     log("")
   }
@@ -126,7 +138,7 @@ class ArchitectureEvaluator(
     iteration: Int,
   ): Unit = {
 
-    log(s"\t\t[Iteration $iteration Result]")
+    log(s"\t\t[Iteration ${iteration+1} Result]")
     log(s"\t\t\t${preProcess.size} architectures were processed")
     log(s"\t\t\t${postProcess.size} optimized architectures were evaluated")
     log(s"\t\t\t${rankedPostProcess.size} architectures meet performance criteria")
@@ -329,6 +341,7 @@ class ArchitectureEvaluator(
 
     if(simulationResult.isEnergyReportValid && simulationResult.isAreaReportValid){
       log(s"\t[${architecture.arrayConfig.arrayConfigString}]")
+      log(s"\t\tArray Active Cycle: ${simulationResult.arrayActiveCount}")
       log(s"\t\tCycle: ${simulationResult.cycle}")
       log(s"\t\tArea: ${String.format("%.2f", simulationResult.areaUm2.get)} um²")
       log(s"\t\tEnergy: ${String.format("%.2f", simulationResult.energyPj.get)} pJ")
@@ -379,6 +392,7 @@ class ArchitectureEvaluator(
 
     } else {
       log(s"\t[${architecture.arrayConfig.arrayConfigString}]")
+      log(s"\t\tArray Active Cycle: ${simulationResult.arrayActiveCount}")
       log(s"\t\tCycle: ${simulationResult.cycle},")
       log(s"\t\tStreaming Dimension Size: ${architecture.streamingDimensionSize}")
       log(s"\t\tSingleBuffer A: ${architecture.singleBufferLimitKbA} KB")
@@ -435,6 +449,7 @@ class ArchitectureEvaluator(
     if(simulationResult.isEnergyReportValid && simulationResult.isAreaReportValid) {
       log(s"\t${architecture.arrayConfig.dataflow}, " +
         s"${architecture.arrayConfig.asArrayDimension.arrayDimensionString}, " +
+        s"${simulationResult.arrayActiveCount}, " +
         s"${simulationResult.cycle}, " +
         s"${String.format("%.2f", simulationResult.areaUm2.get)}, " +
         s"${String.format("%.2f", simulationResult.energyPj.get)}, " +
@@ -448,6 +463,7 @@ class ArchitectureEvaluator(
     } else {
       log(s"\t${architecture.arrayConfig.dataflow}, " +
         s"${architecture.arrayConfig.asArrayDimension.arrayDimensionString}, " +
+        s"${simulationResult.arrayActiveCount}, " +
         s"${simulationResult.cycle}, " +
         s"${String.format("%.2f", simulationResult.areaUm2.get)}, " +
         s"${String.format("%.2f", simulationResult.energyPj.get)}, " +
