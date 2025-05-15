@@ -64,14 +64,17 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     offChipMemoryDataPath: Option[String] = None,
     sramDataPath: Option[String] = None,
     arrayDataPath: Option[String] = None,
-    dnnModelWeights: Option[DNNPredictor.DNNModel] = None,
+//    dnnModelWeights: Option[DNNPredictor.DNNModel] = None,
+
+    fewShotModel: Option[FewShotPredictor.FewShotModel]= None,
+
     help: String
   ): Unit = {
 
     require(
-      (arrayDataPath.isDefined && dnnModelWeights.isEmpty) ||
-        (arrayDataPath.isEmpty && dnnModelWeights.isDefined) ||
-        (arrayDataPath.isEmpty && dnnModelWeights.isEmpty),
+      (arrayDataPath.isDefined && fewShotModel.isEmpty) ||
+        (arrayDataPath.isEmpty && fewShotModel.isDefined) ||
+        (arrayDataPath.isEmpty && fewShotModel.isEmpty),
       "Error: Only one of arrayDataPath or dnnModelWeights should be provided, not both."
     )
 
@@ -127,7 +130,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
 
     val sramReferenceData = sramDataParser.flatMap(_.getConfig).map(_.sramReferenceDataVector)
 
-    val arraySynthesisSource: Option[ArraySynthesisSource.Value] = if(dnnModelWeights.isDefined){
+    val arraySynthesisSource: Option[ArraySynthesisSource.Value] = if(fewShotModel.isDefined){
       Some(ArraySynthesisSource.DNNPrediction)
     } else if(arrayDataParser.isDefined){
       Some(ArraySynthesisSource.DesignCompiler)
@@ -135,9 +138,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       None
     }
 
-    val arraySynthesisData = if (dnnModelWeights.isDefined) {
+    val arraySynthesisData = if (fewShotModel.isDefined) {
       // Using ML model weights directly
-      dnnModelWeights.map { model =>
+      fewShotModel.map { model =>
         // Use the data from the test config to predict
         val dataflow = testConfig.getString("Dataflow").get match {
           case "IS" => Dataflow.Is.toString
@@ -171,7 +174,19 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
         println(s"- Total Multipliers: $totalMultipliers")
         println(s"- PE Configuration: ${groupPeRow}x${groupPeCol}, ${vectorPeRow}x${vectorPeCol}, $numMultiplier")
 
-        val predictedData = DNNPredictor.predictArraySynthesisData(
+//        val predictedData = DNNPredictor.predictArraySynthesisData(
+//          dataflow = dataflow,
+//          totalMultipliers = totalMultipliers,
+//          groupPeRow = groupPeRow,
+//          groupPeCol = groupPeCol,
+//          vectorPeRow = vectorPeRow,
+//          vectorPeCol = vectorPeCol,
+//          numMultiplier = numMultiplier,
+//          streamingDimensionSize = streamingDimSize,
+//          model = model
+//        )
+
+        val predictedData = FewShotPredictor.predictArraySynthesisData(
           dataflow = dataflow,
           totalMultipliers = totalMultipliers,
           groupPeRow = groupPeRow,
@@ -188,6 +203,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
         println(f"- Switch Power: ${predictedData.switchPowerPw}%.4f mW")
         println(f"- Internal Power: ${predictedData.internalPowerPw}%.4f mW")
         println(f"- Leakage Power: ${predictedData.leakagePowerPw}%.4f mW")
+        println(f"- Total Power ${predictedData.switchPowerPw + predictedData.internalPowerPw + predictedData.leakagePowerPw}")
 
         predictedData
       }
@@ -343,6 +359,8 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       bitWidthPortB = bitWidthPortB,
       streamingDimensionSize = streamingDimensionSize
     )
+
+    println(s"Bit width Port C: $bitWidthPortC")
 
     val portBitWidth = PortBitWidth(bitWidthPortA, bitWidthPortB, bitWidthPortC)
 

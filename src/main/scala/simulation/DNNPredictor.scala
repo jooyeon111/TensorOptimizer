@@ -11,38 +11,39 @@ import scala.util.Random
 object DNNPredictor extends Logger {
 
   case class Layer(
-    weights: Array[Array[Double]],
-    biases: Array[Double],
-    activation: String // "relu", "linear", or "sigmoid"
-  ) extends Serializable
+                    weights: Array[Array[Double]],
+                    biases: Array[Double],
+                    activation: String, // "relu", "linear", or "sigmoid"
+                    dropoutRate: Double = 0.0 // 추가된 dropout 비율
+                  ) extends Serializable
 
   case class DNNModel(
-    layers: Array[Layer],
+                       layers: Array[Layer],
 
-    // Normalization parameters for inputs
-    featureMeans: Map[String, Double],
-    featureStds: Map[String, Double],
+                       // Normalization parameters for inputs
+                       featureMeans: Map[String, Double],
+                       featureStds: Map[String, Double],
 
-    // Normalization parameters for targets
-    areaMean: Double,
-    areaStd: Double,
-    powerMean: Double,
-    powerStd: Double,
+                       // Normalization parameters for targets
+                       areaMean: Double,
+                       areaStd: Double,
+                       powerMean: Double,
+                       powerStd: Double,
 
-    // Feature names to ensure consistent ordering
-    featureNames: Array[String]
-  ) extends Serializable
+                       // Feature names to ensure consistent ordering
+                       featureNames: Array[String]
+                     ) extends Serializable
 
   case class FeatureVector(
-    dataflow: String,
-    totalMultipliers: Int,
-    r: Int,
-    c: Int,
-    a: Int,
-    b: Int,
-    p: Int,
-    streamingDimensionSize: Int
-  ) {
+                            dataflow: String,
+                            totalMultipliers: Int,
+                            r: Int,
+                            c: Int,
+                            a: Int,
+                            b: Int,
+                            p: Int,
+                            streamingDimensionSize: Int
+                          ) {
     def toMap: Map[String, Double] = {
       // Create one-hot encoding for dataflow
       val dataflowFeatures = Map(
@@ -216,13 +217,15 @@ object DNNPredictor extends Logger {
                                    inputSize: Int,
                                    hiddenLayers: Array[Int],
                                    outputSize: Int,
+                                   dropoutRates: Array[Double],  // 각 레이어의 dropout 비율 배열
                                    seed: Int = 42
                                  ): Array[Layer] = {
     val random = new Random(seed)
 
     val allLayerSizes = Array(inputSize) ++ hiddenLayers ++ Array(outputSize)
+    val layers = new Array[Layer](allLayerSizes.length - 1)
 
-    val layers = for (i <- 0 until allLayerSizes.length - 1) yield {
+    for (i <- 0 until allLayerSizes.length - 1) {
       val inSize = allLayerSizes(i)
       val outSize = allLayerSizes(i + 1)
 
@@ -238,10 +241,13 @@ object DNNPredictor extends Logger {
       // Use ReLU for hidden layers, linear for output layer
       val activation = if (i < allLayerSizes.length - 2) "relu" else "linear"
 
-      Layer(weights, biases, activation)
+      // 마지막 출력 레이어에는 dropout을 적용하지 않음
+      val dropoutRate = if (i < dropoutRates.length) dropoutRates(i) else 0.0
+
+      layers(i) = Layer(weights, biases, activation, dropoutRate)
     }
 
-    layers.toArray
+    layers
   }
 
   private def relu(x: Double): Double = math.max(0.0, x)
@@ -275,11 +281,14 @@ object DNNPredictor extends Logger {
 
   private def forwardPass(
                            inputs: Array[Double],
-                           layers: Array[Layer]
-                         ): (Array[Array[Double]], Array[Array[Double]]) = {
+                           layers: Array[Layer],
+                           isTraining: Boolean = false,  // 학습 모드에서만 dropout 적용
+                           random: Random = new Random()
+                         ): (Array[Array[Double]], Array[Array[Double]], Array[Array[Boolean]]) = {
 
     val activations = new Array[Array[Double]](layers.length + 1)
     val preActivations = new Array[Array[Double]](layers.length)
+    val dropoutMasks = new Array[Array[Boolean]](layers.length)
 
     activations(0) = inputs
 
@@ -290,6 +299,15 @@ object DNNPredictor extends Logger {
       val preActivation = new Array[Double](layer.biases.length)
       val activation = new Array[Double](layer.biases.length)
 
+      // Dropout 마스크 생성 (학습 모드에서만)
+      val dropoutMask = if (isTraining && layer.dropoutRate > 0.0) {
+        Array.fill(layer.biases.length) { random.nextDouble() >= layer.dropoutRate }
+      } else {
+        Array.fill(layer.biases.length) { true }
+      }
+
+      dropoutMasks(i) = dropoutMask
+
       for (j <- layer.biases.indices) {
         var sum = layer.biases(j)
         for (k <- prevActivation.indices) {
@@ -297,23 +315,38 @@ object DNNPredictor extends Logger {
         }
         preActivation(j) = sum
         activation(j) = applyActivation(sum, layer.activation)
+
+        // 학습 중 dropout 적용
+        if (isTraining && layer.dropoutRate > 0.0) {
+          if (dropoutMask(j)) {
+            // Dropout을 적용하지 않은 뉴런은 그대로 유지하되, 전체 스케일 조정
+            activation(j) = activation(j) / (1.0 - layer.dropoutRate)
+          } else {
+            // Dropout 적용된 뉴런은 0으로 설정
+            activation(j) = 0.0
+          }
+        } else if (!isTraining && layer.dropoutRate > 0.0) {
+          // 테스트 시에는 스케일 조정 없이 모든 뉴런 사용
+          activation(j) = activation(j)
+        }
       }
 
       preActivations(i) = preActivation
       activations(i + 1) = activation
     }
 
-    (activations, preActivations)
+    (activations, preActivations, dropoutMasks)
   }
 
   private def backpropagation(
                                inputs: Array[Double],
                                target: Array[Double],
                                layers: Array[Layer],
-                               l2Lambda: Double = 0.001
+                               l2Lambda: Double,
+                               random: Random = new Random()
                              ): (Array[Array[Array[Double]]], Array[Array[Double]]) = {
 
-    val (activations, preActivations) = forwardPass(inputs, layers)
+    val (activations, preActivations, dropoutMasks) = forwardPass(inputs, layers, isTraining = true, random)
 
     // Initialize the gradient arrays with the correct sizes
     val weightGradients = new Array[Array[Array[Double]]](layers.length)
@@ -340,6 +373,7 @@ object DNNPredictor extends Logger {
       val layer = layers(layerIdx)
       val layerInputs = activations(layerIdx)
       val preActivation = preActivations(layerIdx)
+      val dropoutMask = dropoutMasks(layerIdx)
 
       val currentErrors = if (layerIdx == outputLayerIdx) {
         // For output layer, use the calculated output errors
@@ -354,7 +388,9 @@ object DNNPredictor extends Logger {
           for (j <- nextErrors.indices) {
             error += nextLayer.weights(j)(i) * nextErrors(j)
           }
-          errors(i) = error * activationDerivative(preActivation(i), layer.activation)
+          // Dropout 마스크 적용
+          error = if (dropoutMask(i)) error * activationDerivative(preActivation(i), layer.activation) / (1.0 - layer.dropoutRate) else 0.0
+          errors(i) = error
         }
         errors
       }
@@ -407,7 +443,7 @@ object DNNPredictor extends Logger {
         newBiases(j) = layer.biases(j) - learningRate * clippedBiasGrad
       }
 
-      updatedLayers(i) = Layer(newWeights, newBiases, layer.activation)
+      updatedLayers(i) = Layer(newWeights, newBiases, layer.activation, layer.dropoutRate)
     }
 
     updatedLayers
@@ -425,18 +461,19 @@ object DNNPredictor extends Logger {
                        inputs: Array[Double],
                        layers: Array[Layer]
                      ): Array[Double] = {
-    val (activations, _) = forwardPass(inputs, layers)
+    val (activations, _, _) = forwardPass(inputs, layers, isTraining = false)
     activations.last
   }
 
   private def trainNeuralNetworks(
     trainData: Vector[(FeatureVector, (Double, Double))],
     validationData: Vector[(FeatureVector, (Double, Double))],
-    learningRate: Double = 0.001,
-    batchSize: Int = 32,
-    epochs: Int = 1000,
-    patience: Int = 50, // For early stopping
-    l2Lambda: Double = 0.001
+    learningRate: Double,
+    batchSize: Int,
+    epochs: Int,
+    patience: Int,
+    l2Lambda: Double,
+    dropoutRates: Array[Double] = Array(0.2, 0.2, 0.2)
   ): DNNModel = {
     log("Starting neural network training...")
 
@@ -473,10 +510,15 @@ object DNNPredictor extends Logger {
     val inputSize = allFeatureNames.length
     val outputSize = 2 // Area and power
 
-//    val hiddenLayers = Array(256, 128, 64)
-    val hiddenLayers = Array(512, 256, 128)
+    val hiddenLayers = Array(128, 64, 32)
 
-    var network = createNeuralNetwork(inputSize, hiddenLayers, outputSize)
+    // 드롭아웃 비율 설정
+    var network = createNeuralNetwork(
+      inputSize = inputSize,
+      hiddenLayers = hiddenLayers,
+      outputSize = outputSize,
+      dropoutRates = dropoutRates
+    )
 
     // Prepare training data
     val normalizedTrainInputs = trainData.map { case (features, _) =>
@@ -510,6 +552,7 @@ object DNNPredictor extends Logger {
     var bestValLoss = Double.MaxValue
     var bestNetwork = network
     var patienceCounter = 0
+    val random = new Random(42) // 재현성을 위한 시드 설정
 
     for (epoch <- 1 to epochs) {
       // Shuffle training data
@@ -535,7 +578,7 @@ object DNNPredictor extends Logger {
           val input = normalizedTrainInputs(idx)
           val target = normalizedTrainTargets(idx)
 
-          val (weightGrads, biasGrads) = backpropagation(input, target, network, l2Lambda)
+          val (weightGrads, biasGrads) = backpropagation(input, target, network, l2Lambda, random)
 
           // Add to batch gradients
           for (i <- network.indices) {
@@ -563,7 +606,7 @@ object DNNPredictor extends Logger {
         network = updateParameters(network, batchWeightGradients, batchBiasGradients, learningRate)
       }
 
-      // Evaluate on training and validation sets
+      // Evaluate on training and validation sets (예측 시에는 dropout을 적용하지 않음)
       val trainOutputs = normalizedTrainInputs.map(input => predict(input, network))
       val trainLoss = trainOutputs.zip(normalizedTrainTargets).map { case (pred, target) =>
         mseError(pred, target)
@@ -620,7 +663,8 @@ object DNNPredictor extends Logger {
         bestNetwork = network.map(layer => Layer(
           weights = layer.weights.map(_.clone()),
           biases = layer.biases.clone(),
-          activation = layer.activation
+          activation = layer.activation,
+          dropoutRate = layer.dropoutRate  // 드롭아웃 비율도 보존
         ))
         patienceCounter = 0
       } else {
@@ -701,16 +745,16 @@ object DNNPredictor extends Logger {
    * Predict area and power using the model
    */
   def predictArraySynthesisData(
-    dataflow: String,
-    totalMultipliers: Int,
-    groupPeRow: Int,
-    groupPeCol: Int,
-    vectorPeRow: Int,
-    vectorPeCol: Int,
-    numMultiplier: Int,
-    streamingDimensionSize: Int,
-    model: DNNModel
-  ): ArraySynthesisData = {
+                                 dataflow: String,
+                                 totalMultipliers: Int,
+                                 groupPeRow: Int,
+                                 groupPeCol: Int,
+                                 vectorPeRow: Int,
+                                 vectorPeCol: Int,
+                                 numMultiplier: Int,
+                                 streamingDimensionSize: Int,
+                                 model: DNNModel
+                               ): ArraySynthesisData = {
 
     val features = FeatureVector(
       dataflow = dataflow,
@@ -730,7 +774,7 @@ object DNNPredictor extends Logger {
     // Ensure features are in the correct order
     val orderedInputs = model.featureNames.map(normalizedFeatures.getOrElse(_, 0.0)).toArray
 
-    // Make prediction
+    // Make prediction (test 모드로 예측)
     val predictions = predict(orderedInputs, model.layers)
 
     // Denormalize predictions
@@ -758,12 +802,12 @@ object DNNPredictor extends Logger {
    * Train a new model
    */
   def trainModel(
-    weightOutputPath: String,
-    trainFilePath: String,
-    validationFilePath: String,
-    testFilePath: String,
-    loggerOption: LoggerOption
-  ): Try[DNNModel] = {
+                  weightOutputPath: String,
+                  trainFilePath: String,
+                  validationFilePath: String,
+                  testFilePath: String,
+                  loggerOption: LoggerOption
+                ): Try[DNNModel] = {
     setMode(loggerOption)
     log("Training a new deep neural network model for array synthesis data prediction")
 
@@ -790,15 +834,19 @@ object DNNPredictor extends Logger {
         return Failure(new RuntimeException("Failed to parse test data"))
       }
 
-      log("Starting neural network training...")
+      log("Starting neural network training with dropout regularization...")
+      // 각 hidden layer에 적용할 dropout 비율 설정
+      val dropoutRates = Array(0.3, 0.2, 0.1)  // 첫 번째 레이어에 30%, 두 번째 20%, 세 번째 10% dropout 적용
+
       val model = trainNeuralNetworks(
         trainData = trainData,
         validationData = validationData,
         learningRate = 0.001,
         batchSize = 32,
-        epochs = 1000,
-        patience = 50,
-        l2Lambda = 0.001
+        epochs = 500,
+        patience = 20,
+        l2Lambda = 0.01,
+        dropoutRates = dropoutRates
       )
 
       log("Model training completed.")
@@ -833,7 +881,7 @@ object DNNPredictor extends Logger {
     val testAreaValues = testData.map(_._2._1)
     val testPowerValues = testData.map(_._2._2)
 
-    // Make predictions
+    // Make predictions (테스트 중이므로 dropout 적용 안함)
     val testOutputs = testInputs.map(input => predict(input, model.layers))
     val testAreaPreds = testOutputs.map(_(0))
     val testPowerPreds = testOutputs.map(_(1))
@@ -947,6 +995,5 @@ object DNNPredictor extends Logger {
       }
     }
   }
-
 
 }

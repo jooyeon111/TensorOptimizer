@@ -183,16 +183,16 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
 
     println("[Architecture Evaluator START]")
 
-    val architectureEvaluator = new ArchitectureEvaluator(
+    val architectureOptimizer = new ArchitectureOptimizer(
       simConfig = simulationConfig,
       architectureCandidates = architectureCandidates,
       minSramSize = minimumSingleBufferLimitKb,
       loggerOption = loggerOption
     )
 
-    architectureEvaluator.run()
-    architectureEvaluator.logTopResults()
-    architectureEvaluator.logTopResultsCsv()
+    architectureOptimizer.run()
+    architectureOptimizer.logTopResults()
+    architectureOptimizer.logTopResultsCsv()
     println("[Architecture Evaluator END]")
 
   }

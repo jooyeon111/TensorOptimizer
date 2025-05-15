@@ -4,7 +4,7 @@ import common.FilePaths
 import scala.util.{Failure, Success, Try}
 
 object AnalyzerMain extends App
-  with RtlSynthesisManager
+  with RtlGenerationManager
   with SingleLayerSimulation
   with Logger {
 
@@ -41,7 +41,7 @@ object AnalyzerMain extends App
 
     if(args.length == 1){
       println("RTL Synthesis Manger Mode")
-      processArrayConfigsAndGenerateRtl(args(0), help)
+      generateRtl(args(0), help)
     } else if (args.length == 2) {
       println("Cycle Report Only")
       runLayerSimulation(
@@ -65,7 +65,21 @@ object AnalyzerMain extends App
 
       val loggerOption = LoggerOption(OutputMode.Console, None)
 
-      DNNPredictor.trainModel(
+//      DNNPredictor.trainModel(
+//        weightOutputPath = outputWeightPath,
+//        trainFilePath = trainCsvPath,
+//        validationFilePath = validationCsvPath,
+//        testFilePath = testCsvPath,
+//        loggerOption = loggerOption
+//      ) match {
+//        case Success(_) =>
+//          println(s"Successfully trained and saved ML model to $outputWeightPath")
+//        case Failure(e) =>
+//          Console.err.println(s"Failed to train ML model: ${e.getMessage}")
+//          sys.exit(1)
+//      }
+
+      FewShotPredictor.trainModel(
         weightOutputPath = outputWeightPath,
         trainFilePath = trainCsvPath,
         validationFilePath = validationCsvPath,
@@ -81,19 +95,33 @@ object AnalyzerMain extends App
 
     } else if (args.length == 5){
 
-//      val file = new File(args(4))
-//      if(file.exists()){
-//        println("weight file is real")
-//      } else {
-//        println("weight file is not real")
-//      }
-
       if (args(4).endsWith(".bin")) {
         println("Cycle and Energy Report Mode with ML Inference")
         // Load existing ML model weights
         val loggerOption = LoggerOption(OutputMode.Console, None)
 
-        DNNPredictor.loadModel(
+//        DNNPredictor.loadModel(
+//          filePath = args(4),
+//          loggerOption = loggerOption
+//        ) match {
+//          case Success(modelWeights) =>
+//
+//            runLayerSimulation(
+//              layerPath = args(0),
+//              testPath = args(1),
+//              offChipMemoryDataPath = Option(args(2)),
+//              sramDataPath = Option(args(3)),
+//              dnnModelWeights = Some(modelWeights),
+//              help = help
+//            )
+//
+//          case Failure(e) =>
+//            Console.err.println(s"Failed to load ML model: ${e.getMessage}")
+//            sys.exit(1)
+//
+//        }
+
+        FewShotPredictor.loadModel(
           filePath = args(4),
           loggerOption = loggerOption
         ) match {
@@ -104,14 +132,13 @@ object AnalyzerMain extends App
               testPath = args(1),
               offChipMemoryDataPath = Option(args(2)),
               sramDataPath = Option(args(3)),
-              dnnModelWeights = Some(modelWeights),
+              fewShotModel = Some(modelWeights),
               help = help
             )
 
           case Failure(e) =>
             Console.err.println(s"Failed to load ML model: ${e.getMessage}")
             sys.exit(1)
-
         }
 
       } else {

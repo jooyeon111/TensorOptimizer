@@ -4,7 +4,6 @@ import chisel3._
 import common.ArrayDimension
 import rtl.commonRtl.{Arithmetic, PortConfig, PreProcessor, PreProcessorType, VerilogNaming}
 
-//Pod = Pre Processing Unit +  Systolic Tensor Array + Post Processing Unit
 class SkewedSystolicTensorArray[T <: Data](
   groupPeRow: Int,
   groupPeCol : Int,

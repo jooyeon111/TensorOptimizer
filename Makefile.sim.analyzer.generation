@@ -1,0 +1,70 @@
+########################################################################################################################
+#												   Analyzer                                                        #
+########################################################################################################################
+
+BASE_CONFIG_PATH := input/simulation/configs/analyzer
+
+#mult 64
+TEST_OPTION_MULT_64_SD_32 = $(BASE_CONFIG_PATH)/bandwidth/multiplier64_sd32.cfg
+TEST_OPTION_MULT_64_SD_64 = $(BASE_CONFIG_PATH)/bandwidth/multiplier64_sd64.cfg
+TEST_OPTION_MULT_64_SD_128 = $(BASE_CONFIG_PATH)/bandwidth/multiplier64_sd128.cfg
+TEST_OPTION_MULT_64_SD_256 = $(BASE_CONFIG_PATH)/bandwidth/multiplier64_sd256.cfg
+TEST_OPTION_MULT_64_SD_512 = $(BASE_CONFIG_PATH)/bandwidth/multiplier64_sd512.cfg
+TEST_OPTION_MULT_64_SD_1024 = $(BASE_CONFIG_PATH)/bandwidth/multiplier64_sd1024.cfg
+
+#mult 128
+TEST_OPTION_MULT_128_SD_32 = $(BASE_CONFIG_PATH)/bandwidth/multiplier128_sd32.cfg
+TEST_OPTION_MULT_128_SD_64 = $(BASE_CONFIG_PATH)/bandwidth/multiplier128_sd64.cfg
+TEST_OPTION_MULT_128_SD_128 = $(BASE_CONFIG_PATH)/bandwidth/multiplier128_sd128.cfg
+TEST_OPTION_MULT_128_SD_256 = $(BASE_CONFIG_PATH)/bandwidth/multiplier128_sd256.cfg
+TEST_OPTION_MULT_128_SD_512 = $(BASE_CONFIG_PATH)/bandwidth/multiplier128_sd512.cfg
+TEST_OPTION_MULT_128_SD_1024 = $(BASE_CONFIG_PATH)/bandwidth/multiplier128_sd1024.cfg
+
+#mult 256
+TEST_OPTION_MULT_256_SD_32 = $(BASE_CONFIG_PATH)/bandwidth/multiplier256_sd32.cfg
+TEST_OPTION_MULT_256_SD_64 = $(BASE_CONFIG_PATH)/bandwidth/multiplier256_sd64.cfg
+TEST_OPTION_MULT_256_SD_128 = $(BASE_CONFIG_PATH)/bandwidth/multiplier256_sd128.cfg
+TEST_OPTION_MULT_256_SD_256 = $(BASE_CONFIG_PATH)/bandwidth/multiplier256_sd256.cfg
+TEST_OPTION_MULT_256_SD_512 = $(BASE_CONFIG_PATH)/bandwidth/multiplier256_sd512.cfg
+TEST_OPTION_MULT_256_SD_1024 = $(BASE_CONFIG_PATH)/bandwidth/multiplier256_sd1024.cfg
+
+#mult 512
+TEST_OPTION_MULT_512_SD_32 = $(BASE_CONFIG_PATH)/bandwidth/multiplier512_sd32.cfg
+TEST_OPTION_MULT_512_SD_64 = $(BASE_CONFIG_PATH)/bandwidth/multiplier512_sd64.cfg
+TEST_OPTION_MULT_512_SD_128 = $(BASE_CONFIG_PATH)/bandwidth/multiplier512_sd128.cfg
+TEST_OPTION_MULT_512_SD_256 = $(BASE_CONFIG_PATH)/bandwidth/multiplier512_sd256.cfg
+TEST_OPTION_MULT_512_SD_512 = $(BASE_CONFIG_PATH)/bandwidth/multiplier512_sd512.cfg
+TEST_OPTION_MULT_512_SD_1024 = $(BASE_CONFIG_PATH)/bandwidth/multiplier512_sd1024.cfg
+
+#mult 1024
+TEST_OPTION_MULT_1024_SD_32 = $(BASE_CONFIG_PATH)/bandwidth/multiplier1024_sd32.cfg
+TEST_OPTION_MULT_1024_SD_64 = $(BASE_CONFIG_PATH)/bandwidth/multiplier1024_sd64.cfg
+TEST_OPTION_MULT_1024_SD_128 = $(BASE_CONFIG_PATH)/bandwidth/multiplier1024_sd128.cfg
+TEST_OPTION_MULT_1024_SD_256 = $(BASE_CONFIG_PATH)/bandwidth/multiplier1024_sd256.cfg
+TEST_OPTION_MULT_1024_SD_512 = $(BASE_CONFIG_PATH)/bandwidth/multiplier1024_sd512.cfg
+TEST_OPTION_MULT_1024_SD_1024 = $(BASE_CONFIG_PATH)/bandwidth/multiplier1024_sd1024.cfg
+
+
+.PHONY: bandwidth
+bandwidth:
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_128_SD_32}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_256_SD_32}"
+	sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_512_SD_64}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_256_SD_128}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_256_SD_256}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_256_SD_512}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_256_SD_1024}"
+
+#	sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_512_SD_32}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_512_SD_64}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_512_SD_128}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_512_SD_256}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_512_SD_512}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_512_SD_1024}"
+
+#	sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_32}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_64}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_128}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_256}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_512}"
+	#sbt "runMain simulation.AnalyzerMain ${TEST_OPTION_MULT_1024_SD_1024}"

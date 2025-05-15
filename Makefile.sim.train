@@ -1,0 +1,24 @@
+LAYER := input/simulation/layer/resnet18/conv1.cfg
+TEST_OPTION_WS_SD_1024 := input/simulation/configs/analyzer/oneLayer/os_{32x32}x{1x1}x1_sd_256_buffer_256.cfg
+TEST_OPTION_OFF_CHIP_MEM_REF = input/simulation/hardware_reference/DRAMsim3/hbm2.cfg
+SRAM_DATA = input/simulation/hardware_reference/nvsim/sram.cfg
+WEIGHT := input/simulation/synthesis/weight.bin
+
+BASE_PATH := input/simulation/synthesis
+TRAIN := $(BASE_PATH)/train.csv
+VALID := $(BASE_PATH)/validation.csv
+TEST := $(BASE_PATH)/test.csv
+
+SYNTHESIS_RESULTS := input/simulation/hardware_reference/design_compiler/os_sta_32x32x1x1x1_sd32.cfg
+
+.PHONY: train
+train:
+	sbt "runMain simulation.AnalyzerMain ${TRAIN} ${VALID} ${TEST}"
+
+.PHONY: inference
+inference:
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_1024} ${TEST_OPTION_OFF_CHIP_MEM_REF} ${SRAM_DATA} ${WEIGHT}"
+
+.PHONY: dc
+dc:
+	sbt "runMain simulation.AnalyzerMain ${LAYER} ${TEST_OPTION_WS_SD_1024} ${TEST_OPTION_OFF_CHIP_MEM_REF} ${SRAM_DATA} ${SYNTHESIS_RESULTS}"
