@@ -286,7 +286,7 @@ class SystemSimulator(
 
         }
 
-        if (array.capacityLeftTileA < 0) {
+        if (array.capacityLeftTileA() < 0) {
           Console.err.println("Capacity is a negative value")
           printCompilationState(cycle)
           break()

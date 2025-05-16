@@ -2,20 +2,10 @@
 <project version="4">
   <component name="ScalaCompilerConfiguration">
     <profile name="sbt 1" modules="aigis_4958" />
-    <profile name="sbt 2" modules="stag">
+    <profile name="sbt 2" modules="aigis,stag">
       <option name="reflectiveCalls" value="true" />
       <option name="deprecationWarnings" value="true" />
       <option name="featureWarnings" value="true" />
-      <parameters>
-        <parameter value="-Xcheckinit" />
-        <parameter value="-Ymacro-annotations" />
-      </parameters>
-      <plugins>
-        <plugin path="$PROJECT_DIR$/../.cache/coursier/v1/https/repo1.maven.org/maven2/org/chipsalliance/chisel-plugin_2.13.12/6.2.0/chisel-plugin_2.13.12-6.2.0.jar" />
-      </plugins>
-    </profile>
-    <profile name="sbt 3" modules="aigis">
-      <option name="reflectiveCalls" value="true" />
       <parameters>
         <parameter value="-Xcheckinit" />
         <parameter value="-Ymacro-annotations" />

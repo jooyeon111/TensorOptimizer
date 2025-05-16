@@ -18,7 +18,8 @@ lazy val commonSettings = Seq(
 // Root project
 lazy val root = (project in file("."))
   .settings(
-    name := "aigis",
+    name := "JaeJoo",
+    commonSettings,
     libraryDependencies ++= Seq(
       "org.chipsalliance" %% "chisel" % chiselVersion,
       "org.scalatest" %% "scalatest" % "3.2.16" % "test"

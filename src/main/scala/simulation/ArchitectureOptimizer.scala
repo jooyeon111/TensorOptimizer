@@ -818,17 +818,17 @@ class ArchitectureOptimizer(
 
     val threshold = metric match {
       case SystemArchitectureOptimizer.OptimizationMetric.Cycle =>
-        val minCycle = results.map(_.simulationResult.cycle).min
-        (minCycle * (1 + marginPercent/100)).toLong
+        val minCycle: Long = results.map(_.simulationResult.cycle).min
+        (minCycle.toDouble * (1 + marginPercent/100.0)).toLong
       case SystemArchitectureOptimizer.OptimizationMetric.Energy =>
         val minEnergy = results.flatMap(_.simulationResult.energyPj).min
-        minEnergy * (1 + marginPercent/100)
+        minEnergy * (1 + marginPercent/100.0)
       case SystemArchitectureOptimizer.OptimizationMetric.Area =>
         val minArea = results.flatMap(_.simulationResult.areaUm2).min
-        minArea * (1 + marginPercent/100)
+        minArea * (1 + marginPercent/100.0)
       case SystemArchitectureOptimizer.OptimizationMetric.EDAP =>
         val minAreaEnergyProduct = results.flatMap(_.simulationResult.edap).min
-        minAreaEnergyProduct * (1 + marginPercent/100)
+        minAreaEnergyProduct * (1 + marginPercent/100.0)
     }
 
     val filteredResults = results.filter { result =>
