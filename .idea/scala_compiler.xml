@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ScalaCompilerConfiguration">
     <profile name="sbt 1" modules="aigis_4958" />
-    <profile name="sbt 2" modules="aigis,stag">
+    <profile name="sbt 2" modules="JaeJoo,aigis,stag">
       <option name="reflectiveCalls" value="true" />
       <option name="deprecationWarnings" value="true" />
       <option name="featureWarnings" value="true" />

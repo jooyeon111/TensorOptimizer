@@ -1,28 +1,10 @@
-[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/ArchitectureOptimizer.scala:820:65: Widening conversion from Long to Double is deprecated because it loses precision. Write `.toDouble` instead. [quickfixable][0m
-[0m[[0m[33mwarn[0m] [0m[0m      case SystemArchitectureOptimizer.OptimizationMetric.Cycle =>[0m
-[0m[[0m[33mwarn[0m] [0m[0m                                                                ^[0m
-[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/DNNPredictor.scala:936:38: method formatted in class StringFormat is deprecated (since 2.12.16): Use `formatString.format(value)` instead of `value.formatted(formatString)`,[0m
-[0m[[0m[33mwarn[0m] [0m[0mor use the `f""` string interpolator. In Java 15 and later, `formatted` resolves to the new method in String which has reversed parameters.[0m
-[0m[[0m[33mwarn[0m] [0m[0m    log(s"Area Test MAPE: ${areaMAPE.formatted("%.2f")}%")[0m
-[0m[[0m[33mwarn[0m] [0m[0m                                     ^[0m
-[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/DNNPredictor.scala:937:40: method formatted in class StringFormat is deprecated (since 2.12.16): Use `formatString.format(value)` instead of `value.formatted(formatString)`,[0m
-[0m[[0m[33mwarn[0m] [0m[0mor use the `f""` string interpolator. In Java 15 and later, `formatted` resolves to the new method in String which has reversed parameters.[0m
-[0m[[0m[33mwarn[0m] [0m[0m    log(s"Power Test MAPE: ${powerMAPE.formatted("%.2f")}%")[0m
-[0m[[0m[33mwarn[0m] [0m[0m                                       ^[0m
-[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/DNNPredictor.scala:961:127: method formatted in class StringFormat is deprecated (since 2.12.16): Use `formatString.format(value)` instead of `value.formatted(formatString)`,[0m
-[0m[[0m[33mwarn[0m] [0m[0mor use the `f""` string interpolator. In Java 15 and later, `formatted` resolves to the new method in String which has reversed parameters.[0m
-[0m[[0m[33mwarn[0m] [0m[0m    log(s"Severe area mispredictions (>15% error): $severeAreaErrors (${(severeAreaErrors.toDouble/testAreaValues.length*100).formatted("%.1f")}%)")[0m
-[0m[[0m[33mwarn[0m] [0m[0m                                                                                                                              ^[0m
-[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/DNNPredictor.scala:962:131: method formatted in class StringFormat is deprecated (since 2.12.16): Use `formatString.format(value)` instead of `value.formatted(formatString)`,[0m
-[0m[[0m[33mwarn[0m] [0m[0mor use the `f""` string interpolator. In Java 15 and later, `formatted` resolves to the new method in String which has reversed parameters.[0m
-[0m[[0m[33mwarn[0m] [0m[0m    log(s"Severe power mispredictions (>15% error): $severePowerErrors (${(severePowerErrors.toDouble/testPowerValues.length*100).formatted("%.1f")}%)")[0m
-[0m[[0m[33mwarn[0m] [0m[0m                                                                                                                                  ^[0m
-[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/DNNPredictor.scala:983:48: method formatted in class StringFormat is deprecated (since 2.12.16): Use `formatString.format(value)` instead of `value.formatted(formatString)`,[0m
-[0m[[0m[33mwarn[0m] [0m[0mor use the `f""` string interpolator. In Java 15 and later, `formatted` resolves to the new method in String which has reversed parameters.[0m
-[0m[[0m[33mwarn[0m] [0m[0m        log(s"Index $idx: Error: ${(error*100).formatted("%.1f")}%, " +[0m
-[0m[[0m[33mwarn[0m] [0m[0m                                               ^[0m
-[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/DNNPredictor.scala:991:48: method formatted in class StringFormat is deprecated (since 2.12.16): Use `formatString.format(value)` instead of `value.formatted(formatString)`,[0m
-[0m[[0m[33mwarn[0m] [0m[0mor use the `f""` string interpolator. In Java 15 and later, `formatted` resolves to the new method in String which has reversed parameters.[0m
-[0m[[0m[33mwarn[0m] [0m[0m        log(s"Index $idx: Error: ${(error*100).formatted("%.1f")}%, " +[0m
-[0m[[0m[33mwarn[0m] [0m[0m                                               ^[0m
-[0m[[0m[33mwarn[0m] [0m[0m7 warnings found[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/ArrayConfigGenerator.scala:55:55: not enough arguments for method loadModel: (filePath: String, loggerOption: simulation.LoggerOption): scala.util.Try[simulation.MAMLFewShotPredictor.MAMLModel].[0m
+[0m[[0m[31merror[0m] [0m[0mUnspecified value parameter loggerOption.[0m
+[0m[[0m[31merror[0m] [0m[0m      val loadedModel = MAMLFewShotPredictor.loadModel(filePath = dnnModelWeightsPath.get)[0m
+[0m[[0m[31merror[0m] [0m[0m                                                      ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/ArrayConfigGenerator.scala:82:23: type mismatch;[0m
+[0m[[0m[31merror[0m] [0m[0m found   : Any[0m
+[0m[[0m[31merror[0m] [0m[0m required: simulation.MAMLFewShotPredictor.MAMLModel[0m
+[0m[[0m[31merror[0m] [0m[0m              model = modelWeights[0m
+[0m[[0m[31merror[0m] [0m[0m                      ^[0m
+[0m[[0m[31merror[0m] [0m[0mtwo errors found[0m

@@ -51,20 +51,20 @@ object AnalyzerMain extends App
       )
     } else if(args.length == 3){
 
-      println("ML Model Training Mode")
-      val trainCsvPath = args(0)
-      val validationCsvPath = args(1)
-      val testCsvPath = args(2)
-      val outputWeightPath = FilePaths.resourcesInputSimulation + "/synthesis/weight.bin"
-
-      println(s"Training ML model using:")
-      println(s"- Training data: $trainCsvPath")
-      println(s"- Validation data: $validationCsvPath")
-      println(s"- Test data: $testCsvPath")
-      println(s"- Output weight file: $outputWeightPath")
-
-      val loggerOption = LoggerOption(OutputMode.Console, None)
-
+//      println("ML Model Training Mode")
+//      val trainCsvPath = args(0)
+//      val validationCsvPath = args(1)
+//      val testCsvPath = args(2)
+//      val outputWeightPath = FilePaths.resourcesInputSimulation + "/synthesis/weight.bin"
+//
+//      println(s"Training ML model using:")
+//      println(s"- Training data: $trainCsvPath")
+//      println(s"- Validation data: $validationCsvPath")
+//      println(s"- Test data: $testCsvPath")
+//      println(s"- Output weight file: $outputWeightPath")
+//
+//      val loggerOption = LoggerOption(OutputMode.Console, None)
+//
 //      DNNPredictor.trainModel(
 //        weightOutputPath = outputWeightPath,
 //        trainFilePath = trainCsvPath,
@@ -79,7 +79,36 @@ object AnalyzerMain extends App
 //          sys.exit(1)
 //      }
 
-      FewShotPredictor.trainModel(
+//      FewShotPredictor.trainModel(
+//        weightOutputPath = outputWeightPath,
+//        trainFilePath = trainCsvPath,
+//        validationFilePath = validationCsvPath,
+//        testFilePath = testCsvPath,
+//        loggerOption = loggerOption
+//      ) match {
+//        case Success(_) =>
+//          println(s"Successfully trained and saved ML model to $outputWeightPath")
+//        case Failure(e) =>
+//          Console.err.println(s"Failed to train ML model: ${e.getMessage}")
+//          sys.exit(1)
+//      }
+
+    } else if (args.length == 4 && args(3).toLowerCase == "maml"){
+      println("MAML Few-Shot Learning Training Mode")
+      val trainCsvPath = args(0)
+      val validationCsvPath = args(1)
+      val testCsvPath = args(2)
+      val outputWeightPath = FilePaths.resourcesInputSimulation + "/synthesis/maml_weight.bin"
+
+      println(s"Training MAML few-shot model using:")
+      println(s"- Training data: $trainCsvPath")
+      println(s"- Validation data: $validationCsvPath")
+      println(s"- Test data: $testCsvPath")
+      println(s"- Output weight file: $outputWeightPath")
+
+      val loggerOption = LoggerOption(OutputMode.Console, None)
+
+      MAMLFewShotPredictor.trainModel(
         weightOutputPath = outputWeightPath,
         trainFilePath = trainCsvPath,
         validationFilePath = validationCsvPath,
@@ -87,12 +116,11 @@ object AnalyzerMain extends App
         loggerOption = loggerOption
       ) match {
         case Success(_) =>
-          println(s"Successfully trained and saved ML model to $outputWeightPath")
+          println(s"Successfully trained and saved MAML model to $outputWeightPath")
         case Failure(e) =>
-          Console.err.println(s"Failed to train ML model: ${e.getMessage}")
+          Console.err.println(s"Failed to train MAML model: ${e.getMessage}")
           sys.exit(1)
       }
-
     } else if (args.length == 5){
 
       if (args(4).endsWith(".bin")) {
@@ -121,25 +149,7 @@ object AnalyzerMain extends App
 //
 //        }
 
-        FewShotPredictor.loadModel(
-          filePath = args(4),
-          loggerOption = loggerOption
-        ) match {
-          case Success(modelWeights) =>
 
-            runLayerSimulation(
-              layerPath = args(0),
-              testPath = args(1),
-              offChipMemoryDataPath = Option(args(2)),
-              sramDataPath = Option(args(3)),
-              fewShotModel = Some(modelWeights),
-              help = help
-            )
-
-          case Failure(e) =>
-            Console.err.println(s"Failed to load ML model: ${e.getMessage}")
-            sys.exit(1)
-        }
 
       } else {
         println("Cycle and Energy Report Mode with Design Compiler Results")

@@ -66,7 +66,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     arrayDataPath: Option[String] = None,
 //    dnnModelWeights: Option[DNNPredictor.DNNModel] = None,
 
-    fewShotModel: Option[FewShotPredictor.FewShotModel]= None,
+    fewShotModel: Option[MAMLFewShotPredictor.MAMLModel]= None,
 
     help: String
   ): Unit = {
@@ -186,7 +186,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
 //          model = model
 //        )
 
-        val predictedData = FewShotPredictor.predictArraySynthesisData(
+        val predictedData = MAMLFewShotPredictor.predictArraySynthesisData(
           dataflow = dataflow,
           totalMultipliers = totalMultipliers,
           groupPeRow = groupPeRow,

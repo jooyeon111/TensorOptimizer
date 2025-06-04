@@ -13,7 +13,7 @@ SYNTHESIS_RESULTS := input/simulation/hardware_reference/design_compiler/os_sta_
 
 .PHONY: train
 train:
-	sbt "runMain simulation.AnalyzerMain ${TRAIN} ${VALID} ${TEST}"
+	sbt "runMain simulation.AnalyzerMain ${TRAIN} ${VALID} ${TEST} maml"
 
 .PHONY: inference
 inference:

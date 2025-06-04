@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/aigis.iml" filepath="$PROJECT_DIR$/.idea/modules/aigis.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/aigis.aigis-build.iml" filepath="$PROJECT_DIR$/.idea/modules/aigis.aigis-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/aigis/JaeJoo.iml" filepath="$PROJECT_DIR$/.idea/modules/aigis/JaeJoo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/aigis/JaeJoo.JaeJoo-build.iml" filepath="$PROJECT_DIR$/.idea/modules/aigis/JaeJoo.JaeJoo-build.iml" />
     </modules>
   </component>
 </project>

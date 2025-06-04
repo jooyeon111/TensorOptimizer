@@ -52,7 +52,7 @@ object ArrayConfigGenerator extends OutputPortCalculator {
 
     val arrayConfigs = if(dnnModelWeightsPath.isDefined){
 
-      val loadedModel = DNNPredictor.loadModel(filePath = dnnModelWeightsPath.get)
+      val loadedModel = MAMLFewShotPredictor.loadModel(filePath = dnnModelWeightsPath.get)
 
       loadedModel match {
         case Success(modelWeights) =>
@@ -70,7 +70,7 @@ object ArrayConfigGenerator extends OutputPortCalculator {
               streamingDimensionSize = streamingDimensionSize
             )
 
-            val synthesisData = DNNPredictor.predictArraySynthesisData(
+            val synthesisData = MAMLFewShotPredictor.predictArraySynthesisData(
               dataflow = dataflow.toString,
               totalMultipliers = dim.product,
               groupPeRow = dim.r,
