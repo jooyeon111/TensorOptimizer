@@ -32,8 +32,9 @@ trait OutputPortCalculator {
       case Dataflow.Os =>
 
         if(streamingDimensionSize != -1){
-          val arrayRowDimension = groupPeRow * vectorPeRow * numMultiplier
+
           val mappedDimensionSize = groupPeRow * vectorPeRow * streamingDimensionSize
+          val arrayRowDimension = groupPeRow * vectorPeRow * numMultiplier
 
           val additionalAdditionNumber = if(mappedDimensionSize % arrayRowDimension == 0){
             streamingDimensionSize

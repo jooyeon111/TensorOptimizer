@@ -4,6 +4,7 @@ import scala.util.{Try, Success, Failure, Random}
 import java.io._
 import java.nio.{ByteBuffer, ByteOrder}
 import scala.Array
+import scala.collection.parallel.CollectionConverters._
 
 object MAMLFewShotPredictor extends Logger {
 
@@ -18,34 +19,34 @@ object MAMLFewShotPredictor extends Logger {
     (switchPowerMw, internalPowerMw, leakagePowerMw)
   }
 
-  // MAML-specific hyperparameters
+  // MAML-specific hyperparameters - optimized for speed
   case class MAMLConfig(
-    innerLearningRate: Double = 0.01,     // Learning rate for task-specific adaptation
-    outerLearningRate: Double = 0.001,    // Meta-learning rate
-    innerSteps: Int = 5,                  // Number of gradient steps for task adaptation
-    supportSize: Int = 3,                 // Number of examples in support set
-    querySize: Int = 7,                  // Number of examples in query set
-    metaBatchSize: Int = 4,               // Number of tasks per meta-batch
-    metaEpochs: Int = 1000,               // Number of meta-training epochs
-    validationFreq: Int = 50              // Validation frequency
-  )
+                         innerLearningRate: Double = 0.01,
+                         outerLearningRate: Double = 0.001,
+                         innerSteps: Int = 3,                    // Reduced from 5
+                         supportSize: Int = 2,                   // Reduced from 3
+                         querySize: Int = 5,                     // Reduced from 7
+                         metaBatchSize: Int = 8,                 // Increased for better parallelization
+                         metaEpochs: Int = 500,                  // Reduced from 1000
+                         validationFreq: Int = 25,               // Reduced from 50
+                         patience: Int = 50,                     // Early stopping patience
+                         learningRateDecay: Double = 0.5,        // LR decay factor
+                         learningRateDecayFreq: Int = 100        // LR decay frequency
+                       )
 
-  // Neural network architecture for MAML
-  case class MAMLNetwork(layers: Vector[MAMLLayer]) {
-    def forward(input: Vector[Double], weights: Vector[Vector[Vector[Double]]]): Vector[Double] = {
-      var activation = input
-      for (i <- layers.indices) {
-        activation = layers(i).forward(activation, weights(i))
-      }
-      activation
-    }
+  // Forward pass tracking for analytical gradients
+  case class LayerOutput(
+                          activation: Vector[Double],
+                          preActivation: Vector[Double],
+                          input: Vector[Double]
+                        )
 
-    def getTotalParams: Int = layers.map(_.getParamCount).sum
-  }
+  case class ForwardPass(layerOutputs: Vector[LayerOutput])
 
+  // Enhanced MAMLLayer with analytical gradients
   case class MAMLLayer(inputSize: Int, outputSize: Int, activation: String = "relu") {
 
-    def getParamCount: Int = inputSize * outputSize + outputSize // weights + biases
+    def getParamCount: Int = inputSize * outputSize + outputSize
 
     def forward(input: Vector[Double], weights: Vector[Vector[Double]]): Vector[Double] = {
       val weightMatrix = weights.dropRight(1)
@@ -64,32 +65,143 @@ object MAMLFewShotPredictor extends Logger {
 
       output
     }
+
+    def forwardWithTracking(input: Vector[Double], weights: Vector[Vector[Double]]): (Vector[Double], LayerOutput) = {
+      val weightMatrix = weights.dropRight(1)
+      val bias = weights.last
+
+      val preActivation = (0 until outputSize).map { i =>
+        val sum = (0 until inputSize).map(j => input(j) * weightMatrix(j)(i)).sum + bias(i)
+        sum
+      }.toVector
+
+      val activationOutput = preActivation.map { z =>
+        activation match {
+          case "relu" => math.max(0.0, z)
+          case "sigmoid" => 1.0 / (1.0 + math.exp(-z))
+          case "tanh" => math.tanh(z)
+          case "linear" => z
+          case _ => z
+        }
+      }
+
+      (activationOutput, LayerOutput(activationOutput, preActivation, input))
+    }
+
+    def backward(
+                  outputGradient: Vector[Double],
+                  layerOutput: LayerOutput,
+                  weights: Vector[Vector[Double]]
+                ): (Vector[Double], Vector[Vector[Double]]) = {
+
+      // Compute activation derivative
+      val activationGrad = outputGradient.zip(layerOutput.preActivation).map { case (grad, z) =>
+        activation match {
+          case "relu" => if (z > 0) grad else 0.0
+          case "sigmoid" =>
+            val s = 1.0 / (1.0 + math.exp(-z))
+            grad * s * (1 - s)
+          case "tanh" =>
+            val t = math.tanh(z)
+            grad * (1 - t * t)
+          case "linear" => grad
+          case _ => grad
+        }
+      }
+
+      // Weight gradients
+      val weightMatrix = weights.dropRight(1)
+      val weightGrads = (0 until inputSize).map { i =>
+        (0 until outputSize).map { j =>
+          layerOutput.input(i) * activationGrad(j)
+        }.toVector
+      }.toVector
+
+      // Bias gradients
+      val biasGrads = activationGrad
+
+      // Input gradients (for backprop to previous layer)
+      val inputGrads = (0 until inputSize).map { i =>
+        (0 until outputSize).map { j =>
+          weightMatrix(i)(j) * activationGrad(j)
+        }.sum
+      }.toVector
+
+      (inputGrads, weightGrads :+ biasGrads)
+    }
+  }
+
+  // Enhanced MAMLNetwork with analytical gradients
+  case class MAMLNetwork(layers: Vector[MAMLLayer]) {
+
+    def forward(input: Vector[Double], weights: Vector[Vector[Vector[Double]]]): Vector[Double] = {
+      var activation = input
+      for (i <- layers.indices) {
+        activation = layers(i).forward(activation, weights(i))
+      }
+      activation
+    }
+
+    def forwardWithTracking(input: Vector[Double], weights: Vector[Vector[Vector[Double]]]): (Vector[Double], ForwardPass) = {
+      var activation = input
+      val layerOutputs = scala.collection.mutable.ArrayBuffer[LayerOutput]()
+
+      for (i <- layers.indices) {
+        val (nextActivation, layerOutput) = layers(i).forwardWithTracking(activation, weights(i))
+        layerOutputs += layerOutput
+        activation = nextActivation
+      }
+
+      (activation, ForwardPass(layerOutputs.toVector))
+    }
+
+    def backward(
+                  target: Vector[Double],
+                  prediction: Vector[Double],
+                  forwardPass: ForwardPass,
+                  weights: Vector[Vector[Vector[Double]]]
+                ): Vector[Vector[Vector[Double]]] = {
+
+      // MSE loss gradient
+      var outputGrad = prediction.zip(target).map { case (pred, targ) => 2.0 * (pred - targ) }
+
+      val gradients = scala.collection.mutable.ArrayBuffer[Vector[Vector[Double]]]()
+
+      // Backward pass through layers
+      for (i <- (layers.length - 1) to 0 by -1) {
+        val (inputGrad, layerGrads) = layers(i).backward(outputGrad, forwardPass.layerOutputs(i), weights(i))
+        gradients.prepend(layerGrads)
+        outputGrad = inputGrad
+      }
+
+      gradients.toVector
+    }
+
+    def getTotalParams: Int = layers.map(_.getParamCount).sum
   }
 
   // Task definition for MAML
   case class Task(
-    supportSet: Vector[(Vector[Double], Vector[Double])],
-    querySet: Vector[(Vector[Double], Vector[Double])],
-    taskId: String
-  )
-
-  // MAML model for hardware synthesis prediction
+                   supportSet: Vector[(Vector[Double], Vector[Double])],
+                   querySet: Vector[(Vector[Double], Vector[Double])],
+                   taskId: String
+                 )
 
   // MAML model for hardware synthesis prediction
   case class MAMLModel(
-    network: MAMLNetwork,
-    metaWeights: Vector[Vector[Vector[Double]]],
-    config: MAMLConfig,
-    inputNormalizer: DataNormalizer,
-    outputNormalizer: DataNormalizer
-  ) {
+                        network: MAMLNetwork,
+                        metaWeights: Vector[Vector[Vector[Double]]],
+                        config: MAMLConfig,
+                        inputNormalizer: DataNormalizer,
+                        outputNormalizer: DataNormalizer
+                      ) {
 
     def adapt(supportSet: Vector[(Vector[Double], Vector[Double])]): Vector[Vector[Vector[Double]]] = {
       var adaptedWeights = metaWeights
 
       // Perform inner loop adaptation
       for (_ <- 0 until config.innerSteps) {
-        val gradients = computeGradients(supportSet, adaptedWeights)
+        val gradients = computeGradientsAnalytical(supportSet, adaptedWeights)
         adaptedWeights = updateWeights(adaptedWeights, gradients, config.innerLearningRate)
       }
 
@@ -103,89 +215,78 @@ object MAMLFewShotPredictor extends Logger {
       outputNormalizer.denormalize(rawOutput)
     }
 
-    // Make computeGradients public so it can be called from computeMetaGradients
-    def computeGradients(
-      data: Vector[(Vector[Double], Vector[Double])],
-      weights: Vector[Vector[Vector[Double]]]
-    ): Vector[Vector[Vector[Double]]] = {
-      val epsilon = 1e-7
+    // Fast analytical gradient computation
+    def computeGradientsAnalytical(
+                                    data: Vector[(Vector[Double], Vector[Double])],
+                                    weights: Vector[Vector[Vector[Double]]]
+                                  ): Vector[Vector[Vector[Double]]] = {
 
-      weights.zipWithIndex.map { case (layerWeights, layerIdx) =>
-        layerWeights.zipWithIndex.map { case (neuronWeights, neuronIdx) =>
-          neuronWeights.zipWithIndex.map { case (weight, weightIdx) =>
-            // Numerical gradient computation
-            val weightsPlus = updateSingleWeight(weights, layerIdx, neuronIdx, weightIdx, epsilon)
-            val weightsMinus = updateSingleWeight(weights, layerIdx, neuronIdx, weightIdx, -epsilon)
+      // Initialize gradient accumulators
+      val gradAccumulators = weights.map(_.map(_.map(_ => 0.0)))
 
-            val lossPlus = computeLoss(data, weightsPlus)
-            val lossMinus = computeLoss(data, weightsMinus)
+      // Parallelize across data points
+      val batchGradients = data.par.map { case (input, target) =>
+        val normalizedInput = inputNormalizer.normalize(input)
+        val normalizedTarget = outputNormalizer.normalize(target)
 
-            (lossPlus - lossMinus) / (2 * epsilon)
+        val (prediction, forwardPass) = network.forwardWithTracking(normalizedInput, weights)
+        network.backward(normalizedTarget, prediction, forwardPass, weights)
+      }.seq
+
+      // Average gradients
+      batchGradients.foldLeft(gradAccumulators) { (acc, grads) =>
+        acc.zip(grads).map { case (accLayer, gradLayer) =>
+          accLayer.zip(gradLayer).map { case (accNeuron, gradNeuron) =>
+            accNeuron.zip(gradNeuron).map { case (accWeight, gradWeight) =>
+              accWeight + gradWeight / data.length
+            }
           }
         }
       }
     }
 
-    // Make computeLoss public as well since it's used by computeGradients
+    // Parallelized loss computation
     def computeLoss(
-      data: Vector[(Vector[Double], Vector[Double])],
-      weights: Vector[Vector[Vector[Double]]]
-    ): Double = {
-      val predictions = data.map { case (input, _) =>
+                     data: Vector[(Vector[Double], Vector[Double])],
+                     weights: Vector[Vector[Vector[Double]]]
+                   ): Double = {
+      // Parallelize prediction computation across data points
+      val predictions = data.par.map { case (input, _) =>
         val normalizedInput = inputNormalizer.normalize(input)
         val rawOutput = network.forward(normalizedInput, weights)
         outputNormalizer.denormalize(rawOutput) // Denormalize predictions to original scale
-      }
+      }.seq.toVector
 
       val targets = data.map(_._2) // Keep targets in original scale
 
-      // Mean squared error between denormalized predictions and original targets
-      val mse = predictions.zip(targets).map { case (pred, target) =>
+      // Parallelize MSE computation
+      val mse = predictions.zip(targets).par.map { case (pred, target) =>
         pred.zip(target).map { case (p, t) => math.pow(p - t, 2) }.sum
       }.sum / data.length
 
       mse
     }
 
-    private def updateSingleWeight(
-      weights: Vector[Vector[Vector[Double]]],
-      layerIdx: Int,
-      neuronIdx: Int,
-      weightIdx: Int,
-      delta: Double
-    ): Vector[Vector[Vector[Double]]] = {
-      weights.zipWithIndex.map { case (layer, lIdx) =>
-        if (lIdx == layerIdx) {
-          layer.zipWithIndex.map { case (neuron, nIdx) =>
-            if (nIdx == neuronIdx) {
-              neuron.zipWithIndex.map { case (w, wIdx) =>
-                if (wIdx == weightIdx) w + delta else w
-              }
-            } else neuron
-          }
-        } else layer
-      }
-    }
-
     private def updateWeights(
-      weights: Vector[Vector[Vector[Double]]],
-      gradients: Vector[Vector[Vector[Double]]],
-      learningRate: Double
-    ): Vector[Vector[Vector[Double]]] = {
-      weights.zip(gradients).map { case (layerWeights, layerGrads) =>
-        layerWeights.zip(layerGrads).map { case (neuronWeights, neuronGrads) =>
+                               weights: Vector[Vector[Vector[Double]]],
+                               gradients: Vector[Vector[Vector[Double]]],
+                               learningRate: Double
+                             ): Vector[Vector[Vector[Double]]] = {
+      weights.zip(gradients).par.map { case (layerWeights, layerGrads) =>
+        layerWeights.zip(layerGrads).par.map { case (neuronWeights, neuronGrads) =>
           neuronWeights.zip(neuronGrads).map { case (weight, grad) =>
             weight - learningRate * grad
           }
-        }
-      }
+        }.seq.toVector
+      }.seq.toVector
     }
   }
+
   // Data normalizer for input/output scaling
   case class DataNormalizer(
-    mean: Vector[Double],
-    std: Vector[Double]
-  ) {
+                             mean: Vector[Double],
+                             std: Vector[Double]
+                           ) {
     def normalize(data: Vector[Double]): Vector[Double] = {
       data.zip(mean).zip(std).map { case ((value, m), s) =>
         if (s > 1e-8) (value - m) / s else value - m
@@ -200,17 +301,17 @@ object MAMLFewShotPredictor extends Logger {
   }
 
   case class TrainingExample(
-    dataflow: String,
-    totalMultipliers: Int,
-    groupPeRow: Int,
-    groupPeCol: Int,
-    vectorPeRow: Int,
-    vectorPeCol: Int,
-    numMultiplier: Int,
-    streamingDimensionSize: Int,
-    areaUm2: Double,
-    totalPowerMw: Double,
-  ) {
+                              dataflow: String,
+                              totalMultipliers: Int,
+                              groupPeRow: Int,
+                              groupPeCol: Int,
+                              vectorPeRow: Int,
+                              vectorPeCol: Int,
+                              numMultiplier: Int,
+                              streamingDimensionSize: Int,
+                              areaUm2: Double,
+                              totalPowerMw: Double,
+                            ) {
 
     def toInputVector: Vector[Double] = {
       Vector(
@@ -245,15 +346,15 @@ object MAMLFewShotPredictor extends Logger {
   }
 
   def trainModel(
-    weightOutputPath: String,
-    trainFilePath: String,
-    validationFilePath: String,
-    testFilePath: String,
-    loggerOption: LoggerOption
-  ): Try[Unit] = Try {
+                  weightOutputPath: String,
+                  trainFilePath: String,
+                  validationFilePath: String,
+                  testFilePath: String,
+                  loggerOption: LoggerOption
+                ): Try[Unit] = Try {
 
     setMode(loggerOption)
-    log("Starting MAML Few-Shot Learning training...")
+    log("Starting MAML Few-Shot Learning training with analytical gradients...")
 
     val config = MAMLConfig()
 
@@ -266,57 +367,90 @@ object MAMLFewShotPredictor extends Logger {
     log(s"Loaded ${validationData.length} validation examples")
     log(s"Loaded ${testData.length} test examples")
 
-    // Create data normalizers
-    val allInputs = trainData.map(_.toInputVector)
-    val allOutputs = trainData.map(_.toOutputVector)
+    // Pre-convert all data to vectors for efficiency
+    val trainDataConverted = trainData.par.map(ex => (ex.toInputVector, ex.toOutputVector)).seq.toVector
+    val validationDataConverted = validationData.par.map(ex => (ex.toInputVector, ex.toOutputVector)).seq.toVector
+    val testDataConverted = testData.par.map(ex => (ex.toInputVector, ex.toOutputVector)).seq.toVector
+
+    // Create normalizers
+    val allInputs = trainDataConverted.map(_._1)
+    val allOutputs = trainDataConverted.map(_._2)
 
     val inputNormalizer = createNormalizer(allInputs)
     val outputNormalizer = createNormalizer(allOutputs)
 
-    // Create network architecture
+    // Create network architecture - smaller for speed
     val inputSize = trainData.head.toInputVector.length
     val outputSize = trainData.head.toOutputVector.length
 
     val network = MAMLNetwork(Vector(
-      MAMLLayer(inputSize, 128, "relu"),
-      MAMLLayer(128, 64, "relu"),
-      MAMLLayer(64, 32, "relu"),
-      MAMLLayer(32, outputSize, "linear")
+      MAMLLayer(inputSize, 64, "relu"),      // Reduced from 128
+      MAMLLayer(64, 32, "relu"),             // Reduced from 64
+      MAMLLayer(32, outputSize, "linear")    // Removed one layer
     ))
+
+    log(s"Network architecture: ${inputSize} -> 64 -> 32 -> ${outputSize}")
+    log(s"Total parameters: ${network.getTotalParams}")
 
     // Initialize meta-weights
     var metaWeights = initializeWeights(network)
 
-    log("Starting meta-training...")
+    log("Starting meta-training with analytical gradients...")
 
     var bestValidationLoss = Double.MaxValue
+    var waitingEpochs = 0
+    var currentLR = config.outerLearningRate
     val random = new Random(42)
 
-    // Meta-training loop
-    for (epoch <- 0 until config.metaEpochs) {
-      // Sample tasks for this meta-batch
-      val tasks = sampleTasks(trainData, config, random)
+    // Meta-training loop with early stopping
+    var shouldStop = false
+    var epoch = 0
 
-      // Compute meta-gradients
-      val metaGradients = computeMetaGradients(tasks, metaWeights, network, inputNormalizer, outputNormalizer, config)
+    while (epoch < config.metaEpochs && !shouldStop) {
+      val startTime = System.currentTimeMillis()
+
+      // Learning rate decay
+      if (epoch > 0 && epoch % config.learningRateDecayFreq == 0) {
+        currentLR *= config.learningRateDecay
+        log(f"Learning rate decayed to: $currentLR%.6f")
+      }
+
+      // Sample tasks for this meta-batch
+      val tasks = sampleTasksEfficient(trainDataConverted, config, random)
+
+      // Compute meta-gradients using analytical gradients
+      val metaGradients = computeMetaGradientsAnalytical(tasks, metaWeights, network, inputNormalizer, outputNormalizer, config)
 
       // Update meta-weights
-      metaWeights = updateMetaWeights(metaWeights, metaGradients, config.outerLearningRate)
+      metaWeights = updateMetaWeights(metaWeights, metaGradients, currentLR)
+
+      val epochTime = System.currentTimeMillis() - startTime
 
       // Validation
       if (epoch % config.validationFreq == 0) {
-        val validationLoss = evaluateModel(validationData, metaWeights, network, inputNormalizer, outputNormalizer, config)
-        log(f"Epoch $epoch: Validation Loss = $validationLoss%.6f")
+        val validationLoss = evaluateModelFast(validationDataConverted, metaWeights, network, inputNormalizer, outputNormalizer, config, random)
+        log(f"Epoch $epoch: Validation Loss = $validationLoss%.6f, Time = ${epochTime}ms")
 
         if (validationLoss < bestValidationLoss) {
           bestValidationLoss = validationLoss
+          waitingEpochs = 0
           log(f"New best validation loss: $validationLoss%.6f")
+        } else {
+          waitingEpochs += config.validationFreq
+          if (waitingEpochs >= config.patience) {
+            log(s"Early stopping at epoch $epoch")
+            shouldStop = true
+          }
         }
+      } else if (epoch % 10 == 0) {
+        log(f"Epoch $epoch: Time = ${epochTime}ms")
       }
+
+      epoch += 1
     }
 
     // Final evaluation
-    val testLoss = evaluateModel(testData, metaWeights, network, inputNormalizer, outputNormalizer, config)
+    val testLoss = evaluateModelFast(testDataConverted, metaWeights, network, inputNormalizer, outputNormalizer, config, random)
     log(f"Final test loss: $testLoss%.6f")
 
     // Create final model
@@ -345,47 +479,48 @@ object MAMLFewShotPredictor extends Logger {
   }
 
   def predictArraySynthesisData(
-    dataflow: String,
-    totalMultipliers: Int,
-    groupPeRow: Int,
-    groupPeCol: Int,
-    vectorPeRow: Int,
-    vectorPeCol: Int,
-    numMultiplier: Int,
-    streamingDimensionSize: Int,
-    model: MAMLModel
-  ): ArraySynthesisData = {
+                                 dataflow: String,
+                                 totalMultipliers: Int,
+                                 groupPeRow: Int,
+                                 groupPeCol: Int,
+                                 vectorPeRow: Int,
+                                 vectorPeCol: Int,
+                                 numMultiplier: Int,
+                                 streamingDimensionSize: Int,
+                                 model: MAMLModel
+                               ): ArraySynthesisData = {
 
-  val input = Vector(
-    dataflowToNumeric(dataflow),
-    totalMultipliers.toDouble,
-    groupPeRow.toDouble,
-    groupPeCol.toDouble,
-    vectorPeRow.toDouble,
-    vectorPeCol.toDouble,
-    numMultiplier.toDouble,
-    streamingDimensionSize.toDouble,
-    // Add some engineered features
-    (groupPeRow * groupPeCol).toDouble,
-    (vectorPeRow * vectorPeCol).toDouble,
-    math.log(totalMultipliers.toDouble + 1),
-    math.sqrt(groupPeRow * groupPeCol * vectorPeRow * vectorPeCol)
-  )
+    val input = Vector(
+      dataflowToNumeric(dataflow),
+      totalMultipliers.toDouble,
+      groupPeRow.toDouble,
+      groupPeCol.toDouble,
+      vectorPeRow.toDouble,
+      vectorPeCol.toDouble,
+      numMultiplier.toDouble,
+      streamingDimensionSize.toDouble,
+      // Add some engineered features
+      (groupPeRow * groupPeCol).toDouble,
+      (vectorPeRow * vectorPeCol).toDouble,
+      math.log(totalMultipliers.toDouble + 1),
+      math.sqrt(groupPeRow * groupPeCol * vectorPeRow * vectorPeCol)
+    )
 
-  val output = model.predict(input)
+    val output = model.predict(input)
 
-  val areaUm2 = math.exp(output(0)) - 1
-  val totalPowerMw = math.exp(output(1)) - 1
+    val areaUm2 = math.exp(output(0)) - 1
+    val totalPowerMw = math.exp(output(1)) - 1
 
-  val (switchPowerMw, internalPowerMw, leakagePowerMw) = distributePower(totalPowerMw)
+    val (switchPowerMw, internalPowerMw, leakagePowerMw) = distributePower(totalPowerMw)
 
-  ArraySynthesisData(
-    areaUm2 = areaUm2,
-    switchPowerMw = switchPowerMw,
-    internalPowerMw = internalPowerMw,
-    leakagePowerMw = leakagePowerMw
-  )
-}
+    ArraySynthesisData(
+      areaUm2 = areaUm2,
+      switchPowerMw = switchPowerMw,
+      internalPowerMw = internalPowerMw,
+      leakagePowerMw = leakagePowerMw
+    )
+  }
+
   // Helper methods
   private def dataflowToNumeric(dataflow: String): Double = dataflow match {
     case "Is" => 0.0
@@ -394,6 +529,34 @@ object MAMLFewShotPredictor extends Logger {
     case _ => 0.0
   }
 
+  // Efficient task sampling
+  private def sampleTasksEfficient(
+                                    data: Vector[(Vector[Double], Vector[Double])],
+                                    config: MAMLConfig,
+                                    random: Random
+                                  ): Vector[Task] = {
+
+    // Use array for faster random access
+    val dataArray = data.toArray
+
+    (0 until config.metaBatchSize).par.map { taskIdx =>
+      // Fisher-Yates shuffle for better performance
+      val indices = (0 until dataArray.length).toArray
+      for (i <- indices.length - 1 to 1 by -1) {
+        val j = random.nextInt(i + 1)
+        val temp = indices(i)
+        indices(i) = indices(j)
+        indices(j) = temp
+      }
+
+      val supportSet = indices.take(config.supportSize).map(dataArray(_)).toVector
+      val querySet = indices.slice(config.supportSize, config.supportSize + config.querySize).map(dataArray(_)).toVector
+
+      Task(supportSet, querySet, s"task_$taskIdx")
+    }.seq.toVector
+  }
+
+  // Parallelized CSV data loading
   private def loadCsvData(filePath: String): Vector[TrainingExample] = {
     val resourcePath = if (filePath.startsWith("/")) filePath.substring(1) else filePath
 
@@ -422,7 +585,8 @@ object MAMLFewShotPredictor extends Logger {
         throw new IllegalArgumentException(s"CSV file has no data rows: $resourcePath")
       }
 
-      val examples = lines.tail.map { line =>
+      // Parallelize CSV parsing
+      val examples = lines.tail.par.map { line =>
         try {
           val values = line.split(",").map(_.trim)
           if (values.length != header.length) {
@@ -430,11 +594,6 @@ object MAMLFewShotPredictor extends Logger {
           }
 
           val dataMap = header.zip(values).toMap
-
-          // Debug: print the dataMap keys for the first row to see what we have
-          if (line == lines.tail.head) {
-            println(s"Available columns: ${dataMap.keys.mkString(", ")}")
-          }
 
           // Use flexible column matching
           def getColumn(possibleNames: String*): String = {
@@ -455,12 +614,6 @@ object MAMLFewShotPredictor extends Logger {
           val areaUm2 = getColumn("Area", "area").toDouble
           val totalPowerMw = getColumn("Total Power", "total_power").toDouble
 
-          // Since we only have total power, we need to estimate the breakdown
-          // Based on typical hardware, roughly: switch ~30%, internal ~60%, leakage ~10%
-          val switchPowerMw = totalPowerMw * 0.3
-          val internalPowerMw = totalPowerMw * 0.6
-          val leakagePowerMw = totalPowerMw * 0.1
-
           TrainingExample(
             dataflow = dataflow,
             totalMultipliers = totalMultipliers,
@@ -472,9 +625,6 @@ object MAMLFewShotPredictor extends Logger {
             streamingDimensionSize = streamingDimensionSize,
             areaUm2 = areaUm2,
             totalPowerMw = totalPowerMw,
-//            switchPowerMw = switchPowerMw,
-//            internalPowerMw = internalPowerMw,
-//            leakagePowerMw = leakagePowerMw
           )
         } catch {
           case e: NumberFormatException =>
@@ -482,7 +632,7 @@ object MAMLFewShotPredictor extends Logger {
           case e: IllegalArgumentException =>
             throw new IllegalArgumentException(s"Error parsing line: $line - ${e.getMessage}", e)
         }
-      }
+      }.seq.toVector
 
       println(s"Successfully loaded ${examples.length} training examples from $resourcePath")
       examples
@@ -495,17 +645,20 @@ object MAMLFewShotPredictor extends Logger {
     }
   }
 
-
+  // Parallelized normalizer creation
   private def createNormalizer(data: Vector[Vector[Double]]): DataNormalizer = {
     val numFeatures = data.head.length
-    val mean = (0 until numFeatures).map { i =>
-      data.map(_(i)).sum / data.length
-    }.toVector
 
-    val std = (0 until numFeatures).map { i =>
-      val variance = data.map(row => math.pow(row(i) - mean(i), 2)).sum / data.length
+    // Parallelize mean computation
+    val mean = (0 until numFeatures).par.map { i =>
+      data.map(_(i)).sum / data.length
+    }.seq.toVector
+
+    // Parallelize standard deviation computation
+    val std = (0 until numFeatures).par.map { i =>
+      val variance = data.par.map(row => math.pow(row(i) - mean(i), 2)).sum / data.length
       math.sqrt(variance + 1e-8)
-    }.toVector
+    }.seq.toVector
 
     DataNormalizer(mean, std)
   }
@@ -513,16 +666,25 @@ object MAMLFewShotPredictor extends Logger {
   private def initializeWeights(network: MAMLNetwork): Vector[Vector[Vector[Double]]] = {
     val random = new Random(42)
 
-    network.layers.map { layer =>
+    // Parallelize weight initialization across layers
+    network.layers.par.map { layer =>
       // Xavier/Glorot initialization
       val limit = math.sqrt(6.0 / (layer.inputSize + layer.outputSize))
 
-      // Weight matrix
-      val weights = (0 until layer.inputSize).map { _ =>
-        (0 until layer.outputSize).map { _ =>
-          (random.nextDouble() - 0.5) * 2 * limit
+      // Weight matrix - parallelize if layer is large enough
+      val weights = if (layer.inputSize * layer.outputSize > 1000) {
+        (0 until layer.inputSize).par.map { _ =>
+          (0 until layer.outputSize).map { _ =>
+            (random.nextDouble() - 0.5) * 2 * limit
+          }.toVector
+        }.seq.toVector
+      } else {
+        (0 until layer.inputSize).map { _ =>
+          (0 until layer.outputSize).map { _ =>
+            (random.nextDouble() - 0.5) * 2 * limit
+          }.toVector
         }.toVector
-      }.toVector
+      }
 
       // Bias vector
       val biases = (0 until layer.outputSize).map { _ =>
@@ -530,82 +692,83 @@ object MAMLFewShotPredictor extends Logger {
       }.toVector
 
       weights :+ biases
-    }.toVector
+    }.seq.toVector
   }
 
-  private def sampleTasks(data: Vector[TrainingExample], config: MAMLConfig, random: Random): Vector[Task] = {
-    (0 until config.metaBatchSize).map { taskIdx =>
-      val shuffled = random.shuffle(data)
-      val supportSet = shuffled.take(config.supportSize).map(ex => (ex.toInputVector, ex.toOutputVector))
-      val querySet = shuffled.slice(config.supportSize, config.supportSize + config.querySize).map(ex => (ex.toInputVector, ex.toOutputVector))
+  // Parallelized meta-gradient computation with analytical gradients
+  private def computeMetaGradientsAnalytical(
+                                              tasks: Vector[Task],
+                                              metaWeights: Vector[Vector[Vector[Double]]],
+                                              network: MAMLNetwork,
+                                              inputNormalizer: DataNormalizer,
+                                              outputNormalizer: DataNormalizer,
+                                              config: MAMLConfig
+                                            ): Vector[Vector[Vector[Double]]] = {
 
-      Task(supportSet, querySet, s"task_$taskIdx")
-    }.toVector
-  }
-
-  private def computeMetaGradients(
-    tasks: Vector[Task],
-    metaWeights: Vector[Vector[Vector[Double]]],
-    network: MAMLNetwork,
-    inputNormalizer: DataNormalizer,
-    outputNormalizer: DataNormalizer,
-    config: MAMLConfig
-  ): Vector[Vector[Vector[Double]]] = {
-
-    val taskGradients = tasks.map { task =>
+    // Parallelize across tasks
+    val taskGradients = tasks.par.map { task =>
       // Adapt to task
       val model = MAMLModel(network, metaWeights, config, inputNormalizer, outputNormalizer)
       val adaptedWeights = model.adapt(task.supportSet)
 
-      // Compute gradients on query set
-      model.computeGradients(task.querySet, adaptedWeights)
-    }
+      // Compute gradients on query set using analytical gradients
+      model.computeGradientsAnalytical(task.querySet, adaptedWeights)
+    }.seq.toVector
 
     // Average gradients across tasks
     averageGradients(taskGradients)
   }
 
+  // Parallelized gradient averaging
   private def averageGradients(gradients: Vector[Vector[Vector[Vector[Double]]]]): Vector[Vector[Vector[Double]]] = {
     val numTasks = gradients.length
-    gradients.head.zipWithIndex.map { case (layer, layerIdx) =>
-      layer.zipWithIndex.map { case (neuron, neuronIdx) =>
+
+    // Parallelize across layers
+    gradients.head.zipWithIndex.par.map { case (layer, layerIdx) =>
+      // Parallelize across neurons
+      layer.zipWithIndex.par.map { case (neuron, neuronIdx) =>
         neuron.zipWithIndex.map { case (_, weightIdx) =>
           gradients.map(_(layerIdx)(neuronIdx)(weightIdx)).sum / numTasks
         }
-      }
-    }
+      }.seq.toVector
+    }.seq.toVector
   }
 
+  // Parallelized meta-weight updates
   private def updateMetaWeights(
-    weights: Vector[Vector[Vector[Double]]],
-    gradients: Vector[Vector[Vector[Double]]],
-    learningRate: Double
-  ): Vector[Vector[Vector[Double]]] = {
-    weights.zip(gradients).map { case (layerWeights, layerGrads) =>
-      layerWeights.zip(layerGrads).map { case (neuronWeights, neuronGrads) =>
+                                 weights: Vector[Vector[Vector[Double]]],
+                                 gradients: Vector[Vector[Vector[Double]]],
+                                 learningRate: Double
+                               ): Vector[Vector[Vector[Double]]] = {
+    // Parallelize across layers
+    weights.zip(gradients).par.map { case (layerWeights, layerGrads) =>
+      // Parallelize across neurons
+      layerWeights.zip(layerGrads).par.map { case (neuronWeights, neuronGrads) =>
         neuronWeights.zip(neuronGrads).map { case (weight, grad) =>
           weight - learningRate * grad
         }
-      }
-    }
+      }.seq.toVector
+    }.seq.toVector
   }
 
-  private def evaluateModel(
-    data: Vector[TrainingExample],
-    metaWeights: Vector[Vector[Vector[Double]]],
-    network: MAMLNetwork,
-    inputNormalizer: DataNormalizer,
-    outputNormalizer: DataNormalizer,
-    config: MAMLConfig
-  ): Double = {
-    val random = new Random(42)
-    val tasks = sampleTasks(data, config, random)
+  // Fast model evaluation using analytical gradients
+  private def evaluateModelFast(
+                                 data: Vector[(Vector[Double], Vector[Double])],
+                                 metaWeights: Vector[Vector[Vector[Double]]],
+                                 network: MAMLNetwork,
+                                 inputNormalizer: DataNormalizer,
+                                 outputNormalizer: DataNormalizer,
+                                 config: MAMLConfig,
+                                 random: Random
+                               ): Double = {
+    val tasks = sampleTasksEfficient(data, config, random)
 
-    val losses = tasks.map { task =>
+    // Parallelize loss computation across tasks
+    val losses = tasks.par.map { task =>
       val model = MAMLModel(network, metaWeights, config, inputNormalizer, outputNormalizer)
       val adaptedWeights = model.adapt(task.supportSet)
       model.computeLoss(task.querySet, adaptedWeights)
-    }
+    }.seq.toVector
 
     losses.sum / losses.length
   }
@@ -650,6 +813,12 @@ object MAMLFewShotPredictor extends Logger {
     buffer.putInt(model.config.innerSteps)
     buffer.putInt(model.config.supportSize)
     buffer.putInt(model.config.querySize)
+    buffer.putInt(model.config.metaBatchSize)
+    buffer.putInt(model.config.metaEpochs)
+    buffer.putInt(model.config.validationFreq)
+    buffer.putInt(model.config.patience)
+    buffer.putDouble(model.config.learningRateDecay)
+    buffer.putInt(model.config.learningRateDecayFreq)
 
     val result = new Array[Byte](buffer.position())
     buffer.rewind()
@@ -688,7 +857,13 @@ object MAMLFewShotPredictor extends Logger {
       outerLearningRate = buffer.getDouble(),
       innerSteps = buffer.getInt(),
       supportSize = buffer.getInt(),
-      querySize = buffer.getInt()
+      querySize = buffer.getInt(),
+      metaBatchSize = buffer.getInt(),
+      metaEpochs = buffer.getInt(),
+      validationFreq = buffer.getInt(),
+      patience = buffer.getInt(),
+      learningRateDecay = buffer.getDouble(),
+      learningRateDecayFreq = buffer.getInt()
     )
 
     MAMLModel(network, weights, config, inputNormalizer, outputNormalizer)

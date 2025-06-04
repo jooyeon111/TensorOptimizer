@@ -360,6 +360,8 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/AnalyzerMain$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/ArraySynthesisData.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/ArraySynthesisData.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	simulation/MAMLFewShotPredictor$LayerOutput.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/MAMLFewShotPredictor$LayerOutput.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/ArrayConfig$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/ArrayConfig$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/Layer.class[0m
@@ -450,6 +452,8 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/PatternMatcher.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/DividedSramModel.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/DividedSramModel.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	simulation/MAMLFewShotPredictor$ForwardPass$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/MAMLFewShotPredictor$ForwardPass$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/PortBitWidth.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/PortBitWidth.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/AnalyzerMain$delayedInit$body.class[0m
@@ -464,10 +468,14 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/TileA.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/OffChipMemory.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/OffChipMemory.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	simulation/MAMLFewShotPredictor$ForwardPass.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/MAMLFewShotPredictor$ForwardPass.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/SimulationResult$DefaultValues$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/SimulationResult$DefaultValues$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/SystemArchitectureOptimizer$OptimizationMetric$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/SystemArchitectureOptimizer$OptimizationMetric$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	simulation/MAMLFewShotPredictor$LayerOutput$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/MAMLFewShotPredictor$LayerOutput$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/ArrayConfigGenerator$DimensionConfig.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/ArrayConfigGenerator$DimensionConfig.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/ParseError.class[0m

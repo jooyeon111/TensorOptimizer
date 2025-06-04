@@ -1,10 +1,6 @@
-[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/ArrayConfigGenerator.scala:55:55: not enough arguments for method loadModel: (filePath: String, loggerOption: simulation.LoggerOption): scala.util.Try[simulation.MAMLFewShotPredictor.MAMLModel].[0m
-[0m[[0m[31merror[0m] [0m[0mUnspecified value parameter loggerOption.[0m
-[0m[[0m[31merror[0m] [0m[0m      val loadedModel = MAMLFewShotPredictor.loadModel(filePath = dnnModelWeightsPath.get)[0m
-[0m[[0m[31merror[0m] [0m[0m                                                      ^[0m
-[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/ArrayConfigGenerator.scala:82:23: type mismatch;[0m
-[0m[[0m[31merror[0m] [0m[0m found   : Any[0m
-[0m[[0m[31merror[0m] [0m[0m required: simulation.MAMLFewShotPredictor.MAMLModel[0m
-[0m[[0m[31merror[0m] [0m[0m              model = modelWeights[0m
-[0m[[0m[31merror[0m] [0m[0m                      ^[0m
-[0m[[0m[31merror[0m] [0m[0mtwo errors found[0m
+[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/MAMLFewShotPredictor.scala:440:13: Auto-application to `()` is deprecated. Supply the empty argument list `()` explicitly to invoke method break,[0m
+[0m[[0m[33mwarn[0m] [0m[0mor remove the empty argument list from its definition (Java-defined methods are exempt).[0m
+[0m[[0m[33mwarn[0m] [0m[0mIn Scala 3, an unapplied method like this will be eta-expanded into a function. [quickfixable][0m
+[0m[[0m[33mwarn[0m] [0m[0m            break[0m
+[0m[[0m[33mwarn[0m] [0m[0m            ^[0m
+[0m[[0m[33mwarn[0m] [0m[0mone warning found[0m
