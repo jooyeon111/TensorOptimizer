@@ -256,6 +256,8 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/MAMLFewShotPredictor$MAMLConfig$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/SimulationResult$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/SimulationResult$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	simulation/MAMLFewShotPredictor$AugmentationConfig$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/MAMLFewShotPredictor$AugmentationConfig$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/OffChipMemory$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/OffChipMemory$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/ParseError$.class[0m
@@ -314,6 +316,8 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/ArchitectureOptimizer$ArchitectureState$2$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/large.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/large.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	simulation/MAMLFewShotPredictor$AugmentationConfig.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/MAMLFewShotPredictor$AugmentationConfig.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/SystemSimulator$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/SystemSimulator$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/ConfigManager.class[0m
@@ -324,6 +328,8 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/Architecture$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/GemmDimension$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/GemmDimension$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	simulation/MAMLFewShotPredictor$DataAugmentationPipeline$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/MAMLFewShotPredictor$DataAugmentationPipeline$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/OffChipMemoryUploadOrder.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation/OffChipMemoryUploadOrder.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/RtlGenerationManager$BandwidthConfig.class[0m

@@ -60,6 +60,9 @@
 [0m[[0m[0mdebug[0m] [0m[0m	MAMLFewShotPredictor$MAMLConfig.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	MAMLFewShotPredictor$LayerOutput$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	MAMLFewShotPredictor$Task.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	MAMLFewShotPredictor$AugmentationConfig$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	MAMLFewShotPredictor$DataAugmentationPipeline$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	MAMLFewShotPredictor$TrainingExample.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	MAMLFewShotPredictor$AugmentationConfig.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	MAMLFewShotPredictor$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0mRemoving the temporary directory used for backing up class files: /home/jooyeon/aigis/target/scala-2.13/classes.bak[0m
