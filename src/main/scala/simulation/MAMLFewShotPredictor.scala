@@ -540,6 +540,120 @@ object MAMLFewShotPredictor extends Logger {
                  )
 
   // Enhanced training function with better hyperparameter scheduling
+//  def trainModel(
+//                  weightOutputPath: String,
+//                  trainFilePath: String,
+//                  validationFilePath: String,
+//                  testFilePath: String,
+//                  loggerOption: LoggerOption
+//                ): Try[Unit] = Try {
+//
+//    setMode(loggerOption)
+//    log("Starting Enhanced MAML Few-Shot Learning training...")
+//
+//    val config = MAMLConfig()
+//
+//    // Load data
+//    val trainData = loadCsvData(trainFilePath)
+//    val validationData = loadCsvData(validationFilePath)
+//    val testData = loadCsvData(testFilePath)
+//
+//    log(s"Loaded ${trainData.length} training examples")
+//    log(s"Loaded ${validationData.length} validation examples")
+//    log(s"Loaded ${testData.length} test examples")
+//
+//    // Convert data
+//    val trainDataConverted = trainData.par.map(ex => (ex.toInputVector, ex.toOutputVector)).seq.toVector
+//    val validationDataConverted = validationData.par.map(ex => (ex.toInputVector, ex.toOutputVector)).seq.toVector
+//    val testDataConverted = testData.par.map(ex => (ex.toInputVector, ex.toOutputVector)).seq.toVector
+//
+//    // Create enhanced normalizers
+//    val allInputs = trainDataConverted.map(_._1)
+//    val allOutputs = trainDataConverted.map(_._2)
+//
+//    val inputNormalizer = createEnhancedNormalizer(allInputs)
+//    val outputNormalizer = createEnhancedNormalizer(allOutputs)
+//
+//    // Create enhanced network architecture
+//    val inputSize = trainData.head.toInputVector.length
+//    val outputSize = trainData.head.toOutputVector.length
+//
+//    val network = MAMLNetwork(Vector(
+//      MAMLLayer(inputSize, 128, "gelu", useBatchNorm = true, dropoutRate = 0.1),
+//      MAMLLayer(128, 128, "gelu", useBatchNorm = true, dropoutRate = 0.1),
+//      MAMLLayer(128, 96, "gelu", useBatchNorm = true, dropoutRate = 0.05),
+//      MAMLLayer(96, 64, "swish", useBatchNorm = false, dropoutRate = 0.05),
+//      MAMLLayer(64, 32, "swish", useBatchNorm = false),
+//      MAMLLayer(32, outputSize, "linear")
+//    ), useResidualConnections = true)
+//
+//    log(s"Enhanced network - Total parameters: ${network.getTotalParams}")
+//
+//    // Initialize meta-weights with better initialization
+//    var metaWeights = initializeWeightsAdvanced(network)
+//
+//    log("Starting enhanced meta-training...")
+//
+//    var bestValidationLoss = Double.MaxValue
+//    var waitingEpochs = 0
+//    var currentLR = config.outerLearningRate
+//    val random = new Random(42)
+//
+//    var shouldStop = false
+//    var epoch = 0
+//
+//    while (epoch < config.metaEpochs && !shouldStop) {
+//      val startTime = System.currentTimeMillis()
+//
+//      // Enhanced learning rate scheduling
+//      if (epoch > 0 && epoch % config.learningRateDecayFreq == 0) {
+//        currentLR = math.max(currentLR * config.learningRateDecay, config.minLearningRate)
+//        log(f"Learning rate decayed to: $currentLR%.6f")
+//      }
+//
+//      // Sample diverse tasks
+//      val tasks = sampleDiverseTasks(trainDataConverted, config, random)
+//
+//      // Compute meta-gradients
+//      val metaGradients = computeMetaGradientsEnhanced(tasks, metaWeights, network, inputNormalizer, outputNormalizer, config)
+//
+//      // Update meta-weights with advanced optimization
+//      metaWeights = updateMetaWeightsAdvanced(metaWeights, metaGradients, currentLR, config)
+//
+//      val epochTime = System.currentTimeMillis() - startTime
+//
+//      // Validation
+//      if (epoch % config.validationFreq == 0) {
+//        val validationLoss = evaluateModelEnhanced(validationDataConverted, metaWeights, network, inputNormalizer, outputNormalizer, config, random)
+//        log(f"Epoch $epoch: Validation Loss = $validationLoss%.6f, Time = ${epochTime}ms, LR = $currentLR%.6f")
+//
+//        if (validationLoss < bestValidationLoss) {
+//          bestValidationLoss = validationLoss
+//          waitingEpochs = 0
+//          log(f"New best validation loss: $validationLoss%.6f")
+//        } else {
+//          waitingEpochs += config.validationFreq
+//          if (waitingEpochs >= config.patience) {
+//            log(s"Early stopping at epoch $epoch")
+//            shouldStop = true
+//          }
+//        }
+//      } else if (epoch % 25 == 0) {
+//        log(f"Epoch $epoch: Time = ${epochTime}ms, LR = $currentLR%.6f")
+//      }
+//
+//      epoch += 1
+//    }
+//
+//    // Final evaluation
+//    val testLoss = evaluateModelEnhanced(testDataConverted, metaWeights, network, inputNormalizer, outputNormalizer, config, random)
+//    log(f"Final test loss: $testLoss%.6f")
+//
+//    // Create and save final model
+//    val model = MAMLModel(network, metaWeights, config, inputNormalizer, outputNormalizer)
+//    saveModel(model, weightOutputPath)
+//    log(s"Enhanced model saved to: $weightOutputPath")
+//  }
   def trainModel(
                   weightOutputPath: String,
                   trainFilePath: String,
@@ -602,6 +716,10 @@ object MAMLFewShotPredictor extends Logger {
     var shouldStop = false
     var epoch = 0
 
+    // Training history tracking
+    val trainingLosses = scala.collection.mutable.ArrayBuffer[Double]()
+    val validationLosses = scala.collection.mutable.ArrayBuffer[Double]()
+
     while (epoch < config.metaEpochs && !shouldStop) {
       val startTime = System.currentTimeMillis()
 
@@ -625,6 +743,8 @@ object MAMLFewShotPredictor extends Logger {
       // Validation
       if (epoch % config.validationFreq == 0) {
         val validationLoss = evaluateModelEnhanced(validationDataConverted, metaWeights, network, inputNormalizer, outputNormalizer, config, random)
+        validationLosses += validationLoss
+
         log(f"Epoch $epoch: Validation Loss = $validationLoss%.6f, Time = ${epochTime}ms, LR = $currentLR%.6f")
 
         if (validationLoss < bestValidationLoss) {
@@ -645,16 +765,422 @@ object MAMLFewShotPredictor extends Logger {
       epoch += 1
     }
 
-    // Final evaluation
-    val testLoss = evaluateModelEnhanced(testDataConverted, metaWeights, network, inputNormalizer, outputNormalizer, config, random)
-    log(f"Final test loss: $testLoss%.6f")
-
-    // Create and save final model
+    // Create final model
     val model = MAMLModel(network, metaWeights, config, inputNormalizer, outputNormalizer)
+
+    // ===== DETAILED TRAINING RESULTS ANALYSIS =====
+    log("\n" + "="*80)
+    log("DETAILED TRAINING RESULTS ANALYSIS")
+    log("="*80)
+
+    // Final evaluation with detailed analysis
+    analyzeDetailedResults(model, trainData, validationData, testData, loggerOption)
+
+    // Save model
     saveModel(model, weightOutputPath)
     log(s"Enhanced model saved to: $weightOutputPath")
   }
 
+  // New function for detailed results analysis
+  private def analyzeDetailedResults(
+                                      model: MAMLModel,
+                                      trainData: Vector[TrainingExample],
+                                      validationData: Vector[TrainingExample],
+                                      testData: Vector[TrainingExample],
+                                      loggerOption: LoggerOption
+                                    ): Unit = {
+
+    log("\n1. OVERALL PERFORMANCE METRICS")
+    log("-" * 50)
+
+    // Analyze each dataset
+    analyzeDatasetPerformance("Training Set", trainData, model)
+    analyzeDatasetPerformance("Validation Set", validationData, model)
+    analyzeDatasetPerformance("Test Set", testData, model)
+
+    log("\n2. DETAILED PREDICTION ANALYSIS")
+    log("-" * 50)
+
+    // Detailed prediction comparison
+    showDetailedPredictions(testData, model)
+
+    log("\n3. ERROR ANALYSIS BY ARCHITECTURE TYPE")
+    log("-" * 50)
+
+    // Group by dataflow and analyze
+    analyzeByDataflow(testData, model)
+
+    log("\n4. ERROR ANALYSIS BY MULTIPLIER COUNT")
+    log("-" * 50)
+
+    // Group by multiplier count ranges
+    analyzeByMultiplierCount(testData, model)
+
+    log("\n5. FEW-SHOT ADAPTATION ANALYSIS")
+    log("-" * 50)
+
+    // Test few-shot adaptation capability
+    analyzeFewShotCapability(testData, model)
+
+    log("\n6. STATISTICAL ANALYSIS")
+    log("-" * 50)
+
+    // Statistical analysis of residuals
+    analyzeStatistics(testData, model)
+  }
+
+  private def analyzeDatasetPerformance(
+                                         datasetName: String,
+                                         data: Vector[TrainingExample],
+                                         model: MAMLModel
+                                       ): Unit = {
+
+    val predictions = data.map { example =>
+      val input = example.toInputVector
+      val actualOutput = example.toOutputVector
+      val predictedOutput = model.predict(input)
+
+      val actualArea = math.exp(actualOutput(0)) - 1
+      val actualPower = math.exp(actualOutput(1)) - 1
+      val predictedArea = math.exp(predictedOutput(0)) - 1
+      val predictedPower = math.exp(predictedOutput(1)) - 1
+
+      (actualArea, predictedArea, actualPower, predictedPower, example)
+    }
+
+    // Calculate metrics
+    val areaErrors = predictions.map { case (actual, predicted, _, _, _) =>
+      math.abs(actual - predicted) / actual * 100
+    }
+
+    val powerErrors = predictions.map { case (_, _, actual, predicted, _) =>
+      math.abs(actual - predicted) / actual * 100
+    }
+
+    val areaMAE = predictions.map { case (actual, predicted, _, _, _) =>
+      math.abs(actual - predicted)
+    }.sum / predictions.length
+
+    val powerMAE = predictions.map { case (_, _, actual, predicted, _) =>
+      math.abs(actual - predicted)
+    }.sum / predictions.length
+
+    val areaRMSE = math.sqrt(predictions.map { case (actual, predicted, _, _, _) =>
+      math.pow(actual - predicted, 2)
+    }.sum / predictions.length)
+
+    val powerRMSE = math.sqrt(predictions.map { case (_, _, actual, predicted, _) =>
+      math.pow(actual - predicted, 2)
+    }.sum / predictions.length)
+
+    // Calculate R²
+    val areaMean = predictions.map(_._1).sum / predictions.length
+    val powerMean = predictions.map(_._3).sum / predictions.length
+
+    val areaSSTot = predictions.map { case (actual, _, _, _, _) => math.pow(actual - areaMean, 2) }.sum
+    val powerSSTot = predictions.map { case (_, _, actual, _, _) => math.pow(actual - powerMean, 2) }.sum
+
+    val areaSSRes = predictions.map { case (actual, predicted, _, _, _) => math.pow(actual - predicted, 2) }.sum
+    val powerSSRes = predictions.map { case (_, _, actual, predicted, _) => math.pow(actual - predicted, 2) }.sum
+
+    val areaR2 = 1 - (areaSSRes / areaSSTot)
+    val powerR2 = 1 - (powerSSRes / powerSSTot)
+
+    log(s"\n$datasetName Results (${data.length} samples):")
+    log(s"Area Prediction:")
+    log(f"  ├── Mean Absolute Error (MAE): ${areaMAE}%.1f μm²")
+    log(f"  ├── Root Mean Square Error (RMSE): ${areaRMSE}%.1f μm²")
+    log(f"  ├── Mean Absolute Percentage Error (MAPE): ${areaErrors.sum / areaErrors.length}%.2f%%")
+    log(f"  ├── R² Score: ${areaR2}%.3f")
+    log(f"  ├── Max Error: ${areaErrors.max}%.1f%%")
+    log(f"  └── Min Error: ${areaErrors.min}%.1f%%")
+
+    log(s"Power Prediction:")
+    log(f"  ├── Mean Absolute Error (MAE): ${powerMAE}%.2f mW")
+    log(f"  ├── Root Mean Square Error (RMSE): ${powerRMSE}%.2f mW")
+    log(f"  ├── Mean Absolute Percentage Error (MAPE): ${powerErrors.sum / powerErrors.length}%.2f%%")
+    log(f"  ├── R² Score: ${powerR2}%.3f")
+    log(f"  ├── Max Error: ${powerErrors.max}%.1f%%")
+    log(f"  └── Min Error: ${powerErrors.min}%.1f%%")
+
+    // Error distribution
+    val areaErrorBins = Array(
+      areaErrors.count(_ < 5),
+      areaErrors.count(e => e >= 5 && e < 10),
+      areaErrors.count(e => e >= 10 && e < 20),
+      areaErrors.count(_ >= 20)
+    )
+
+    val powerErrorBins = Array(
+      powerErrors.count(_ < 5),
+      powerErrors.count(e => e >= 5 && e < 15),
+      powerErrors.count(e => e >= 15 && e < 25),
+      powerErrors.count(_ >= 25)
+    )
+
+    log(s"Area Error Distribution:")
+    log(f"  ├── <5%% error: ${areaErrorBins(0)} samples (${areaErrorBins(0) * 100.0 / data.length}%.1f%%)")
+    log(f"  ├── 5-10%% error: ${areaErrorBins(1)} samples (${areaErrorBins(1) * 100.0 / data.length}%.1f%%)")
+    log(f"  ├── 10-20%% error: ${areaErrorBins(2)} samples (${areaErrorBins(2) * 100.0 / data.length}%.1f%%)")
+    log(f"  └── >20%% error: ${areaErrorBins(3)} samples (${areaErrorBins(3) * 100.0 / data.length}%.1f%%)")
+
+    log(s"Power Error Distribution:")
+    log(f"  ├── <5%% error: ${powerErrorBins(0)} samples (${powerErrorBins(0) * 100.0 / data.length}%.1f%%)")
+    log(f"  ├── 5-15%% error: ${powerErrorBins(1)} samples (${powerErrorBins(1) * 100.0 / data.length}%.1f%%)")
+    log(f"  ├── 15-25%% error: ${powerErrorBins(2)} samples (${powerErrorBins(2) * 100.0 / data.length}%.1f%%)")
+    log(f"  └── >25%% error: ${powerErrorBins(3)} samples (${powerErrorBins(3) * 100.0 / data.length}%.1f%%)")
+  }
+
+  private def showDetailedPredictions(
+                                       testData: Vector[TrainingExample],
+                                       model: MAMLModel
+                                     ): Unit = {
+
+    val predictions = testData.map { example =>
+      val input = example.toInputVector
+      val actualOutput = example.toOutputVector
+      val predictedOutput = model.predict(input)
+
+      val actualArea = math.exp(actualOutput(0)) - 1
+      val actualPower = math.exp(actualOutput(1)) - 1
+      val predictedArea = math.exp(predictedOutput(0)) - 1
+      val predictedPower = math.exp(predictedOutput(1)) - 1
+
+      val areaError = math.abs(actualArea - predictedArea) / actualArea * 100
+      val powerError = math.abs(actualPower - predictedPower) / actualPower * 100
+
+      (example, actualArea, predictedArea, areaError, actualPower, predictedPower, powerError)
+    }
+
+    // Sort by error and show best/worst cases
+    val sortedByAreaError = predictions.sortBy(_._4)
+    val sortedByPowerError = predictions.sortBy(_._7)
+
+    log("\nBest Area Predictions (Lowest Error):")
+    log("Architecture | Actual Area | Predicted Area | Error % | Actual Power | Predicted Power | Error %")
+    log("-" * 100)
+
+    sortedByAreaError.take(5).foreach { case (example, actualArea, predArea, areaErr, actualPower, predPower, powerErr) =>
+      val archName = s"${example.dataflow}_${example.groupPeRow}x${example.groupPeCol}x${example.vectorPeRow}x${example.vectorPeCol}x${example.numMultiplier}"
+      log(f"${archName}%-20s | ${actualArea}%8.0f μm² | ${predArea}%8.0f μm² | ${areaErr}%5.2f%% | ${actualPower}%6.2f mW | ${predPower}%6.2f mW | ${powerErr}%5.2f%%")
+    }
+
+    log("\nWorst Area Predictions (Highest Error):")
+    log("Architecture | Actual Area | Predicted Area | Error % | Actual Power | Predicted Power | Error %")
+    log("-" * 100)
+
+    sortedByAreaError.takeRight(3).foreach { case (example, actualArea, predArea, areaErr, actualPower, predPower, powerErr) =>
+      val archName = s"${example.dataflow}_${example.groupPeRow}x${example.groupPeCol}x${example.vectorPeRow}x${example.vectorPeCol}x${example.numMultiplier}"
+      log(f"${archName}%-20s | ${actualArea}%8.0f μm² | ${predArea}%8.0f μm² | ${areaErr}%5.2f%% | ${actualPower}%6.2f mW | ${predPower}%6.2f mW | ${powerErr}%5.2f%%")
+    }
+
+    log("\nBest Power Predictions (Lowest Error):")
+    log("Architecture | Actual Power | Predicted Power | Error % | Actual Area | Predicted Area | Error %")
+    log("-" * 100)
+
+    sortedByPowerError.take(5).foreach { case (example, actualArea, predArea, areaErr, actualPower, predPower, powerErr) =>
+      val archName = s"${example.dataflow}_${example.groupPeRow}x${example.groupPeCol}x${example.vectorPeRow}x${example.vectorPeCol}x${example.numMultiplier}"
+      log(f"${archName}%-20s | ${actualPower}%6.2f mW | ${predPower}%6.2f mW | ${powerErr}%5.2f%% | ${actualArea}%8.0f μm² | ${predArea}%8.0f μm² | ${areaErr}%5.2f%%")
+    }
+  }
+
+  private def analyzeByDataflow(
+                                 testData: Vector[TrainingExample],
+                                 model: MAMLModel
+                               ): Unit = {
+
+    val dataflowGroups = testData.groupBy(_.dataflow)
+
+    dataflowGroups.foreach { case (dataflow, examples) =>
+      val predictions = examples.map { example =>
+        val input = example.toInputVector
+        val actualOutput = example.toOutputVector
+        val predictedOutput = model.predict(input)
+
+        val actualArea = math.exp(actualOutput(0)) - 1
+        val actualPower = math.exp(actualOutput(1)) - 1
+        val predictedArea = math.exp(predictedOutput(0)) - 1
+        val predictedPower = math.exp(predictedOutput(1)) - 1
+
+        val areaError = math.abs(actualArea - predictedArea) / actualArea * 100
+        val powerError = math.abs(actualPower - predictedPower) / actualPower * 100
+
+        (areaError, powerError)
+      }
+
+      val areaErrors = predictions.map(_._1)
+      val powerErrors = predictions.map(_._2)
+
+      val areaMAPE = areaErrors.sum / areaErrors.length
+      val powerMAPE = powerErrors.sum / powerErrors.length
+
+      log(f"\n${dataflow} Dataflow Performance (${examples.length} samples):")
+      log(f"  ├── Area MAPE: ${areaMAPE}%.1f%%")
+      log(f"  ├── Power MAPE: ${powerMAPE}%.1f%%")
+      log(f"  ├── Best Area Error: ${areaErrors.min}%.2f%%")
+      log(f"  ├── Worst Area Error: ${areaErrors.max}%.2f%%")
+      log(f"  ├── Best Power Error: ${powerErrors.min}%.2f%%")
+      log(f"  └── Worst Power Error: ${powerErrors.max}%.2f%%")
+    }
+  }
+
+  private def analyzeByMultiplierCount(
+                                        testData: Vector[TrainingExample],
+                                        model: MAMLModel
+                                      ): Unit = {
+
+    val multiplierRanges = Vector(
+      ("Low (1024-4096)", testData.filter(e => e.totalMultipliers >= 1024 && e.totalMultipliers < 4096)),
+      ("Medium (4096-8192)", testData.filter(e => e.totalMultipliers >= 4096 && e.totalMultipliers < 8192)),
+      ("High (8192-16384)", testData.filter(e => e.totalMultipliers >= 8192 && e.totalMultipliers <= 16384))
+    )
+
+    multiplierRanges.foreach { case (rangeName, examples) =>
+      if (examples.nonEmpty) {
+        val predictions = examples.map { example =>
+          val input = example.toInputVector
+          val actualOutput = example.toOutputVector
+          val predictedOutput = model.predict(input)
+
+          val actualArea = math.exp(actualOutput(0)) - 1
+          val actualPower = math.exp(actualOutput(1)) - 1
+          val predictedArea = math.exp(predictedOutput(0)) - 1
+          val predictedPower = math.exp(predictedOutput(1)) - 1
+
+          val areaError = math.abs(actualArea - predictedArea) / actualArea * 100
+          val powerError = math.abs(actualPower - predictedPower) / actualPower * 100
+
+          (areaError, powerError)
+        }
+
+        val areaErrors = predictions.map(_._1)
+        val powerErrors = predictions.map(_._2)
+
+        val areaMAPE = areaErrors.sum / areaErrors.length
+        val powerMAPE = powerErrors.sum / powerErrors.length
+
+        log(f"\n$rangeName Multiplier Count (${examples.length} samples):")
+        log(f"  ├── Area MAPE: ${areaMAPE}%.1f%%")
+        log(f"  ├── Power MAPE: ${powerMAPE}%.1f%%")
+        log(f"  └── Sample Count: ${examples.length}")
+      }
+    }
+  }
+
+  private def analyzeFewShotCapability(
+                                        testData: Vector[TrainingExample],
+                                        model: MAMLModel
+                                      ): Unit = {
+
+    val random = new Random(42)
+    val shuffledData = random.shuffle(testData)
+
+    if (shuffledData.length >= 15) {
+      val supportSet = shuffledData.take(5).map(ex => (ex.toInputVector, ex.toOutputVector))
+      val querySet = shuffledData.slice(5, 15).map(ex => (ex.toInputVector, ex.toOutputVector))
+
+      // Before adaptation
+      val beforeAdaptationErrors = querySet.map { case (input, actualOutput) =>
+        val predictedOutput = model.predict(input)
+        val actualArea = math.exp(actualOutput(0)) - 1
+        val actualPower = math.exp(actualOutput(1)) - 1
+        val predictedArea = math.exp(predictedOutput(0)) - 1
+        val predictedPower = math.exp(predictedOutput(1)) - 1
+
+        val areaError = math.abs(actualArea - predictedArea) / actualArea * 100
+        val powerError = math.abs(actualPower - predictedPower) / actualPower * 100
+        (areaError, powerError)
+      }
+
+      // After adaptation
+      val adaptedWeights = model.adapt(supportSet)
+      val afterAdaptationErrors = querySet.map { case (input, actualOutput) =>
+        val predictedOutput = model.predict(input, Some(adaptedWeights))
+        val actualArea = math.exp(actualOutput(0)) - 1
+        val actualPower = math.exp(actualOutput(1)) - 1
+        val predictedArea = math.exp(predictedOutput(0)) - 1
+        val predictedPower = math.exp(predictedOutput(1)) - 1
+
+        val areaError = math.abs(actualArea - predictedArea) / actualArea * 100
+        val powerError = math.abs(actualPower - predictedPower) / actualPower * 100
+        (areaError, powerError)
+      }
+
+      val beforeAreaMAPE = beforeAdaptationErrors.map(_._1).sum / beforeAdaptationErrors.length
+      val beforePowerMAPE = beforeAdaptationErrors.map(_._2).sum / beforeAdaptationErrors.length
+      val afterAreaMAPE = afterAdaptationErrors.map(_._1).sum / afterAdaptationErrors.length
+      val afterPowerMAPE = afterAdaptationErrors.map(_._2).sum / afterAdaptationErrors.length
+
+      val areaImprovement = (beforeAreaMAPE - afterAreaMAPE) / beforeAreaMAPE * 100
+      val powerImprovement = (beforePowerMAPE - afterPowerMAPE) / beforePowerMAPE * 100
+
+      log("Few-Shot Adaptation Analysis:")
+      log(f"Support Set Size: ${supportSet.length} examples")
+      log(f"Query Set Size: ${querySet.length} examples")
+      log(f"Adaptation Steps: ${model.config.innerSteps}")
+      log("")
+      log("Before Adaptation:")
+      log(f"  ├── Area MAPE: ${beforeAreaMAPE}%.1f%%")
+      log(f"  └── Power MAPE: ${beforePowerMAPE}%.1f%%")
+      log("")
+      log("After Adaptation:")
+      log(f"  ├── Area MAPE: ${afterAreaMAPE}%.1f%%")
+      log(f"  └── Power MAPE: ${afterPowerMAPE}%.1f%%")
+      log("")
+      log("Improvement:")
+      log(f"  ├── Area: ${areaImprovement}%.1f%% reduction in error")
+      log(f"  └── Power: ${powerImprovement}%.1f%% reduction in error")
+    }
+  }
+
+  private def analyzeStatistics(
+                                 testData: Vector[TrainingExample],
+                                 model: MAMLModel
+                               ): Unit = {
+
+    val residuals = testData.map { example =>
+      val input = example.toInputVector
+      val actualOutput = example.toOutputVector
+      val predictedOutput = model.predict(input)
+
+      val actualArea = math.exp(actualOutput(0)) - 1
+      val actualPower = math.exp(actualOutput(1)) - 1
+      val predictedArea = math.exp(predictedOutput(0)) - 1
+      val predictedPower = math.exp(predictedOutput(1)) - 1
+
+      val areaResidual = actualArea - predictedArea
+      val powerResidual = actualPower - predictedPower
+
+      (areaResidual, powerResidual)
+    }
+
+    val areaResiduals = residuals.map(_._1)
+    val powerResiduals = residuals.map(_._2)
+
+    val areaMean = areaResiduals.sum / areaResiduals.length
+    val powerMean = powerResiduals.sum / powerResiduals.length
+
+    val areaStd = math.sqrt(areaResiduals.map(r => math.pow(r - areaMean, 2)).sum / areaResiduals.length)
+    val powerStd = math.sqrt(powerResiduals.map(r => math.pow(r - powerMean, 2)).sum / powerResiduals.length)
+
+    log("Residual Analysis:")
+    log("Area Prediction Residuals:")
+    log(f"  ├── Mean: ${areaMean}%.1f μm² ${if (areaMean < 0) "(underestimation bias)" else "(overestimation bias)"}")
+    log(f"  ├── Std Dev: ${areaStd}%.1f μm²")
+    log(f"  ├── Min Residual: ${areaResiduals.min}%.1f μm²")
+    log(f"  └── Max Residual: ${areaResiduals.max}%.1f μm²")
+
+    log("Power Prediction Residuals:")
+    log(f"  ├── Mean: ${powerMean}%.3f mW ${if (powerMean < 0) "(underestimation bias)" else "(overestimation bias)"}")
+    log(f"  ├── Std Dev: ${powerStd}%.2f mW")
+    log(f"  ├── Min Residual: ${powerResiduals.min}%.3f mW")
+    log(f"  └── Max Residual: ${powerResiduals.max}%.3f mW")
+
+    log("")
+    log("95% Prediction Intervals:")
+    log(f"  ├── Area: ±${1.96 * areaStd}%.0f μm² (±2σ)")
+    log(f"  └── Power: ±${1.96 * powerStd}%.2f mW (±2σ)")
+  }
   // Helper functions continue...
   // [The rest of the implementation would include all the enhanced helper functions]
 
