@@ -1022,6 +1022,8 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/test.csv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/train.csv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/train.csv[0m
+[0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/maml_weight.bin[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/maml_weight.bin[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/hardware_reference[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/hardware_reference[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/hardware_reference/nvsim[0m
