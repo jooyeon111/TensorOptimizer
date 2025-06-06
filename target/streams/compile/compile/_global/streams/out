@@ -1,7 +1,7 @@
-[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/MAMLFewShotPredictor.scala:586:61: method mapValues in trait MapOps is deprecated (since 2.13.0): Use .view.mapValues(f). A future version will include a strict version of this method (for now, .view.mapValues(f).toMap).[0m
+[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/MAMLFewShotPredictor.scala:599:61: method mapValues in trait MapOps is deprecated (since 2.13.0): Use .view.mapValues(f). A future version will include a strict version of this method (for now, .view.mapValues(f).toMap).[0m
 [0m[[0m[33mwarn[0m] [0m[0m    val originalDataflowDist = original.groupBy(_.dataflow).mapValues(_.length)[0m
 [0m[[0m[33mwarn[0m] [0m[0m                                                            ^[0m
-[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/MAMLFewShotPredictor.scala:587:67: method mapValues in trait MapOps is deprecated (since 2.13.0): Use .view.mapValues(f). A future version will include a strict version of this method (for now, .view.mapValues(f).toMap).[0m
+[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/MAMLFewShotPredictor.scala:600:67: method mapValues in trait MapOps is deprecated (since 2.13.0): Use .view.mapValues(f). A future version will include a strict version of this method (for now, .view.mapValues(f).toMap).[0m
 [0m[[0m[33mwarn[0m] [0m[0m    val augmentedDataflowDist = augmentedOnly.groupBy(_.dataflow).mapValues(_.length)[0m
 [0m[[0m[33mwarn[0m] [0m[0m                                                                  ^[0m
 [0m[[0m[33mwarn[0m] [0m[0mtwo warnings found[0m
