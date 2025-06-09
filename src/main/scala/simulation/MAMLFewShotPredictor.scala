@@ -422,26 +422,26 @@ object MAMLFewShotPredictor extends Logger {
     val inputSize = augmentedTrainData.head.toInputVector.length
     val outputSize = augmentedTrainData.head.toOutputVector.length
 
-//    val network = MAMLNetwork(Vector(
-//      MAMLLayer(inputSize, 128, "gelu", useBatchNorm = true, dropoutRate = 0.1),
-//      MAMLLayer(128, 128, "gelu", useBatchNorm = true, dropoutRate = 0.1),
-//      MAMLLayer(128, 96, "gelu", useBatchNorm = true, dropoutRate = 0.05),
-//      MAMLLayer(96, 64, "swish", useBatchNorm = false, dropoutRate = 0.05),
-//      MAMLLayer(64, 32, "swish", useBatchNorm = false),
-//      MAMLLayer(32, outputSize, "linear")
-//    ), useResidualConnections = true)
-// Improved network with attention-like mechanisms
+    //    val network = MAMLNetwork(Vector(
+    //      MAMLLayer(inputSize, 128, "gelu", useBatchNorm = true, dropoutRate = 0.1),
+    //      MAMLLayer(128, 128, "gelu", useBatchNorm = true, dropoutRate = 0.1),
+    //      MAMLLayer(128, 96, "gelu", useBatchNorm = true, dropoutRate = 0.05),
+    //      MAMLLayer(96, 64, "swish", useBatchNorm = false, dropoutRate = 0.05),
+    //      MAMLLayer(64, 32, "swish", useBatchNorm = false),
+    //      MAMLLayer(32, outputSize, "linear")
+    //    ), useResidualConnections = true)
+    // Improved network with attention-like mechanisms
 
-  val network = MAMLNetwork(Vector(
-    MAMLLayer(inputSize, 256, "gelu", useBatchNorm = true, dropoutRate = 0.15),
-    MAMLLayer(256, 256, "gelu", useBatchNorm = true, dropoutRate = 0.15),  // Wider
-    MAMLLayer(256, 192, "gelu", useBatchNorm = true, dropoutRate = 0.1),
-    MAMLLayer(192, 128, "swish", useBatchNorm = true, dropoutRate = 0.1),
-    MAMLLayer(128, 96, "swish", useBatchNorm = false, dropoutRate = 0.05),
-    MAMLLayer(96, 64, "swish", useBatchNorm = false, dropoutRate = 0.05),
-    // NEW: Separate prediction heads for area and power
-    MAMLLayer(64, 32, "swish", useBatchNorm = false),
-    MAMLLayer(32, outputSize, "linear")
+    val network = MAMLNetwork(Vector(
+      MAMLLayer(inputSize, 256, "gelu", useBatchNorm = true, dropoutRate = 0.15),
+      MAMLLayer(256, 256, "gelu", useBatchNorm = true, dropoutRate = 0.15),  // Wider
+      MAMLLayer(256, 192, "gelu", useBatchNorm = true, dropoutRate = 0.1),
+      MAMLLayer(192, 128, "swish", useBatchNorm = true, dropoutRate = 0.1),
+      MAMLLayer(128, 96, "swish", useBatchNorm = false, dropoutRate = 0.05),
+      MAMLLayer(96, 64, "swish", useBatchNorm = false, dropoutRate = 0.05),
+      // NEW: Separate prediction heads for area and power
+      MAMLLayer(64, 32, "swish", useBatchNorm = false),
+      MAMLLayer(32, outputSize, "linear")
     ), useResidualConnections = true)  // NEW parameter
 
     log(s"Enhanced network - Total parameters: ${network.getTotalParams}")
