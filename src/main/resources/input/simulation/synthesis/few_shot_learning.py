@@ -16,7 +16,7 @@ class BackToBasicsPredictor:
     💾 New Feature: Save models and results in current directory with descriptive names
     """
 
-    def __init__(self, save_to_current_dir: bool = True, clean_previous: bool = True):
+    def __init__(self, save_to_current_dir: bool = True):
         self.dataflow_mapping = {}
         self.saved_models = {}  # Store trained models
         self.feature_stats = {}  # Store normalization statistics
@@ -27,10 +27,6 @@ class BackToBasicsPredictor:
         else:
             self.save_dir = "model_artifacts"
             os.makedirs(self.save_dir, exist_ok=True)
-
-        # Clean up previous training files if requested
-        if clean_previous and save_to_current_dir:
-            self.cleanup_previous_training_files()
 
         # PROVEN feature set from original system
         self.feature_columns = [
@@ -54,65 +50,6 @@ class BackToBasicsPredictor:
             }
         }
 
-    def cleanup_previous_training_files(self):
-        """Clean up files from previous training sessions"""
-        print("🧹 CLEANING UP PREVIOUS TRAINING FILES...")
-        print("-" * 50)
-
-        # Pattern for hardware predictor files
-        hardware_predictor_patterns = [
-            'hardware_predictor_',
-        ]
-
-        files_to_remove = []
-        current_dir_files = os.listdir('.')
-
-        for filename in current_dir_files:
-            if any(pattern in filename for pattern in hardware_predictor_patterns):
-                files_to_remove.append(filename)
-
-        if files_to_remove:
-            print(f"   Found {len(files_to_remove)} files from previous training sessions:")
-
-            # Categorize files for better reporting
-            file_categories = {
-                'Models': [f for f in files_to_remove if f.endswith('.pkl')],
-                'Coefficients': [f for f in files_to_remove if 'coefficients' in f and f.endswith('.json')],
-                'Statistics': [f for f in files_to_remove if 'stats' in f and f.endswith('.json')],
-                'Reports': [f for f in files_to_remove if f.endswith('.txt')],
-                'Predictions': [f for f in files_to_remove if f.endswith('.csv')],
-                'Summaries': [f for f in files_to_remove if 'summary' in f and f.endswith('.json')]
-            }
-
-            for category, files in file_categories.items():
-                if files:
-                    print(f"   {category}: {len(files)} files")
-
-            # Remove all files
-            removed_count = 0
-            failed_removals = []
-
-            for filename in files_to_remove:
-                try:
-                    os.remove(filename)
-                    removed_count += 1
-                except Exception as e:
-                    failed_removals.append((filename, str(e)))
-
-            print(f"\n   ✅ Successfully removed: {removed_count} files")
-
-            if failed_removals:
-                print(f"   ⚠️ Failed to remove {len(failed_removals)} files:")
-                for filename, error in failed_removals:
-                    print(f"      {filename}: {error}")
-            else:
-                print("   🎯 All previous training files cleaned successfully!")
-
-        else:
-            print("   ✨ No previous training files found - directory is clean!")
-
-        print("   🧹 Cleanup completed!\n")
-
     def save_model_artifacts(self, target: str, coefficients_list: List[List[float]],
                            feature_stats: Dict, config: Dict, metrics: Dict) -> str:
         """Save trained model artifacts to current directory with descriptive names"""
@@ -120,10 +57,15 @@ class BackToBasicsPredictor:
         target_clean = target.replace(' ', '_').lower()
 
         # Create descriptive filenames in current directory
-        coefficients_file = f"hardware_predictor_{target_clean}_coefficients_{timestamp}.json"
-        model_file = f"hardware_predictor_{target_clean}_complete_model_{timestamp}.pkl"
-        stats_file = f"hardware_predictor_{target_clean}_feature_stats_{timestamp}.json"
-        report_file = f"hardware_predictor_{target_clean}_training_report_{timestamp}.txt"
+#         coefficients_file = f"hardware_predictor_{target_clean}_coefficients_{timestamp}.json"
+#         model_file = f"hardware_predictor_{target_clean}_complete_model_{timestamp}.pkl"
+#         stats_file = f"hardware_predictor_{target_clean}_feature_stats_{timestamp}.json"
+#         report_file = f"hardware_predictor_{target_clean}_training_report_{timestamp}.txt"
+
+        coefficients_file = f"hardware_predictor_{target_clean}_coefficients.json"
+        model_file = f"hardware_predictor_{target_clean}_complete_model.pkl"
+        stats_file = f"hardware_predictor_{target_clean}_feature_stats.json"
+        report_file = f"hardware_predictor_{target_clean}_training_report.txt"
 
         # Save coefficients as JSON (human readable)
         coefficients_data = {
@@ -648,7 +590,7 @@ class BackToBasicsPredictor:
 
         # Save overall training summary to current directory
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        summary_file = f"hardware_predictor_training_summary_{timestamp}.json"
+        summary_file = f"hardware_predictor_training_summary.json"
 
         summary_data = {
             'timestamp': datetime.now().isoformat(),
@@ -671,7 +613,7 @@ class BackToBasicsPredictor:
         print(f"\n💾 Training summary saved to current directory: {summary_file}")
 
         # Save predictions CSV
-        predictions_file = f"hardware_predictor_validation_predictions_{timestamp}.csv"
+        predictions_file = f"hardware_predictor_validation_predictions.csv"
         with open(predictions_file, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
 
@@ -839,7 +781,7 @@ class BackToBasicsPredictor:
                     target_clean = target.replace(' ', '_').lower()
 
                     # Save coefficients
-                    coef_file = f"hardware_predictor_{target_clean}_new_predictions_coefficients_{timestamp}.json"
+                    coef_file = f"hardware_predictor_{target_clean}_new_predictions_coefficients.json"
                     coef_data = {
                         'timestamp': timestamp,
                         'target': target,
@@ -860,7 +802,7 @@ class BackToBasicsPredictor:
                 print(f"   {target}: ✅ {len(target_predictions)} predictions generated")
 
         # Save predictions to CSV in current directory
-        predictions_csv = f"hardware_predictor_new_sample_predictions_{timestamp}.csv"
+        predictions_csv = f"hardware_predictor_new_sample_predictions.csv"
         with open(predictions_csv, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
 
@@ -928,7 +870,7 @@ class BackToBasicsPredictor:
 # Example usage and demonstration
 def demonstrate_current_directory_saving():
     """Demonstrate the current directory saving functionality"""
-    predictor = BackToBasicsPredictor(save_to_current_dir=True, clean_previous=True)
+    predictor = BackToBasicsPredictor(save_to_current_dir=True)
     random.seed(42)
 
     try:
@@ -1008,7 +950,7 @@ def demonstrate_current_directory_saving():
 
 # Main execution with current directory saving
 if __name__ == "__main__":
-    predictor = BackToBasicsPredictor(save_to_current_dir=True, clean_previous=True)
+    predictor = BackToBasicsPredictor(save_to_current_dir=True)
     random.seed(42)
 
     try:
