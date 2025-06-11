@@ -155,6 +155,10 @@ class HardwarePredictor:
             X.append(features)
             y.append(row[target])
 
+
+        target_scale = sum(abs(val) for val in y) / len(y)
+        effective_alpha = alpha * (target_scale / 1000.0)  # Normalize to reasonable scale
+
         try:
             # Matrix operations for Ridge regression: (X^T X + αI)^(-1) X^T y
             def matrix_multiply(A, B):
@@ -197,7 +201,7 @@ class HardwarePredictor:
 
             # Add regularization
             for i in range(len(XTX)):
-                XTX[i][i] += alpha
+                XTX[i][i] += effective_alpha
 
             XTy = [sum(X_T[i][j] * y[j] for j in range(len(y))) for i in range(len(X_T))]
 
