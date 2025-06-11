@@ -110,14 +110,14 @@ object ArrayConfigGenerator extends OutputPortCalculator {
           )
         ) match {
           case Success(result) =>
-            println(s"✅ Prediction successful:")
-            println(f"   📏 Area: ${result.areaUm2}%,.1f µm²")
-            println(f"   🔋 Switch: ${result.switchPowerPw}%.2f mW")
-            println(f"   🔋 Internal: ${result.internalPowerPw}%.2f mW")
-            println(f"   🔋 Leakage: ${result.leakagePowerPw}%.2f mW")
+//            println(s"✅ Prediction successful:")
+//            println(f"   📏 Area: ${result.areaUm2}%,.1f µm²")
+//            println(f"   🔋 Switch: ${result.switchPowerPw}%.2f mW")
+//            println(f"   🔋 Internal: ${result.internalPowerPw}%.2f mW")
+//            println(f"   🔋 Leakage: ${result.leakagePowerPw}%.2f mW")
             Some(result)
           case Failure(exception) =>
-            println(s"❌ Prediction failed: ${exception.getMessage}")
+//            println(s"❌ Prediction failed: ${exception.getMessage}")
             throw new RuntimeException(s"Hardware prediction failed: ${exception.getMessage}")
         }
 

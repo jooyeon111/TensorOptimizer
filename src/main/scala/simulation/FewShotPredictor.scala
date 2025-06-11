@@ -257,8 +257,8 @@ object FewShotPredictor {
     val normalizedPowerFeatures = normalizeFeatures(rawFeatures, model.powerFeatureStats, correctFeatureColumns)
 
     // Debug: Print to verify all features are found
-    println(s"Area normalized: [${normalizedAreaFeatures.mkString(", ")}]")
-    println(s"Power normalized: [${normalizedPowerFeatures.mkString(", ")}]")
+//    println(s"Area normalized: [${normalizedAreaFeatures.mkString(", ")}]")
+//    println(s"Power normalized: [${normalizedPowerFeatures.mkString(", ")}]")
 
     // Make predictions
     val areaPrediction = ensemblePredict(normalizedAreaFeatures, model.areaCoefficients)

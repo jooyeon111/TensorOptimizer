@@ -248,6 +248,8 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/debug_square_os_{32x32}x{1x1}x1}_sd_size_256_buffer_A:64_buffer_B:64_buffer_C:32.txt[0m
 [0m[[0m[0mdebug[0m] [0m[0m	output/simulation/debug_square_os_{32x8}x{2x4}x1}_sd_size_256_buffer_A:64_buffer_B:64_buffer_C:32.txt[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/debug_square_os_{32x8}x{2x4}x1}_sd_size_256_buffer_A:64_buffer_B:64_buffer_C:32.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	output/simulation/result_bert_base_projection_mult:16384.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/result_bert_base_projection_mult:16384.txt[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/RunTimeError$.class[0m
@@ -998,8 +1000,6 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/layer/bert/base/representation_projection.cfg[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis[0m
-[0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_inference_summary_20250611_191606.json[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_inference_summary_20250611_191606.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_total_power_coefficients.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_total_power_coefficients.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/validation.csv[0m
@@ -1016,14 +1016,8 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_area_coefficients.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_total_power_feature_stats.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_total_power_feature_stats.json[0m
-[0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_inference_results_20250611_191606.csv[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_inference_results_20250611_191606.csv[0m
-[0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_inference_summary_20250611_191448.json[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_inference_summary_20250611_191448.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_area_feature_stats.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_area_feature_stats.json[0m
-[0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_inference_results_20250611_191448.csv[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_inference_results_20250611_191448.csv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_predictions.csv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_predictions.csv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/test.csv[0m

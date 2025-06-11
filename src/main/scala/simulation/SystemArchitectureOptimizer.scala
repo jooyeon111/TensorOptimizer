@@ -158,7 +158,7 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
 
 
     if (!FewShotPredictor.isModelLoaded) {
-      println("📥 Loading ML prediction model...")
+//      println("📥 Loading ML prediction model...")
       FewShotPredictor.loadModelFromDefaultFiles match {
         case Success(_) =>
           println("✅ Model loaded successfully")
