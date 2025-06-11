@@ -59,14 +59,16 @@ object AnalyzerMain extends App
       FewShotPredictor.loadModelFromDefaultFiles match {
         case Success(_) =>
 
-          println("Loading few show modeling is successful")
-          runLayerSimulation(
-            layerPath = args(0),
-            testPath = args(1),
-            offChipMemoryDataPath = Option(args(2)),
-            sramDataPath = Option(args(3)),
-            help = help
-          )
+          FewShotPredictor.debugPrediction()
+
+//          println("Loading few show modeling is successful")
+//          runLayerSimulation(
+//            layerPath = args(0),
+//            testPath = args(1),
+//            offChipMemoryDataPath = Option(args(2)),
+//            sramDataPath = Option(args(3)),
+//            help = help
+//          )
 
         case Failure(e) =>
           Console.err.println(s"Failed to load ML model: ${e.getMessage}")

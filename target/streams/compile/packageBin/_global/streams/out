@@ -998,10 +998,10 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/layer/bert/base/representation_projection.cfg[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis[0m
+[0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_inference_summary_20250611_191606.json[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_inference_summary_20250611_191606.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_total_power_coefficients.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_total_power_coefficients.json[0m
-[0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_inference_summary_20250611_172011.json[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_inference_summary_20250611_172011.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/validation.csv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/validation.csv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_new_predictions_metadata.json[0m
@@ -1016,8 +1016,14 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_area_coefficients.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_total_power_feature_stats.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_total_power_feature_stats.json[0m
+[0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_inference_results_20250611_191606.csv[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_inference_results_20250611_191606.csv[0m
+[0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_inference_summary_20250611_191448.json[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_inference_summary_20250611_191448.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_area_feature_stats.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_area_feature_stats.json[0m
+[0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_inference_results_20250611_191448.csv[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_inference_results_20250611_191448.csv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_predictions.csv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_predictions.csv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/test.csv[0m
@@ -1028,8 +1034,6 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_total_power_model.pkl[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_training_summary.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_training_summary.json[0m
-[0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_inference_results_20250611_172011.csv[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_inference_results_20250611_172011.csv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/hardware_reference[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/hardware_reference[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/hardware_reference/nvsim[0m

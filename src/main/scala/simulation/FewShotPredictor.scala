@@ -178,6 +178,48 @@ object FewShotPredictor {
     )
   }
 
+//  def predict(features: InputFeatures): Try[ArraySynthesisData] = Try {
+//    val model = loadedModel.getOrElse(
+//      throw new IllegalStateException("Model not loaded. Call loadModel() first.")
+//    )
+//
+//    // Encode dataflow
+//    val dataflowEncoded = model.dataflowMapping.getOrElse(features.dataflow, 0)
+//
+//    // Create feature vector in the same order as training
+//    val rawFeatures = Array(
+//      dataflowEncoded.toDouble,
+//      features.totalNumberOfMultipliers.toDouble,
+//      features.r.toDouble,
+//      features.c.toDouble,
+//      features.a.toDouble,
+//      features.b.toDouble,
+//      features.p.toDouble,
+//      features.streamingDimensionSize.toDouble
+//    )
+//
+//    // Normalize features for area prediction
+//    val normalizedAreaFeatures = normalizeFeatures(rawFeatures, model.areaFeatureStats, model.featureColumns)
+//
+//    // Normalize features for power prediction
+//    val normalizedPowerFeatures = normalizeFeatures(rawFeatures, model.powerFeatureStats, model.featureColumns)
+//
+//    // Make area prediction using ensemble
+//    val areaPrediction = ensemblePredict(normalizedAreaFeatures, model.areaCoefficients)
+//
+//    // Make power prediction using ensemble
+//    val powerPrediction = ensemblePredict(normalizedPowerFeatures, model.powerCoefficients)
+//
+//    // Convert power from watts to milliwatts and split into components
+//    // Based on typical hardware patterns, approximate the power breakdown
+//    val totalPowerMw = powerPrediction // Convert watts to milliwatts
+//
+//    ArraySynthesisData(
+//      areaUm2 = areaPrediction,
+//      totalPowerMw = totalPowerMw
+//    )
+//  }
+
   def predict(features: InputFeatures): Try[ArraySynthesisData] = Try {
     val model = loadedModel.getOrElse(
       throw new IllegalStateException("Model not loaded. Call loadModel() first.")
@@ -186,7 +228,7 @@ object FewShotPredictor {
     // Encode dataflow
     val dataflowEncoded = model.dataflowMapping.getOrElse(features.dataflow, 0)
 
-    // Create feature vector in the same order as training
+    // Create feature vector in EXACT same order as Python training
     val rawFeatures = Array(
       dataflowEncoded.toDouble,
       features.totalNumberOfMultipliers.toDouble,
@@ -198,25 +240,33 @@ object FewShotPredictor {
       features.streamingDimensionSize.toDouble
     )
 
-    // Normalize features for area prediction
-    val normalizedAreaFeatures = normalizeFeatures(rawFeatures, model.areaFeatureStats, model.featureColumns)
+    // CRITICAL FIX: Use the EXACT feature names from JSON files (with spaces!)
+    val correctFeatureColumns = Array(
+      "Dataflow_encoded",
+      "Total Number of Multipliers",  // ← Note the spaces!
+      "R",
+      "C",
+      "A",
+      "B",
+      "P",
+      "Streaming Dimension Size"      // ← Note the spaces!
+    )
 
-    // Normalize features for power prediction
-    val normalizedPowerFeatures = normalizeFeatures(rawFeatures, model.powerFeatureStats, model.featureColumns)
+    // Normalize features with CORRECT column names
+    val normalizedAreaFeatures = normalizeFeatures(rawFeatures, model.areaFeatureStats, correctFeatureColumns)
+    val normalizedPowerFeatures = normalizeFeatures(rawFeatures, model.powerFeatureStats, correctFeatureColumns)
 
-    // Make area prediction using ensemble
+    // Debug: Print to verify all features are found
+    println(s"Area normalized: [${normalizedAreaFeatures.mkString(", ")}]")
+    println(s"Power normalized: [${normalizedPowerFeatures.mkString(", ")}]")
+
+    // Make predictions
     val areaPrediction = ensemblePredict(normalizedAreaFeatures, model.areaCoefficients)
-
-    // Make power prediction using ensemble
     val powerPrediction = ensemblePredict(normalizedPowerFeatures, model.powerCoefficients)
-
-    // Convert power from watts to milliwatts and split into components
-    // Based on typical hardware patterns, approximate the power breakdown
-    val totalPowerMw = powerPrediction / 1000.0 // Convert watts to milliwatts
 
     ArraySynthesisData(
       areaUm2 = areaPrediction,
-      totalPowerMw = totalPowerMw
+      totalPowerMw = powerPrediction
     )
   }
 
@@ -282,5 +332,102 @@ object FewShotPredictor {
     s"Area ensemble: ${model.areaCoefficients.length} models, " +
       s"Power ensemble: ${model.powerCoefficients.length} models, " +
       s"Features: ${model.featureColumns.mkString(", ")}"
+  }
+
+  def debugPrediction(): Unit = {
+    println("=== SCALA DEBUG PREDICTION ===")
+
+    val testFeatures = InputFeatures("OS", 1024, 32, 32, 1, 1, 1, 256)
+
+    println(s"Input: ${testFeatures}")
+
+    val model = loadedModel.getOrElse {
+      println("ERROR: Model not loaded!")
+      return
+    }
+
+    // Step 1: Dataflow encoding
+    val dataflowEncoded = model.dataflowMapping.getOrElse(testFeatures.dataflow, 0)
+    println(s"Step 1 - Dataflow encoding: '${testFeatures.dataflow}' -> ${dataflowEncoded}")
+
+    // Step 2: Raw features
+    val rawFeatures = Array(
+      dataflowEncoded.toDouble,
+      testFeatures.totalNumberOfMultipliers.toDouble,
+      testFeatures.r.toDouble,
+      testFeatures.c.toDouble,
+      testFeatures.a.toDouble,
+      testFeatures.b.toDouble,
+      testFeatures.p.toDouble,
+      testFeatures.streamingDimensionSize.toDouble
+    )
+    println(s"Step 2 - Raw features: [${rawFeatures.mkString(", ")}]")
+
+    // Step 3: Check area feature stats
+    println("Step 3 - Area feature stats check:")
+    model.featureColumns.zip(rawFeatures).foreach { case (col, value) =>
+      model.areaFeatureStats.get(col) match {
+        case Some(stats) =>
+          val normalized = if (stats.range > 0) (value - stats.min) / stats.range else 0.0
+          println(s"  ${col}: ${value} -> (${value} - ${stats.min}) / ${stats.range} = ${normalized}")
+        case None =>
+          println(s"  ${col}: NO STATS FOUND!")
+      }
+    }
+
+    // Step 4: Check power feature stats
+    println("Step 4 - Power feature stats check:")
+    model.featureColumns.zip(rawFeatures).foreach { case (col, value) =>
+      model.powerFeatureStats.get(col) match {
+        case Some(stats) =>
+          val normalized = if (stats.range > 0) (value - stats.min) / stats.range else 0.0
+          println(s"  ${col}: ${value} -> (${value} - ${stats.min}) / ${stats.range} = ${normalized}")
+        case None =>
+          println(s"  ${col}: NO STATS FOUND!")
+      }
+    }
+
+    // Step 5: Compare R normalization specifically
+    val areaRStats = model.areaFeatureStats.get("R")
+    val powerRStats = model.powerFeatureStats.get("R")
+
+    (areaRStats, powerRStats) match {
+      case (Some(aStats), Some(pStats)) =>
+        println(s"Step 5 - R normalization comparison:")
+        println(s"  Area R range: ${aStats.range} (should be 24)")
+        println(s"  Power R range: ${pStats.range} (should be 56)")
+        val rValue = 16.0
+        val areaNorm = (rValue - aStats.min) / aStats.range
+        val powerNorm = (rValue - pStats.min) / pStats.range
+        println(s"  R=16 with area stats: ${areaNorm}")
+        println(s"  R=16 with power stats: ${powerNorm}")
+        println(s"  Difference: ${areaNorm - powerNorm}")
+
+        if (aStats.range != 24) println(s"  ❌ ERROR: Area R range should be 24, got ${aStats.range}")
+        if (pStats.range != 56) println(s"  ❌ ERROR: Power R range should be 56, got ${pStats.range}")
+
+      case _ =>
+        println("❌ ERROR: Missing R stats!")
+    }
+
+    // Step 6: Full prediction
+    predict(testFeatures) match {
+      case Success(result) =>
+        println(s"Step 6 - Final predictions:")
+        println(s"  Area: ${result.areaUm2} (should be ~358274)")
+        println(s"  Power: ${result.totalPowerMw}")
+
+        // Check if close to expected
+        val expectedArea = 358274.0
+        val areaDiff = math.abs(result.areaUm2 - expectedArea)
+        if (areaDiff < 1000) {
+          println(s"  ✅ Area prediction looks correct!")
+        } else {
+          println(s"  ❌ Area prediction differs by ${areaDiff} from expected ${expectedArea}")
+        }
+
+      case Failure(ex) =>
+        println(s"❌ Prediction failed: ${ex.getMessage}")
+    }
   }
 }
