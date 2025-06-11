@@ -34,17 +34,13 @@ class ArchitectureOptimizer(
       validCandidates = executableCandidates,
     )
 
-    //simulate all configs
     calculatedAllResults ++= process1(executableCandidates)
-//    calculatedAllResults.foreach(logSummary)
     rankedCalculatedResults ++= rankResults(calculatedAllResults, processOneMargin)
     logProcessOne(
       validCandidates = executableCandidates,
       simulatedCandidates = calculatedAllResults,
       rankedSimulatedCandidates = rankedCalculatedResults,
     )
-
-//    rankedCalculatedResults.foreach(logSummary)
 
     //optimize arch
     archOptimizedResults ++= process2(rankedCalculatedResults, processTwoMargin)
@@ -277,63 +273,6 @@ class ArchitectureOptimizer(
 //    logStatistics(rankedPostProcess)
 
   }
-
-//  private def logStatistics(resultBuffer: ArrayBuffer[ArchitectureResult]): Unit = {
-//    val cycleTimes = resultBuffer.map(_.simulationResult.cycle)
-//    val minCycle = cycleTimes.min
-//    val maxCycle = cycleTimes.max
-//    val avgCycle = cycleTimes.sum / cycleTimes.length
-//
-//    log("")
-//    log("\t\t[Performance Statistics]")
-//    log(s"\t\t\tMinimum cycle time: $minCycle")
-//    log(s"\t\t\tMaximum cycle time: $maxCycle")
-//    log(s"\t\t\tAverage cycle time: $avgCycle")
-//
-//    // Show energy and area metrics if available
-//    if (resultBuffer.exists(_.simulationResult.energyPj.isDefined)) {
-//      val energyValues = resultBuffer.flatMap(_.simulationResult.energyPj)
-//      if (energyValues.nonEmpty) {
-//
-//        val minEnergy = energyValues.min
-//        val maxEnergy = energyValues.max
-//        val avgEnergy = energyValues.sum / energyValues.length
-//
-//        log(s"\t\t\tMinimum energy: ${String.format("%.2f", minEnergy)} pJ")
-//        log(s"\t\t\tMaximum energy: ${String.format("%.2f", maxEnergy)} pJ")
-//        log(s"\t\t\tAverage energy: ${String.format("%.2f", avgEnergy)} pJ")
-//      }
-//    }
-//
-//    if (resultBuffer.exists(_.simulationResult.areaUm2.isDefined)) {
-//      val areaValues = resultBuffer.flatMap(_.simulationResult.areaUm2)
-//      if (areaValues.nonEmpty) {
-//        val minArea = areaValues.min
-//        val maxArea = areaValues.max
-//        val avgArea = areaValues.sum / areaValues.length
-//
-//        log(s"\t\t\tMinimum area: ${String.format("%.2f", minArea)} um²")
-//        log(s"\t\t\tMaximum area: ${String.format("%.2f", maxArea)} um²")
-//        log(s"\t\t\tAverage area: ${String.format("%.2f", avgArea)} um²")
-//      }
-//    }
-//
-//    if (resultBuffer.exists(_.simulationResult.edap.isDefined)) {
-//      val energyAreaDelayProductValues = resultBuffer.flatMap(_.simulationResult.edap)
-//      if (energyAreaDelayProductValues.nonEmpty) {
-//        val minArea = energyAreaDelayProductValues.min
-//        val maxArea = energyAreaDelayProductValues.max
-//        val avgArea = energyAreaDelayProductValues.sum / energyAreaDelayProductValues.length
-//
-//        log(s"\t\t\tMinimum area and energy product: ${String.format("%.2f", minArea)} pJ*um^2")
-//        log(s"\t\t\tMaximum area and energy product: ${String.format("%.2f", maxArea)} pJ*um^2")
-//        log(s"\t\t\tAverage area and energy product: ${String.format("%.2f", avgArea)} pJ*um^2")
-//      }
-//    }
-//
-//
-//  }
-
 
   private def logSummary(ArchitectureResult: ArchitectureResult): Unit = {
     val simulationResult = ArchitectureResult.simulationResult

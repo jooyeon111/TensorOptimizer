@@ -234,8 +234,8 @@ case class SimulationResult(
         log(s"\t\tInternal Power: ${arraySynthesisData.get.internalPowerPw} pW")
         log(s"\t\tLeakage Power: ${arraySynthesisData.get.leakagePowerPw} pW")
 
-      } else if(arraySynthesisSource.get == ArraySynthesisSource.DNNPrediction) {
-        log(s"\t[Array Synthesis Results from DNN Prediction]")
+      } else if(arraySynthesisSource.get == ArraySynthesisSource.FewShotPrediction) {
+        log(s"\t[Array Synthesis Results from Few Shot Prediction]")
         log(s"\t\tArea: ${arraySynthesisData.get.areaUm2} um^2")
         log(s"\t\tSwitch Power: ${arraySynthesisData.get.switchPowerPw} pW")
         log(s"\t\tInternal Power: ${arraySynthesisData.get.internalPowerPw} pW")

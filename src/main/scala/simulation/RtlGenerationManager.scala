@@ -26,7 +26,8 @@ trait RtlGenerationManager extends OutputPortCalculator with RtlGenerator with L
         config.bitWidthPortA,
         config.bitWidthPortB,
         dataflow,
-        config.streamingDimensionSize
+        config.streamingDimensionSize,
+        isRtlOnly = true
       )
       arrayConfigs.foreach { arrayConfig =>
         generateVerilogForConfig(arrayConfig, config.streamingDimensionSize, config.verilogGeneration, config.splitVerilogModules )

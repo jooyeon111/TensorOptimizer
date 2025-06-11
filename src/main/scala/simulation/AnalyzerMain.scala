@@ -8,6 +8,8 @@ object AnalyzerMain extends App
   with SingleLayerSimulation
   with Logger {
 
+
+  //TODO immigrate RTL synthesis mode to MXU Forge
   private val help = """
     |Usage:
     |[1 argument] - RTL Synthesis Manager Mode:
@@ -17,17 +19,19 @@ object AnalyzerMain extends App
     |  First argument is target MNK layer
     |  Second argument is test setting argument
     |
-    |[3 arguments] - ML Model Training Mode:
-    |  First argument is training CSV path
-    |  Second argument is validation CSV path
-    |  Third argument is test CSV path (output weight file will be 'weight.bin')
-    |
-    |[5 arguments] - Cycle and Energy Report Mode (with array data or ML inference):
+    |[4 arguments] - Cycle and Energy Report Mode (with Few shot model):
     |  First argument is target MNK layer
     |  Second argument is test setting argument
     |  Third argument is off chip memory Reference Data
     |  Fourth argument is SRAM Reference Data
-    |  Fifth argument is either Array Synthesis Reference Data or ML weight file (.bin)
+    |
+    |[5 arguments] - Cycle and Energy Report Mode (with array data):
+    |  First argument is target MNK layer
+    |  Second argument is test setting argument
+    |  Third argument is off chip memory Reference Data
+    |  Fourth argument is SRAM Reference Data
+    |  Fifth argument is either Array Synthesis Reference Data
+    |
   """.stripMargin
 
   if(args.isEmpty){
@@ -49,119 +53,38 @@ object AnalyzerMain extends App
         testPath = args(1),
         help = help
       )
-    } else if(args.length == 3){
+    } else if(args.length == 4){
 
-//      println("ML Model Training Mode")
-//      val trainCsvPath = args(0)
-//      val validationCsvPath = args(1)
-//      val testCsvPath = args(2)
-//      val outputWeightPath = FilePaths.resourcesInputSimulation + "/synthesis/weight.bin"
-//
-//      println(s"Training ML model using:")
-//      println(s"- Training data: $trainCsvPath")
-//      println(s"- Validation data: $validationCsvPath")
-//      println(s"- Test data: $testCsvPath")
-//      println(s"- Output weight file: $outputWeightPath")
-//
-//      val loggerOption = LoggerOption(OutputMode.Console, None)
-//
-//      DNNPredictor.trainModel(
-//        weightOutputPath = outputWeightPath,
-//        trainFilePath = trainCsvPath,
-//        validationFilePath = validationCsvPath,
-//        testFilePath = testCsvPath,
-//        loggerOption = loggerOption
-//      ) match {
-//        case Success(_) =>
-//          println(s"Successfully trained and saved ML model to $outputWeightPath")
-//        case Failure(e) =>
-//          Console.err.println(s"Failed to train ML model: ${e.getMessage}")
-//          sys.exit(1)
-//      }
-
-//      FewShotPredictor.trainModel(
-//        weightOutputPath = outputWeightPath,
-//        trainFilePath = trainCsvPath,
-//        validationFilePath = validationCsvPath,
-//        testFilePath = testCsvPath,
-//        loggerOption = loggerOption
-//      ) match {
-//        case Success(_) =>
-//          println(s"Successfully trained and saved ML model to $outputWeightPath")
-//        case Failure(e) =>
-//          Console.err.println(s"Failed to train ML model: ${e.getMessage}")
-//          sys.exit(1)
-//      }
-
-    } else if (args.length == 4 && args(3).toLowerCase == "maml"){
-      println("MAML Few-Shot Learning Training Mode")
-      val trainCsvPath = args(0)
-      val validationCsvPath = args(1)
-      val testCsvPath = args(2)
-      val outputWeightPath = FilePaths.resourcesInputSimulation + "/synthesis/maml_weight.bin"
-
-      println(s"Training MAML few-shot model using:")
-      println(s"- Training data: $trainCsvPath")
-      println(s"- Validation data: $validationCsvPath")
-      println(s"- Test data: $testCsvPath")
-      println(s"- Output weight file: $outputWeightPath")
-
-      val loggerOption = LoggerOption(OutputMode.Console, None)
-
-      MAMLFewShotPredictor.trainModel(
-        weightOutputPath = outputWeightPath,
-        trainFilePath = trainCsvPath,
-        validationFilePath = validationCsvPath,
-        testFilePath = testCsvPath,
-        loggerOption = loggerOption
-      ) match {
+      println("Cycle and Energy Report Mode with Few shot model learning data")
+      FewShotPredictor.loadModelFromDefaultFiles match {
         case Success(_) =>
-          println(s"Successfully trained and saved MAML model to $outputWeightPath")
+
+          println("Loading few show modeling is successful")
+          runLayerSimulation(
+            layerPath = args(0),
+            testPath = args(1),
+            offChipMemoryDataPath = Option(args(2)),
+            sramDataPath = Option(args(3)),
+            help = help
+          )
+
         case Failure(e) =>
-          Console.err.println(s"Failed to train MAML model: ${e.getMessage}")
+          Console.err.println(s"Failed to load ML model: ${e.getMessage}")
           sys.exit(1)
       }
+
     } else if (args.length == 5){
 
-      if (args(4).endsWith(".bin")) {
-        println("Cycle and Energy Report Mode with ML Inference")
-        // Load existing ML model weights
-        val loggerOption = LoggerOption(OutputMode.Console, None)
+      println("Cycle and Energy Report Mode with Design Compiler Results")
+      runLayerSimulation(
+        layerPath = args(0),
+        testPath = args(1),
+        offChipMemoryDataPath = Option(args(2)),
+        sramDataPath = Option(args(3)),
+        arrayDataPath = Option(args(4)),
+        help = help
+      )
 
-//        DNNPredictor.loadModel(
-//          filePath = args(4),
-//          loggerOption = loggerOption
-//        ) match {
-//          case Success(modelWeights) =>
-//
-//            runLayerSimulation(
-//              layerPath = args(0),
-//              testPath = args(1),
-//              offChipMemoryDataPath = Option(args(2)),
-//              sramDataPath = Option(args(3)),
-//              dnnModelWeights = Some(modelWeights),
-//              help = help
-//            )
-//
-//          case Failure(e) =>
-//            Console.err.println(s"Failed to load ML model: ${e.getMessage}")
-//            sys.exit(1)
-//
-//        }
-
-
-
-      } else {
-        println("Cycle and Energy Report Mode with Design Compiler Results")
-        runLayerSimulation(
-          layerPath = args(0),
-          testPath = args(1),
-          offChipMemoryDataPath = Option(args(2)),
-          sramDataPath = Option(args(3)),
-          arrayDataPath = Option(args(4)),
-          help = help
-        )
-      }
 
     } else {
       Console.err.println(s"Invalid number of arguments It is ${args.length}" + help)

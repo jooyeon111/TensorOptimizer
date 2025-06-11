@@ -34,7 +34,7 @@ case class ArrayConfig(
   dataflow: Dataflow.Value,
   portBitWidth: PortBitWidth,
   arraySynthesisData: Option[ArraySynthesisData] = None,
-  arraySynthesisSource: Option[ArraySynthesisSource.Value] =None,
+  arraySynthesisSource: Option[ArraySynthesisSource.Value] = None,
 ) extends ArrayDimension(
   groupPeRow,
   groupPeCol,

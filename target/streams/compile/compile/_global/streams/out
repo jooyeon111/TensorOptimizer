@@ -1,7 +1,8 @@
-[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/MAMLFewShotPredictor.scala:873:61: method mapValues in trait MapOps is deprecated (since 2.13.0): Use .view.mapValues(f). A future version will include a strict version of this method (for now, .view.mapValues(f).toMap).[0m
-[0m[[0m[33mwarn[0m] [0m[0m    val originalDataflowDist = original.groupBy(_.dataflow).mapValues(_.length)[0m
-[0m[[0m[33mwarn[0m] [0m[0m                                                            ^[0m
-[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/MAMLFewShotPredictor.scala:874:67: method mapValues in trait MapOps is deprecated (since 2.13.0): Use .view.mapValues(f). A future version will include a strict version of this method (for now, .view.mapValues(f).toMap).[0m
-[0m[[0m[33mwarn[0m] [0m[0m    val augmentedDataflowDist = augmentedOnly.groupBy(_.dataflow).mapValues(_.length)[0m
-[0m[[0m[33mwarn[0m] [0m[0m                                                                  ^[0m
+[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/ArchitectureOptimizer.scala:759:65: Widening conversion from Long to Double is deprecated because it loses precision. Write `.toDouble` instead. [quickfixable][0m
+[0m[[0m[33mwarn[0m] [0m[0m      case SystemArchitectureOptimizer.OptimizationMetric.Cycle =>[0m
+[0m[[0m[33mwarn[0m] [0m[0m                                                                ^[0m
+[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/aigis/src/main/scala/simulation/SingleLayerSimulation.scala:131:58: match may not be exhaustive.[0m
+[0m[[0m[33mwarn[0m] [0m[0mIt would fail on the following input: Some((x: simulation.ArraySynthesisSource.Value forSome x not in (DesignCompiler, FewShotPrediction)))[0m
+[0m[[0m[33mwarn[0m] [0m[0m    val arraySynthesisData: Option[ArraySynthesisData] = arraySynthesisSource match {[0m
+[0m[[0m[33mwarn[0m] [0m[0m                                                         ^[0m
 [0m[[0m[33mwarn[0m] [0m[0mtwo warnings found[0m

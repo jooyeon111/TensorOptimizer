@@ -26,7 +26,6 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
     totalNumberOfMultipliers: Int,
     offChipMemoryReferenceData: Option[OffChipMemoryReferenceData],
     sramReferenceDataVector: Option[Vector[SramReferenceData]],
-    dnnModelWeightsPath: Option[String],
   ) {
 
     def validate: Boolean = {
@@ -58,12 +57,12 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
     |  First argument is target MNK layer
     |  Second argument is test setting argument
     |
-    |[5 arguments] - Cycle and Energy Report Mode with ML inference for Array Synthesis Data:
+    |[4 arguments] - Cycle and Energy Report Mode with Few Shot Prediction for Array Synthesis Data:
     |  First argument is target MNK layer
     |  Second argument is test setting argument
     |  Third argument is off chip memory Reference Data
     |  Fourth argument is SRAM Reference Data
-    |  Fifth argument is ML weight file (.bin)
+    |
   """.stripMargin
 
   private val maximumSingleBufferLimitKb: Int = 512
@@ -79,14 +78,13 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
         testPath = args(1),
         help = help
       )
-    } else if (args.length == 5){
+    } else if (args.length == 4){
       println("Running full simulation including cycle, energy, and area analysis")
       run(
         layerPath = args(0),
         testPath = args(1),
         offChipMemoryDataPath = Option(args(2)),
         sramDataPath = Option(args(3)),
-        dnnModelWeightsPath = Option(args(4)),
         help = help
       )
     } else {
@@ -107,7 +105,6 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
     testPath: String,
     offChipMemoryDataPath: Option[String] = None,
     sramDataPath: Option[String] = None,
-    dnnModelWeightsPath: Option[String]= None,
     help: String
   ): Unit = {
 
@@ -159,12 +156,28 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
 
     val sramReferenceData = sramDataParser.flatMap(_.getConfig).map(_.sramReferenceDataVector)
 
+
+    if (!FewShotPredictor.isModelLoaded) {
+      println("📥 Loading ML prediction model...")
+      FewShotPredictor.loadModelFromDefaultFiles match {
+        case Success(_) =>
+          println("✅ Model loaded successfully")
+        case Failure(e) =>
+          println(s"❌ Failed to load model: ${e.getMessage}")
+          throw new RuntimeException(s"Could not load prediction model: ${e.getMessage}")
+      }
+    }
+
+
     println("Parsing END")
 
     //build simulation config
     println("Building Simulation Config START")
     val simulationConfig = buildSimulationConfig(
-     layerConfig, testConfig, offChipMemoryReferenceData, sramReferenceData, dnnModelWeightsPath
+     layerConfig,
+      testConfig,
+      offChipMemoryReferenceData,
+      sramReferenceData,
     )
     println("Building Simulation Config END")
 
@@ -202,7 +215,6 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
     testConfig: ConfigParser.Config,
     offChipMemoryReferenceData: Option[OffChipMemoryReferenceData] = None,
     sramReferenceData: Option[Vector[SramReferenceData]] = None,
-    dnnModelWeightsPath: Option[String] = None,
   ): SimulationConfig = {
 
     //layer
@@ -261,7 +273,6 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
       totalNumberOfMultipliers = totalNumberOfMultipliers,
       offChipMemoryReferenceData = offChipMemoryReferenceData,
       sramReferenceDataVector = sramReferenceData,
-      dnnModelWeightsPath= dnnModelWeightsPath,
     )
 
   }
@@ -275,7 +286,7 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
         bitWidthPortB = simConfig.bitWidthPortB,
         dataflow = dataflow,
         streamingDimensionSize = getMaximumStreamingDimension(simConfig.layerGemmDimension, dataflow),
-        dnnModelWeightsPath = simConfig.dnnModelWeightsPath
+        isRtlOnly = false
       )
 
     }.map { arrayConfig =>

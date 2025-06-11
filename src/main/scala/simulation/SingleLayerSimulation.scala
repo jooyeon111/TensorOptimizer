@@ -2,6 +2,8 @@ package simulation
 
 import java.io.File
 import common.{ArrayDimension, Dataflow, FilePaths, OutputPortCalculator}
+import simulation.FewShotPredictor.InputFeatures
+import scala.util.{Failure, Success}
 
 trait SingleLayerSimulation extends OutputPortCalculator with Logger {
 
@@ -64,19 +66,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     offChipMemoryDataPath: Option[String] = None,
     sramDataPath: Option[String] = None,
     arrayDataPath: Option[String] = None,
-//    dnnModelWeights: Option[DNNPredictor.DNNModel] = None,
-
-    fewShotModel: Option[MAMLFewShotPredictor.MAMLModel]= None,
-
     help: String
   ): Unit = {
 
-    require(
-      (arrayDataPath.isDefined && fewShotModel.isEmpty) ||
-        (arrayDataPath.isEmpty && fewShotModel.isDefined) ||
-        (arrayDataPath.isEmpty && fewShotModel.isEmpty),
-      "Error: Only one of arrayDataPath or dnnModelWeights should be provided, not both."
-    )
 
     val layerConfigParser = new ConfigManager(layerPath)
     val testConfigParser = new ConfigManager(testPath)
@@ -130,103 +122,116 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
 
     val sramReferenceData = sramDataParser.flatMap(_.getConfig).map(_.sramReferenceDataVector)
 
-    val arraySynthesisSource: Option[ArraySynthesisSource.Value] = if(fewShotModel.isDefined){
-      Some(ArraySynthesisSource.DNNPrediction)
-    } else if(arrayDataParser.isDefined){
+    val arraySynthesisSource: Option[ArraySynthesisSource.Value] = if(arrayDataParser.isDefined){
       Some(ArraySynthesisSource.DesignCompiler)
     } else {
-      None
+      Some(ArraySynthesisSource.FewShotPrediction)
     }
 
-    val arraySynthesisData = if (fewShotModel.isDefined) {
-      // Using ML model weights directly
-      fewShotModel.map { model =>
-        // Use the data from the test config to predict
-        val dataflow = testConfig.getString("Dataflow").get match {
-          case "IS" => Dataflow.Is.toString
-          case "OS" => Dataflow.Os.toString
-          case "WS" => Dataflow.Ws.toString
-          case other => other
+    val arraySynthesisData: Option[ArraySynthesisData] = arraySynthesisSource match {
+      case Some(ArraySynthesisSource.FewShotPrediction) =>
+        try {
+          val dataflow = testConfig.getString("Dataflow").get
+          val groupPeRow = testConfig.getInt("Group PE Row").getOrElse(
+            throw ParseError("Group PE Row not found")
+          )
+          val groupPeCol = testConfig.getInt("Group PE Column").getOrElse(
+            throw ParseError("Group PE Col not found")
+          )
+          val vectorPeRow = testConfig.getInt("Vector PE Row").getOrElse(
+            throw ParseError("Vector PE Row not found")
+          )
+          val vectorPeCol = testConfig.getInt("Vector PE Column").getOrElse(
+            throw ParseError("Vector PE Column not found")
+          )
+          val numMultiplier = testConfig.getInt("Multipliers Per PE").getOrElse(
+            throw ParseError("Multipliers Per PE not found")
+          )
+          val streamingDimSize = testConfig.getInt("Streaming Dimension Size").getOrElse(
+            throw ParseError("Streaming Dimension Size not found")
+          )
+          val totalMultipliers = groupPeRow * groupPeCol * vectorPeRow * vectorPeCol * numMultiplier
+
+          println(s"Predicting array synthesis data:")
+          println(s"   Dataflow: $dataflow")
+          println(s"   Total Multipliers: $totalMultipliers")
+          println(s"   PE Config: ${groupPeRow}x${groupPeCol}, ${vectorPeRow}x${vectorPeCol}, $numMultiplier")
+
+          if (!FewShotPredictor.isModelLoaded) {
+            println("Loading ML prediction model...")
+            FewShotPredictor.loadModelFromDefaultFiles match {
+              case Success(_) =>
+                println("Model loaded successfully")
+              case Failure(e) =>
+                println(s"Failed to load model: ${e.getMessage}")
+                throw new RuntimeException(s"Could not load prediction model: ${e.getMessage}")
+            }
+          }
+
+          // Make prediction
+          FewShotPredictor.predict(
+            FewShotPredictor.InputFeatures(
+              dataflow = dataflow,
+              totalNumberOfMultipliers = totalMultipliers,
+              r = groupPeRow,
+              c = groupPeCol,
+              a = vectorPeRow,
+              b = vectorPeCol,
+              p = numMultiplier,
+              streamingDimensionSize = streamingDimSize
+            )
+          ) match {
+            case Success(result) =>
+              println(s"Prediction successful:")
+//              println(f"  Area: ${result.areaUm2}%.1f µm²")
+//              println(f"  Switch: ${result.switchPowerPw}%.2f Pw")
+//              println(f"  Internal: ${result.internalPowerPw}%.2f Pw")
+//              println(f"  Leakage: ${result.leakagePowerPw}%.2f Pw")
+//              println(f"  Total Power ${result.totalPowerMw}%.2f mW")
+              println(f"  Area: ${result.areaUm2} µm²")
+              println(f"  Switch: ${result.switchPowerPw} Pw")
+              println(f"  Internal: ${result.internalPowerPw} Pw")
+              println(f"  Leakage: ${result.leakagePowerPw} Pw")
+              println(f"  Total Power ${result.totalPowerMw} mW")
+              Some(result)
+            case Failure(exception) =>
+              println(s"❌ Prediction failed: ${exception.getMessage}")
+              throw new RuntimeException(s"Hardware prediction failed: ${exception.getMessage}")
+          }
+        } catch {
+          case e: Exception =>
+            println(s"❌ Error in DNN prediction: ${e.getMessage}")
+            None
         }
 
-        val groupPeRow = testConfig.getInt("Group PE Row").getOrElse(
-          throw ParseError("Group PE Row not found")
-        )
-        val groupPeCol = testConfig.getInt("Group PE Column").getOrElse(
-          throw ParseError("Group PE Col not found")
-        )
-        val vectorPeRow = testConfig.getInt("Vector PE Row").getOrElse(
-          throw ParseError("Vector PE Row not found")
-        )
-        val vectorPeCol = testConfig.getInt("Vector PE Column").getOrElse(
-          throw ParseError("Vector PE Column not found")
-        )
-        val numMultiplier = testConfig.getInt("Multipliers Per PE").getOrElse(
-          throw ParseError("Multipliers Per PE not found")
-        )
-        val streamingDimSize = testConfig.getInt("Streaming Dimension Size").getOrElse(
-          throw ParseError("Streaming Dimension Size not found")
-        )
-        val totalMultipliers = groupPeRow * groupPeCol * vectorPeRow * vectorPeCol * numMultiplier
-
-        println(s"Using ML model to predict array synthesis data for:")
-        println(s"- Dataflow: $dataflow")
-        println(s"- Total Multipliers: $totalMultipliers")
-        println(s"- PE Configuration: ${groupPeRow}x${groupPeCol}, ${vectorPeRow}x${vectorPeCol}, $numMultiplier")
-
-//        val predictedData = DNNPredictor.predictArraySynthesisData(
-//          dataflow = dataflow,
-//          totalMultipliers = totalMultipliers,
-//          groupPeRow = groupPeRow,
-//          groupPeCol = groupPeCol,
-//          vectorPeRow = vectorPeRow,
-//          vectorPeCol = vectorPeCol,
-//          numMultiplier = numMultiplier,
-//          streamingDimensionSize = streamingDimSize,
-//          model = model
-//        )
-
-        val predictedData = MAMLFewShotPredictor.predictArraySynthesisData(
-          dataflow = dataflow,
-          totalMultipliers = totalMultipliers,
-          groupPeRow = groupPeRow,
-          groupPeCol = groupPeCol,
-          vectorPeRow = vectorPeRow,
-          vectorPeCol = vectorPeCol,
-          numMultiplier = numMultiplier,
-          streamingDimensionSize = streamingDimSize,
-          model = model
-        )
-
-        println(s"ML predicted array synthesis data:")
-        println(f"- Area: ${predictedData.areaUm2}%.2f um²")
-        println(f"- Switch Power: ${predictedData.switchPowerPw}%.4f mW")
-        println(f"- Internal Power: ${predictedData.internalPowerPw}%.4f mW")
-        println(f"- Leakage Power: ${predictedData.leakagePowerPw}%.4f mW")
-        println(f"- Total Power ${predictedData.switchPowerPw + predictedData.internalPowerPw + predictedData.leakagePowerPw}")
-
-        predictedData
-      }
-    } else if (arrayDataParser.isDefined){
-      // Use array synthesis data from file
-      arrayDataParser.flatMap(_.getConfig).map { config =>
-        ArraySynthesisData(
-          areaUm2 = config.getDouble("Area").getOrElse(
-            throw ParseError("Array Area not found")
-          ),
-          switchPowerMw = config.getDouble("Switch Power").getOrElse(
-            throw ParseError("Switch Power Not found")
-          ),
-          internalPowerMw = config.getDouble("Internal Power").getOrElse(
-            throw ParseError("Internal Power Not found")
-          ),
-          leakagePowerMw = config.getDouble("Leakage Power").getOrElse(
-            throw ParseError("Leakage Power Not found")
+      case Some(ArraySynthesisSource.DesignCompiler) =>
+        println("📁 Loading array synthesis data from file...")
+        arrayDataParser.flatMap(_.getConfig).map { config =>
+          val result = ArraySynthesisData(
+            areaUm2 = config.getDouble("Area").getOrElse(
+              throw ParseError("Array Area not found")
+            ),
+            switchPowerMw = config.getDouble("Switch Power").getOrElse(
+              throw ParseError("Switch Power Not found")
+            ),
+            internalPowerMw = config.getDouble("Internal Power").getOrElse(
+              throw ParseError("Internal Power Not found")
+            ),
+            leakagePowerMw = config.getDouble("Leakage Power").getOrElse(
+              throw ParseError("Leakage Power Not found")
+            )
           )
-        )
-      }
-    } else {
-      None
+          println(s"✅ Loaded from file:")
+//          println(f"   📏 Area: ${result.areaUm2}%,.1f µm²")
+//          println(f"   ⚡ Total Power: ${result.totalPowerPw / 1e9}%.1f mW")
+          println(f"   📏 Area: ${result.areaUm2} µm²")
+          println(f"   ⚡ Total Power: ${result.totalPowerMw} mW")
+          result
+        }
+
+      case None =>
+        println("No array synthesis source specified")
+        None
     }
 
     val simulationConfig = buildSimulationOneLayerConfig(
@@ -238,8 +243,10 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       arraySynthesisData = arraySynthesisData
     )
 
-    if(!simulationConfig.validate)
+    if(!simulationConfig.validate) {
+//      simulationConfig.printAllConfigurationValues()
       throw ParseError("Invalid simulation configuration")
+    }
 
     println("Initialize Components")
     val (components, loggerOption) = initializeComponents(simulationConfig)
