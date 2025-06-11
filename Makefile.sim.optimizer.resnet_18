@@ -9,7 +9,6 @@ LAYER_DIR := $(INPUT_SIM)/layer
 TEST_OPTION_MULT := $(CONFIG_DIR)/hbm2_total_multiplier_16384.cfg
 TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
 TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
-TEST_OPTION_RTL_RESULT_REF := $(SYNTHESIS)/weight.bin
 
 # Define layer model (can be easily changed)
 MODEL := resnet
@@ -47,7 +46,7 @@ STAGE4_BLOCK2_CONV2 := $(VARIANT_PATH)/stage4_block2_conv2.cfg
 FC := $(VARIANT_PATH)/fc.cfg
 
 # Common arguments for all SBT runs
-COMMON_ARGS := $(TEST_OPTION_MULT) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_RTL_RESULT_REF)
+COMMON_ARGS := $(TEST_OPTION_MULT) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
 
 # Define targets for specific layers
 .PHONY: all conv1 stage1 stage2 stage4 stage4 fc
