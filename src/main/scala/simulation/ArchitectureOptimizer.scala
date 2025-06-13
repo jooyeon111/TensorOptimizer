@@ -22,8 +22,8 @@ class ArchitectureOptimizer(
   private val rankedSingleSramOptimizedResults = ArrayBuffer.empty[ArchitectureResult]
 
   private val processOneMargin: Double = 30.0
-  private val processTwoMargin: Double = 100.0
-  private val processThreeMargin: Double = 50.0
+  private val processTwoMargin: Double = 80.0
+  private val processThreeMargin: Double = 30.0
 
   def run(): Unit = {
 
