@@ -244,12 +244,12 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/rtl/os_sta_8x128x4x4x1.sv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	output/simulation[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation[0m
-[0m[[0m[0mdebug[0m] [0m[0m	output/simulation/debug_square_os_{32x32}x{1x1}x1}_sd_size_256_buffer_A:64_buffer_B:64_buffer_C:32.txt[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/debug_square_os_{32x32}x{1x1}x1}_sd_size_256_buffer_A:64_buffer_B:64_buffer_C:32.txt[0m
-[0m[[0m[0mdebug[0m] [0m[0m	output/simulation/debug_square_os_{32x8}x{2x4}x1}_sd_size_256_buffer_A:64_buffer_B:64_buffer_C:32.txt[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/debug_square_os_{32x8}x{2x4}x1}_sd_size_256_buffer_A:64_buffer_B:64_buffer_C:32.txt[0m
-[0m[[0m[0mdebug[0m] [0m[0m	output/simulation/result_bert_base_projection_mult:16384.txt[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/result_bert_base_projection_mult:16384.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	output/simulation/debug_mistral_7b_representation_projection_os_{32x32}x{1x1}x1}_sd_size_32_buffer_A:64_buffer_B:64_buffer_C:64.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/debug_mistral_7b_representation_projection_os_{32x32}x{1x1}x1}_sd_size_32_buffer_A:64_buffer_B:64_buffer_C:64.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	output/simulation/debug_mistral_7b_representation_projection_os_{64x64}x{1x1}x4}_sd_size_1024_buffer_A:64_buffer_B:64_buffer_C:64.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/debug_mistral_7b_representation_projection_os_{64x64}x{1x1}x4}_sd_size_1024_buffer_A:64_buffer_B:64_buffer_C:64.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	output/simulation/debug_mistral_7b_representation_projection_os_{32x32}x{1x1}x1}_sd_size_256_buffer_A:64_buffer_B:64_buffer_C:64.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/debug_mistral_7b_representation_projection_os_{32x32}x{1x1}x1}_sd_size_256_buffer_A:64_buffer_B:64_buffer_C:64.txt[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/RunTimeError$.class[0m
@@ -1004,8 +1004,6 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_total_power_coefficients.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/validation.csv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/validation.csv[0m
-[0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_new_predictions_metadata.json[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_new_predictions_metadata.json[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/hardware_predictor_new_predictions.csv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/input/simulation/synthesis/hardware_predictor_new_predictions.csv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	input/simulation/synthesis/few_shot_learning.py[0m

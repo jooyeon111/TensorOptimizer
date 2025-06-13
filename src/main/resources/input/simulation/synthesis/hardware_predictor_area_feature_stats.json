@@ -16,8 +16,8 @@
   },
   "C": {
     "min": 8,
-    "max": 64,
-    "range": 56
+    "max": 32,
+    "range": 24
   },
   "A": {
     "min": 1,
@@ -38,5 +38,40 @@
     "min": 1,
     "max": 1024,
     "range": 1023
+  },
+  "R_C_interaction": {
+    "min": 64,
+    "max": 512,
+    "range": 448
+  },
+  "A_B_P_interaction": {
+    "min": 1,
+    "max": 8,
+    "range": 7
+  },
+  "R_A_P_interaction": {
+    "min": 8,
+    "max": 64,
+    "range": 56
+  },
+  "C_B_P_interaction": {
+    "min": 8,
+    "max": 64,
+    "range": 56
+  },
+  "R_C_A_B_interaction": {
+    "min": 64,
+    "max": 512,
+    "range": 448
+  },
+  "Streaming_size_log": {
+    "min": 0.0,
+    "max": 10.0,
+    "range": 10.0
+  },
+  "Power_complexity_factor": {
+    "min": 11.313708498984761,
+    "max": 724.0773439350247,
+    "range": 712.76363543604
   }
 }

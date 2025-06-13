@@ -9,10 +9,15 @@ from typing import Dict, List, Tuple, Any
 from collections import defaultdict
 
 class HardwarePredictor:
-    """Hardware Prediction System - Optimized Version"""
+    """Hardware Prediction System with Feature Engineering - Optimized Version"""
 
     def __init__(self, save_to_current_dir: bool = True, clean_previous: bool = True):
-        self.dataflow_mapping = {}
+        # self.dataflow_mapping = {}
+        self.dataflow_mapping = {
+            'IS': 0,  # Input Stationary
+            'OS': 1,  # Output Stationary
+            'WS': 2   # Weight Stationary
+        }
         self.feature_stats = {}
         self.save_dir = "." if save_to_current_dir else "model_artifacts"
 
@@ -22,14 +27,24 @@ class HardwarePredictor:
         if clean_previous and save_to_current_dir:
             self._cleanup_files()
 
+        # Updated feature columns with engineered features
         self.feature_columns = [
-            'Dataflow_encoded', 'Total Number of Multipliers', 'R', 'C',
-            'A', 'B', 'P', 'Streaming Dimension Size'
+            'Dataflow_encoded',
+            'Total Number of Multipliers', 'R', 'C', 'A', 'B', 'P',
+            'Streaming Dimension Size',
+            'R_C_interaction',           # New: Interaction term R*C
+            'A_B_P_interaction',        # New: Interaction term A*B*P
+            'R_A_P_interaction',        # New: Interaction term A*B*P
+            'C_B_P_interaction',        # New: Interaction term A*B*P
+            'R_C_A_B_interaction',           # New: Interaction term R*C
+            'Streaming_size_log',       # New: Log transform of streaming size
+            'Power_complexity_factor'  # ADD THIS LINE
+
         ]
 
         self.configs = {
-            'Area': {'sample_size': 90, 'alpha': 0.1, 'ensemble_size': 5, 'n_trials': 12},
-            'Total Power': {'sample_size': 90, 'alpha': 0.001, 'ensemble_size': 5, 'n_trials': 12}
+            'Area': {'sample_size': 25, 'alpha': 0.1, 'ensemble_size': 5, 'n_trials': 12},
+            'Total Power': {'sample_size': 25, 'alpha': 0.001, 'ensemble_size': 10, 'n_trials': 12}
         }
 
     def _cleanup_files(self):
@@ -69,21 +84,46 @@ class HardwarePredictor:
             print(f"Error loading {filepath}: {e}")
         return data
 
+    def engineer_features(self, dataset: List[Dict]) -> List[Dict]:
+        """Add engineered features to dataset"""
+        engineered_data = []
+        for row in dataset:
+            new_row = row.copy()
+            # Interaction terms
+            new_row['R_C_interaction'] = new_row['R'] * new_row['C']
+
+            new_row['A_B_P_interaction'] = new_row['A'] * new_row['B'] * new_row['P']
+            new_row['R_A_P_interaction'] = new_row['R'] * new_row['A'] * new_row['P']
+            new_row['C_B_P_interaction'] = new_row['C'] * new_row['B'] * new_row['P']
+
+            new_row['R_C_A_B_interaction'] = new_row['R'] * new_row['C'] * new_row['A'] * new_row['B']
+
+            new_row['Streaming_size_log'] = math.log2(new_row['Streaming Dimension Size'])
+            new_row['Power_complexity_factor'] = (new_row['Total Number of Multipliers'] * new_row['Streaming Dimension Size']) ** 0.5
+
+            engineered_data.append(new_row)
+        return engineered_data
+
     def preprocess_data(self, train_path: str, val_path: str, test_path: str):
-        """Load and preprocess all datasets"""
+        """Load, preprocess, and engineer features for all datasets"""
         train_data = self.load_csv(train_path)
         val_data = self.load_csv(val_path)
         test_data = self.load_csv(test_path)
 
         # Create dataflow mapping
-        all_data = train_data + val_data + test_data
-        unique_dataflows = list(set(row['Dataflow'] for row in all_data))
-        self.dataflow_mapping = {df: i for i, df in enumerate(unique_dataflows)}
+        # all_data = train_data + val_data + test_data
+        # unique_dataflows = list(set(row['Dataflow'] for row in all_data))
+        # self.dataflow_mapping = {df: i for i, df in enumerate(unique_dataflows)}
 
         # Encode dataflows
         for dataset in [train_data, val_data, test_data]:
             for row in dataset:
                 row['Dataflow_encoded'] = self.dataflow_mapping[row['Dataflow']]
+
+        # Engineer features
+        train_data = self.engineer_features(train_data)
+        val_data = self.engineer_features(val_data)
+        test_data = self.engineer_features(test_data)
 
         return train_data, val_data, test_data
 
@@ -445,6 +485,9 @@ class HardwarePredictor:
         feature_stats = model_data['feature_stats']
         dataflow_mapping = model_data['dataflow_mapping']
 
+        # Engineer features for new samples
+        new_samples = self.engineer_features(new_samples)
+
         # Preprocess samples
         for sample in new_samples:
             sample['Dataflow_encoded'] = dataflow_mapping.get(sample['Dataflow'], 0)
@@ -476,6 +519,9 @@ class HardwarePredictor:
         print("\n🔮 NEW SAMPLE PREDICTIONS")
         print("-" * 30)
 
+        # Engineer features for new samples
+        new_samples = self.engineer_features(new_samples)
+
         predictions = {}
         for target in ['Area', 'Total Power']:
             # Encode new samples
@@ -490,6 +536,7 @@ class HardwarePredictor:
 
         with open("hardware_predictor_new_predictions.csv", 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
+            # CHANGE: Keep only input features and predicted values
             headers = ['Sample_ID', 'Dataflow', 'Total_Multipliers', 'R', 'C', 'A', 'B', 'P',
                        'Streaming_Size', 'Predicted_Area', 'Predicted_Power']
             writer.writerow(headers)
@@ -499,23 +546,58 @@ class HardwarePredictor:
                     i + 1, sample['Dataflow'], sample['Total Number of Multipliers'],
                     sample['R'], sample['C'], sample['A'], sample['B'], sample['P'],
                     sample['Streaming Dimension Size'],
-                    predictions['Area'][i], predictions['Total Power'][i]
+                    predictions['Area'][i], predictions['Total Power'][i]  # Only predicted values
                 ])
 
-        # Save prediction metadata as JSON
-        prediction_metadata = {
-            'timestamp': datetime.now().isoformat(),
-            'prediction_session': timestamp,
-            'input_samples': new_samples,
-            'predictions': predictions,
-            'dataflow_mapping': self.dataflow_mapping,
-            'feature_columns': self.feature_columns
-        }
-
-        with open(f"hardware_predictor_new_predictions_metadata.json", 'w') as f:
-            json.dump(prediction_metadata, f, indent=2)
-
+        # Rest of the method remains the same...
         return predictions
+        # """Predict new samples using training data"""
+        # print("\n🔮 NEW SAMPLE PREDICTIONS")
+        # print("-" * 30)
+        #
+        # # Engineer features for new samples
+        # new_samples = self.engineer_features(new_samples)
+        #
+        # predictions = {}
+        # for target in ['Area', 'Total Power']:
+        #     # Encode new samples
+        #     for sample in new_samples:
+        #         sample['Dataflow_encoded'] = self.dataflow_mapping.get(sample['Dataflow'], 0)
+        #
+        #     target_predictions, _ = self.ensemble_predict(train_data, new_samples, target, self.configs[target])
+        #     predictions[target] = target_predictions
+        #
+        # # Save results with JSON metadata
+        # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        #
+        # with open("hardware_predictor_new_predictions.csv", 'w', newline='') as csvfile:
+        #     writer = csv.writer(csvfile)
+        #     headers = ['Sample_ID', 'Dataflow', 'Total_Multipliers', 'R', 'C', 'A', 'B', 'P',
+        #                'Streaming_Size', 'Predicted_Area', 'Predicted_Power']
+        #     writer.writerow(headers)
+        #
+        #     for i, sample in enumerate(new_samples):
+        #         writer.writerow([
+        #             i + 1, sample['Dataflow'], sample['Total Number of Multipliers'],
+        #             sample['R'], sample['C'], sample['A'], sample['B'], sample['P'],
+        #             sample['Streaming Dimension Size'],
+        #             predictions['Area'][i], predictions['Total Power'][i]
+        #         ])
+        #
+        # # Save prediction metadata as JSON
+        # prediction_metadata = {
+        #     'timestamp': datetime.now().isoformat(),
+        #     'prediction_session': timestamp,
+        #     'input_samples': new_samples,
+        #     'predictions': predictions,
+        #     'dataflow_mapping': self.dataflow_mapping,
+        #     'feature_columns': self.feature_columns
+        # }
+        #
+        # with open(f"hardware_predictor_new_predictions_metadata.json", 'w') as f:
+        #     json.dump(prediction_metadata, f, indent=2)
+        #
+        # return predictions
 
 
 def train_and_inference_mode():
@@ -534,19 +616,28 @@ def train_and_inference_mode():
     results = predictor.predict_both_targets(train_data, val_data)
 
     # Test new samples
-    test_samples = [
-        {'Dataflow': 'OS', 'Total Number of Multipliers': 256, 'R': 16, 'C': 16, 'A': 1, 'B': 1, 'P': 1, 'Streaming Dimension Size': 1},
-        {'Dataflow': 'WS', 'Total Number of Multipliers': 512, 'R': 8, 'C': 8, 'A': 2, 'B': 2, 'P': 2, 'Streaming Dimension Size': 64},
-        {'Dataflow': 'IS', 'Total Number of Multipliers': 1024, 'R': 32, 'C': 32, 'A': 1, 'B': 1, 'P': 1, 'Streaming Dimension Size': 128}
-    ]
+    # test_samples = [
+    #     {'Dataflow': 'OS', 'Total Number of Multipliers': 256, 'R': 16, 'C': 16, 'A': 1, 'B': 1, 'P': 1, 'Streaming Dimension Size': 1},
+    #     {'Dataflow': 'WS', 'Total Number of Multipliers': 512, 'R': 8, 'C': 8, 'A': 2, 'B': 2, 'P': 2, 'Streaming Dimension Size': 64},
+    #     {'Dataflow': 'IS', 'Total Number of Multipliers': 1024, 'R': 32, 'C': 32, 'A': 1, 'B': 1, 'P': 1, 'Streaming Dimension Size': 128}
+    # ]
+    #
+    # predictions = predictor.predict_new_samples(train_data, test_samples)
+    #
+    # print(f"\n📊 NEW SAMPLE RESULTS:")
+    # for i, sample in enumerate(test_samples):
+    #     print(f"Sample {i+1} ({sample['Dataflow']}): Area={predictions['Area'][i]:.1f}, Power={predictions['Total Power'][i]:.1f}")
+    #
+    # print(f"\n✅ Training completed - models saved to current directory")
 
-    predictions = predictor.predict_new_samples(train_data, test_samples)
+    predictions = predictor.predict_new_samples(train_data, test_data)
 
-    print(f"\n📊 NEW SAMPLE RESULTS:")
-    for i, sample in enumerate(test_samples):
+    print(f"\n📊 TEST DATA RESULTS:")
+    for i, sample in enumerate(test_data):
         print(f"Sample {i+1} ({sample['Dataflow']}): Area={predictions['Area'][i]:.1f}, Power={predictions['Total Power'][i]:.1f}")
 
     print(f"\n✅ Training completed - models saved to current directory")
+
     return results
 
 
@@ -571,7 +662,12 @@ def inference_with_saved_models_mode():
 
     # New samples for prediction
     new_samples = [
-        {'Dataflow': 'OS', 'Total Number of Multipliers': 1024, 'R': 32, 'C': 32, 'A': 1, 'B': 1, 'P': 1, 'Streaming Dimension Size': 256}
+        {'Dataflow': 'IS', 'Total Number of Multipliers': 512, 'R': 16, 'C': 8, 'A': 1, 'B': 2, 'P': 2, 'Streaming Dimension Size': 1},
+        # {'Dataflow': 'IS', 'Total Number of Multipliers': 2048, 'R': 32, 'C': 8, 'A': 2, 'B': 2, 'P': 2, 'Streaming Dimension Size': 1},
+        # {'Dataflow': 'WS', 'Total Number of Multipliers': 4096, 'R': 64, 'C': 8, 'A': 2, 'B': 4, 'P': 1, 'Streaming Dimension Size': 1},
+        # {'Dataflow': 'WS', 'Total Number of Multipliers': 8192, 'R': 8, 'C': 8, 'A': 8, 'B': 2, 'P': 8, 'Streaming Dimension Size': 1},
+        # {'Dataflow': 'OS', 'Total Number of Multipliers': 16384, 'R': 128, 'C': 8, 'A': 4, 'B': 4, 'P': 1, 'Streaming Dimension Size': 512},
+        # {'Dataflow': 'WS', 'Total Number of Multipliers': 32768, 'R': 8, 'C': 16, 'A': 16, 'B': 8, 'P': 2, 'Streaming Dimension Size': 1},
     ]
 
     # Make predictions
@@ -618,11 +714,11 @@ def inference_with_saved_models_mode():
 
 def main():
     """Main execution controller"""
-    print("🤖 HARDWARE PREDICTOR v2.1 - OPTIMIZED")
+    print("🤖 HARDWARE PREDICTOR v2.2 - OPTIMIZED WITH FEATURE ENGINEERING")
     print("=" * 50)
 
     # Set mode: "1" for training+inference, "2" for inference only
-    mode = "2"
+    mode = "1"
 
     if mode == "1":
         return train_and_inference_mode()

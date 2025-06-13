@@ -125,11 +125,11 @@ object FewShotPredictor {
   }
 
   private def loadModel(
-    areaCoefficientsPath: String,
-    powerCoefficientsPath: String,
-    areaStatsPath: String,
-    powerStatsPath: String
-  ): Try[Model] = Try {
+                         areaCoefficientsPath: String,
+                         powerCoefficientsPath: String,
+                         areaStatsPath: String,
+                         powerStatsPath: String
+                       ): Try[Model] = Try {
 
     // Load area coefficients
     val areaJson = loadJsonFile(areaCoefficientsPath)
@@ -148,11 +148,11 @@ object FewShotPredictor {
     val powerStatsJson = loadJsonFile(powerStatsPath)
     val powerFeatureStats = SimpleJsonParser.parseFeatureStats(powerStatsJson)
 
-    // Create dataflow mapping (inferred from the Python code)
+    // Create dataflow mapping (matching Python exactly)
     val dataflowMapping = Map(
       "IS" -> 0,
-      "WS" -> 1,
-      "OS" -> 2
+      "OS" -> 1,  // Changed from 2 to 1 to match Python
+      "WS" -> 2   // Changed from 1 to 2 to match Python
     )
 
     val model = Model(
@@ -178,87 +178,78 @@ object FewShotPredictor {
     )
   }
 
-//  def predict(features: InputFeatures): Try[ArraySynthesisData] = Try {
-//    val model = loadedModel.getOrElse(
-//      throw new IllegalStateException("Model not loaded. Call loadModel() first.")
-//    )
-//
-//    // Encode dataflow
-//    val dataflowEncoded = model.dataflowMapping.getOrElse(features.dataflow, 0)
-//
-//    // Create feature vector in the same order as training
-//    val rawFeatures = Array(
-//      dataflowEncoded.toDouble,
-//      features.totalNumberOfMultipliers.toDouble,
-//      features.r.toDouble,
-//      features.c.toDouble,
-//      features.a.toDouble,
-//      features.b.toDouble,
-//      features.p.toDouble,
-//      features.streamingDimensionSize.toDouble
-//    )
-//
-//    // Normalize features for area prediction
-//    val normalizedAreaFeatures = normalizeFeatures(rawFeatures, model.areaFeatureStats, model.featureColumns)
-//
-//    // Normalize features for power prediction
-//    val normalizedPowerFeatures = normalizeFeatures(rawFeatures, model.powerFeatureStats, model.featureColumns)
-//
-//    // Make area prediction using ensemble
-//    val areaPrediction = ensemblePredict(normalizedAreaFeatures, model.areaCoefficients)
-//
-//    // Make power prediction using ensemble
-//    val powerPrediction = ensemblePredict(normalizedPowerFeatures, model.powerCoefficients)
-//
-//    // Convert power from watts to milliwatts and split into components
-//    // Based on typical hardware patterns, approximate the power breakdown
-//    val totalPowerMw = powerPrediction // Convert watts to milliwatts
-//
-//    ArraySynthesisData(
-//      areaUm2 = areaPrediction,
-//      totalPowerMw = totalPowerMw
-//    )
-//  }
+  // Feature engineering function that matches Python exactly
+  private def engineerFeatures(features: InputFeatures): Array[Double] = {
+    val dataflowEncoded = loadedModel.get.dataflowMapping.getOrElse(features.dataflow, 0).toDouble
+
+    // Raw features
+    val totalMult = features.totalNumberOfMultipliers.toDouble
+    val r = features.r.toDouble
+    val c = features.c.toDouble
+    val a = features.a.toDouble
+    val b = features.b.toDouble
+    val p = features.p.toDouble
+    val streamingSize = features.streamingDimensionSize.toDouble
+
+    // Engineered features (matching Python exactly)
+    val rCInteraction = r * c
+    val aBPInteraction = a * b * p
+    val rAPInteraction = r * a * p
+    val cBPInteraction = c * b * p
+    val rCABInteraction = r * c * a * b
+    val streamingSizeLog = math.log(streamingSize) / math.log(2) // log2
+    val powerComplexityFactor = math.pow(totalMult * streamingSize, 0.5) // sqrt
+
+    // Return features in the EXACT same order as Python feature_columns
+    Array(
+      dataflowEncoded,
+      totalMult,
+      r,
+      c,
+      a,
+      b,
+      p,
+      streamingSize,
+      rCInteraction,
+      aBPInteraction,
+      rAPInteraction,
+      cBPInteraction,
+      rCABInteraction,
+      streamingSizeLog,
+      powerComplexityFactor
+    )
+  }
 
   def predict(features: InputFeatures): Try[ArraySynthesisData] = Try {
     val model = loadedModel.getOrElse(
       throw new IllegalStateException("Model not loaded. Call loadModel() first.")
     )
 
-    // Encode dataflow
-    val dataflowEncoded = model.dataflowMapping.getOrElse(features.dataflow, 0)
+    // Engineer all features including interactions
+    val engineeredFeatures = engineerFeatures(features)
 
-    // Create feature vector in EXACT same order as Python training
-    val rawFeatures = Array(
-      dataflowEncoded.toDouble,
-      features.totalNumberOfMultipliers.toDouble,
-      features.r.toDouble,
-      features.c.toDouble,
-      features.a.toDouble,
-      features.b.toDouble,
-      features.p.toDouble,
-      features.streamingDimensionSize.toDouble
-    )
-
-    // CRITICAL FIX: Use the EXACT feature names from JSON files (with spaces!)
-    val correctFeatureColumns = Array(
+    // Feature column names (must match Python exactly)
+    val featureColumns = Array(
       "Dataflow_encoded",
-      "Total Number of Multipliers",  // ← Note the spaces!
+      "Total Number of Multipliers",
       "R",
       "C",
       "A",
       "B",
       "P",
-      "Streaming Dimension Size"      // ← Note the spaces!
+      "Streaming Dimension Size",
+      "R_C_interaction",
+      "A_B_P_interaction",
+      "R_A_P_interaction",
+      "C_B_P_interaction",
+      "R_C_A_B_interaction",
+      "Streaming_size_log",
+      "Power_complexity_factor"
     )
 
-    // Normalize features with CORRECT column names
-    val normalizedAreaFeatures = normalizeFeatures(rawFeatures, model.areaFeatureStats, correctFeatureColumns)
-    val normalizedPowerFeatures = normalizeFeatures(rawFeatures, model.powerFeatureStats, correctFeatureColumns)
-
-    // Debug: Print to verify all features are found
-//    println(s"Area normalized: [${normalizedAreaFeatures.mkString(", ")}]")
-//    println(s"Power normalized: [${normalizedPowerFeatures.mkString(", ")}]")
+    // Normalize features
+    val normalizedAreaFeatures = normalizeFeatures(engineeredFeatures, model.areaFeatureStats, featureColumns)
+    val normalizedPowerFeatures = normalizeFeatures(engineeredFeatures, model.powerFeatureStats, featureColumns)
 
     // Make predictions
     val areaPrediction = ensemblePredict(normalizedAreaFeatures, model.areaCoefficients)
@@ -335,7 +326,7 @@ object FewShotPredictor {
   }
 
   def debugPrediction(): Unit = {
-    println("=== SCALA DEBUG PREDICTION ===")
+    println("=== SCALA DEBUG PREDICTION WITH FEATURE ENGINEERING ===")
 
     val testFeatures = InputFeatures("OS", 1024, 32, 32, 1, 1, 1, 256)
 
@@ -346,26 +337,34 @@ object FewShotPredictor {
       return
     }
 
-    // Step 1: Dataflow encoding
-    val dataflowEncoded = model.dataflowMapping.getOrElse(testFeatures.dataflow, 0)
-    println(s"Step 1 - Dataflow encoding: '${testFeatures.dataflow}' -> ${dataflowEncoded}")
+    // Step 1: Feature engineering
+    val engineeredFeatures = engineerFeatures(testFeatures)
+    println(s"Step 1 - Engineered features: [${engineeredFeatures.mkString(", ")}]")
 
-    // Step 2: Raw features
-    val rawFeatures = Array(
-      dataflowEncoded.toDouble,
-      testFeatures.totalNumberOfMultipliers.toDouble,
-      testFeatures.r.toDouble,
-      testFeatures.c.toDouble,
-      testFeatures.a.toDouble,
-      testFeatures.b.toDouble,
-      testFeatures.p.toDouble,
-      testFeatures.streamingDimensionSize.toDouble
+    // Step 2: Feature columns
+    val featureColumns = Array(
+      "Dataflow_encoded",
+      "Total Number of Multipliers",
+      "R",
+      "C",
+      "A",
+      "B",
+      "P",
+      "Streaming Dimension Size",
+      "R_C_interaction",
+      "A_B_P_interaction",
+      "R_A_P_interaction",
+      "C_B_P_interaction",
+      "R_C_A_B_interaction",
+      "Streaming_size_log",
+      "Power_complexity_factor"
     )
-    println(s"Step 2 - Raw features: [${rawFeatures.mkString(", ")}]")
+
+    println(s"Step 2 - Feature columns: [${featureColumns.mkString(", ")}]")
 
     // Step 3: Check area feature stats
     println("Step 3 - Area feature stats check:")
-    model.featureColumns.zip(rawFeatures).foreach { case (col, value) =>
+    featureColumns.zip(engineeredFeatures).foreach { case (col, value) =>
       model.areaFeatureStats.get(col) match {
         case Some(stats) =>
           val normalized = if (stats.range > 0) (value - stats.min) / stats.range else 0.0
@@ -377,7 +376,7 @@ object FewShotPredictor {
 
     // Step 4: Check power feature stats
     println("Step 4 - Power feature stats check:")
-    model.featureColumns.zip(rawFeatures).foreach { case (col, value) =>
+    featureColumns.zip(engineeredFeatures).foreach { case (col, value) =>
       model.powerFeatureStats.get(col) match {
         case Some(stats) =>
           val normalized = if (stats.range > 0) (value - stats.min) / stats.range else 0.0
@@ -387,44 +386,12 @@ object FewShotPredictor {
       }
     }
 
-    // Step 5: Compare R normalization specifically
-    val areaRStats = model.areaFeatureStats.get("R")
-    val powerRStats = model.powerFeatureStats.get("R")
-
-    (areaRStats, powerRStats) match {
-      case (Some(aStats), Some(pStats)) =>
-        println(s"Step 5 - R normalization comparison:")
-        println(s"  Area R range: ${aStats.range} (should be 24)")
-        println(s"  Power R range: ${pStats.range} (should be 56)")
-        val rValue = 16.0
-        val areaNorm = (rValue - aStats.min) / aStats.range
-        val powerNorm = (rValue - pStats.min) / pStats.range
-        println(s"  R=16 with area stats: ${areaNorm}")
-        println(s"  R=16 with power stats: ${powerNorm}")
-        println(s"  Difference: ${areaNorm - powerNorm}")
-
-        if (aStats.range != 24) println(s"  ❌ ERROR: Area R range should be 24, got ${aStats.range}")
-        if (pStats.range != 56) println(s"  ❌ ERROR: Power R range should be 56, got ${pStats.range}")
-
-      case _ =>
-        println("❌ ERROR: Missing R stats!")
-    }
-
-    // Step 6: Full prediction
+    // Step 5: Full prediction
     predict(testFeatures) match {
       case Success(result) =>
-        println(s"Step 6 - Final predictions:")
-        println(s"  Area: ${result.areaUm2} (should be ~358274)")
+        println(s"Step 5 - Final predictions:")
+        println(s"  Area: ${result.areaUm2}")
         println(s"  Power: ${result.totalPowerMw}")
-
-        // Check if close to expected
-        val expectedArea = 358274.0
-        val areaDiff = math.abs(result.areaUm2 - expectedArea)
-        if (areaDiff < 1000) {
-          println(s"  ✅ Area prediction looks correct!")
-        } else {
-          println(s"  ❌ Area prediction differs by ${areaDiff} from expected ${expectedArea}")
-        }
 
       case Failure(ex) =>
         println(s"❌ Prediction failed: ${ex.getMessage}")
