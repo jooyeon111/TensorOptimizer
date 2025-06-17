@@ -1,7 +1,7 @@
 package simulation
 
 case class DividedSramModelTable(
-  sramA: DividedSramModel,
-  sramB: DividedSramModel,
-  sramC: DividedSramModel,
+  sramA: SramReferenceData,
+  sramB: SramReferenceData,
+  sramC: SramReferenceData,
 )

@@ -11,7 +11,6 @@ class SystemSimulator(
   private val interface: Interface,
   private val layer: Layer,
   private val array: Array,
-  private val sramReferenceDataVector: Option[Vector[SramReferenceData]],
   private val debugStartCycle: Long = 0,
   private val debugEndCycle: Long = 0,
   private val debugMode: Boolean = false,
@@ -27,12 +26,12 @@ class SystemSimulator(
 
   def getOffChipMemoryRefData: Option[OffChipMemoryReferenceData] = offChipMemory.referenceData
 
-  private val dividedSramModelA: Option[DividedSramModel] = sliceSram(DataType.A)
-  private val dividedSramModelB: Option[DividedSramModel]  = sliceSram(DataType.B)
-  private val dividedSramModelC: Option[DividedSramModel]  = sliceSram(DataType.C)
+//  private val dividedSramModelA: Option[DividedSramModel] = sliceSram(DataType.A)
+//  private val dividedSramModelB: Option[DividedSramModel]  = sliceSram(DataType.B)
+//  private val dividedSramModelC: Option[DividedSramModel]  = sliceSram(DataType.C)
 
   def getSramModelDataTable: Option[DividedSramModelTable] = {
-    (dividedSramModelA, dividedSramModelB, dividedSramModelC) match {
+    (sramA.referenceData, sramB.referenceData, sramC.referenceData) match {
       case (Some(sramA), Some(sramB), Some(sramC)) =>
         Some(DividedSramModelTable(sramA, sramB, sramC))
       case _ =>
@@ -93,6 +92,9 @@ class SystemSimulator(
   def getSramReadAccessCountB: Long = sramB.getReadAccessCount
   def getSramWriteAccessCountB: Long = sramB.getWriteAccessCount
 
+  def getSramReadAccessCountC: Long = sramC.getReadAccessCount
+  def getSramWriteAccessCountC: Long = sramC.getWriteAccessCount
+
   def getTotalOffChipMemoryHitCount: Double = (sramA.getOffChipMemoryHitCount + sramB.getOffChipMemoryHitCount) /
     (sramA.getOffChipMemoryAccessCount + sramB.getOffChipMemoryAccessCount)
 
@@ -129,23 +131,23 @@ class SystemSimulator(
   def getOffChipMemoryWriteEnergy: Option[Double] = offChipMemory.getOffChipMemoryWriteEnergy
   def getOffChipMemoryEnergy: Option[Double] = offChipMemory.getOffChipMemoryEnergy
 
-//  def getSramReadEnergyA: Option[Double] = sramA.getSramReadEnergy
-//  def getSramWriteEnergyA: Option[Double] = sramA.getSramWriteEnergy
-//  def getSramLeakageEnergyA: Option[Double] = sramA.referenceData.map{ data =>
-//    data.leakagePowerPw * cycle * clockPeriod
+  def getSramReadEnergyA: Option[Double] = sramA.getSramReadEnergy
+  def getSramWriteEnergyA: Option[Double] = sramA.getSramWriteEnergy
+  def getSramLeakageEnergyA: Option[Double] = sramA.referenceData.map{ data =>
+    data.leakagePowerPw * cycle * clockPeriod
+  }
+
+//  def getSramReadEnergyA: Option[Double] = dividedSramModelA.map { sramData =>
+//    sramData.referenceData.readEnergyPj * sramA.getReadAccessCount
 //  }
-
-  def getSramReadEnergyA: Option[Double] = dividedSramModelA.map { sramData =>
-    sramData.referenceData.readEnergyPj * sramA.getReadAccessCount
-  }
-
-  def getSramWriteEnergyA: Option[Double] = dividedSramModelA.map { sramData =>
-    sramData.referenceData.writeEnergyPj * sramA.getWriteAccessCount * sramData.bankCount
-  }
-
-  def getSramLeakageEnergyA: Option[Double] = dividedSramModelA.map { sramData =>
-    sramData.referenceData.leakagePowerPw * cycle * clockPeriod * sramData.bankCount
-  }
+//
+//  def getSramWriteEnergyA: Option[Double] = dividedSramModelA.map { sramData =>
+//    sramData.referenceData.writeEnergyPj * sramA.getWriteAccessCount * sramData.bankCount
+//  }
+//
+//  def getSramLeakageEnergyA: Option[Double] = dividedSramModelA.map { sramData =>
+//    sramData.referenceData.leakagePowerPw * cycle * clockPeriod * sramData.bankCount
+//  }
 
   def getSramEnergyA: Option[Double] = {
     for {
@@ -155,16 +157,22 @@ class SystemSimulator(
     } yield read + write + leakage
   }
 
-  def getSramReadEnergyB: Option[Double] = dividedSramModelB.map { sramData =>
-    sramData.referenceData.readEnergyPj * sramB.getReadAccessCount
-  }
+//  def getSramReadEnergyB: Option[Double] = dividedSramModelB.map { sramData =>
+//    sramData.referenceData.readEnergyPj * sramB.getReadAccessCount
+//  }
+//
+//  def getSramWriteEnergyB: Option[Double] = dividedSramModelB.map { sramData =>
+//    sramData.referenceData.writeEnergyPj * sramB.getWriteAccessCount * sramData.bankCount
+//  }
+//
+//  def getSramLeakageEnergyB: Option[Double] = dividedSramModelB.map { sramData =>
+//    sramData.referenceData.leakagePowerPw * cycle * clockPeriod * sramData.bankCount
+//  }
 
-  def getSramWriteEnergyB: Option[Double] = dividedSramModelB.map { sramData =>
-    sramData.referenceData.writeEnergyPj * sramB.getWriteAccessCount * sramData.bankCount
-  }
-
-  def getSramLeakageEnergyB: Option[Double] = dividedSramModelB.map { sramData =>
-    sramData.referenceData.leakagePowerPw * cycle * clockPeriod * sramData.bankCount
+  def getSramReadEnergyB: Option[Double] = sramB.getSramReadEnergy
+  def getSramWriteEnergyB: Option[Double] = sramB.getSramWriteEnergy
+  def getSramLeakageEnergyB: Option[Double] = sramB.referenceData.map { data =>
+    data.leakagePowerPw * cycle * clockPeriod
   }
 
   def getSramEnergyB: Option[Double] = {
@@ -175,14 +183,20 @@ class SystemSimulator(
     } yield read + write + leakage
   }
 
-  def getSramReadEnergyC: Option[Double] = dividedSramModelC.map { sramData =>
-    sramData.referenceData.readEnergyPj * sramC.getReadAccessCount * sramData.bankCount
-  }
-  def getSramWriteEnergyC: Option[Double] = dividedSramModelC.map { sramData =>
-    sramData.referenceData.writeEnergyPj * sramC.getWriteAccessCount
-  }
-  def getSramLeakageEnergyC: Option[Double] = dividedSramModelC.map { sramData =>
-    sramData.referenceData.leakagePowerPw * cycle * clockPeriod * sramData.bankCount
+//  def getSramReadEnergyC: Option[Double] = dividedSramModelC.map { sramData =>
+//    sramData.referenceData.readEnergyPj * sramC.getReadAccessCount * sramData.bankCount
+//  }
+//  def getSramWriteEnergyC: Option[Double] = dividedSramModelC.map { sramData =>
+//    sramData.referenceData.writeEnergyPj * sramC.getWriteAccessCount
+//  }
+//  def getSramLeakageEnergyC: Option[Double] = dividedSramModelC.map { sramData =>
+//    sramData.referenceData.leakagePowerPw * cycle * clockPeriod * sramData.bankCount
+//  }
+
+  def getSramReadEnergyC: Option[Double] = sramC.getSramReadEnergy
+  def getSramWriteEnergyC: Option[Double] = sramC.getSramWriteEnergy
+  def getSramLeakageEnergyC: Option[Double] = sramC.referenceData.map { data =>
+    data.leakagePowerPw * cycle * clockPeriod
   }
 
   def getSramEnergyC: Option[Double] =
@@ -217,9 +231,13 @@ class SystemSimulator(
     } yield offChipMemoryEnergy + sramEnergyA + sramEnergyB + sramEnergyC + arrayEnergy
 
   //6. Area Report
-  def getSramAreaA: Option[Double] = dividedSramModelA.map(_.referenceData.areaUm2)
-  def getSramAreaB: Option[Double] = dividedSramModelB.map(_.referenceData.areaUm2)
-  def getSramAreaC: Option[Double] = dividedSramModelC.map(_.referenceData.areaUm2)
+//  def getSramAreaA: Option[Double] = dividedSramModelA.map(_.referenceData.areaUm2)
+//  def getSramAreaB: Option[Double] = dividedSramModelB.map(_.referenceData.areaUm2)
+//  def getSramAreaC: Option[Double] = dividedSramModelC.map(_.referenceData.areaUm2)
+
+  def getSramAreaA: Option[Double] = sramA.referenceData.map(_.areaUm2)
+  def getSramAreaB: Option[Double] = sramB.referenceData.map(_.areaUm2)
+  def getSramAreaC: Option[Double] = sramC.referenceData.map(_.areaUm2)
 
   //Array
   def getArrayArea: Option[Double] = array.arrayConfig.arraySynthesisData.map { data =>
@@ -235,13 +253,89 @@ class SystemSimulator(
       arrayArea <- getArrayArea
     } yield sramAreaA + sramAreaB + sramAreaC + arrayArea
 
-  def calculateEDAP: Option[Double] =  {
-    for {
-      energy <- getTotalEnergy
-      area <- getArea
-    } yield energy * area * cycle
-  }
+  def calculateTOPS: Option[Double] =  {
+//    for {
+//      energy <- getTotalEnergy
+//      area <- getArea
+//    } yield {
+//      val executionTime = cycle * clockPeriod
+//      energy * area * executionTime
+//    }
 
+    for {
+      energy <- getTotalEnergy // Energy in pJ
+      area <- getArea // Area in μm²
+    } yield {
+      // Calculate total operations performed
+//      val totalOps = layer.operationVector.map { op =>
+//        op.gemmDimension.m * op.gemmDimension.n * op.gemmDimension.k
+//      }.sum
+//
+//      // Convert units for TOPS/W/mm²:
+//      val clockFrequencyHz = 1e9 // Assume 1 GHz clock frequency
+//      val timeSeconds = cycle.toDouble / clockFrequencyHz
+//      val teraOps = totalOps / 1e12
+//      val powerWatts = (energy * 1e-12) / timeSeconds // Convert pJ to W
+//      val areaInMm2 = area / 1e6 // Convert μm² to mm²
+//
+//      // Calculate TOPS/W/mm² (Throughput Efficiency)
+//      val throughputTOPS = teraOps / timeSeconds
+//      val efficiency = throughputTOPS / (powerWatts * areaInMm2)
+//
+//      efficiency
+      if (cycle <= 0 || energy <= 0 || area <= 0) {
+        println(s"Warning: Invalid inputs - cycle:$cycle, energy:$energy, area:$area")
+        return Some(1e-12)
+      }
+
+      // Calculate total MAC operations
+      val totalOps = layer.operationVector.map { op =>
+        2.0 * op.gemmDimension.m * op.gemmDimension.n * op.gemmDimension.k
+      }.sum
+
+      if (totalOps <= 0) {
+        println(s"Warning: No operations calculated")
+        return Some(1e-12)
+      }
+
+      // Use existing clockPeriod for timing
+      val executionTimeSeconds = cycle * clockPeriod
+
+      // Unit conversions
+      val teraOps = totalOps / 1e12
+      val powerWatts = (energy * 1e-12) / executionTimeSeconds
+      val areaInMm2 = area / 1e6
+
+      // Validate intermediate calculations
+      if (executionTimeSeconds <= 0 || powerWatts <= 0 || areaInMm2 <= 0) {
+        println(s"Warning: Invalid intermediate values - time:$executionTimeSeconds, power:$powerWatts, area:$areaInMm2")
+        return Some(1e-12)
+      }
+
+      // Calculate TOPS/W/mm²
+      val throughputTOPS = teraOps / executionTimeSeconds
+      val efficiency = throughputTOPS / (powerWatts * areaInMm2)
+
+      // Debug output for first few calculations
+      if (cycle < 10000) {
+        println(f"TOPS/W/mm² Debug:")
+        println(f"  Operations: ${totalOps}%.0f (${totalOps/1e9}%.3f billion)")
+        println(f"  Cycles: $cycle, Time: ${executionTimeSeconds*1e6}%.2f μs")
+        println(f"  Energy: ${energy}%.2f pJ, Power: ${powerWatts*1e6}%.2f μW")
+        println(f"  Area: ${area}%.0f μm² (${areaInMm2}%.3f mm²)")
+        println(f"  Throughput: ${throughputTOPS}%.6f TOPS")
+        println(f"  Efficiency: ${efficiency}%.6e TOPS/W/mm²")
+      }
+
+      // Final validation
+      if (efficiency.isNaN || efficiency.isInfinite || efficiency <= 0) {
+        println(s"Warning: Invalid final efficiency: $efficiency")
+        1e-12
+      } else {
+        efficiency
+      }
+    }
+  }
 
   private def runSimulationLoop(): Long = {
 
@@ -307,31 +401,49 @@ class SystemSimulator(
 
   }
 
-  private def sliceSram(dataType: DataType.Value): Option[DividedSramModel] = {
-    if (sramReferenceDataVector.isEmpty) {
-      None
-    } else {
-      val arrayConfig = array.arrayConfig
-
-      val (bandwidth, singleBufferLimitKb, bankCountFn) = dataType match {
-        case DataType.A => (arrayConfig.bandwidthOfInputA, sramA.singleBufferLimitKb, calculateBankCount _)
-        case DataType.B => (arrayConfig.bandwidthOfInputB, sramB.singleBufferLimitKb, calculateBankCount _)
-        case DataType.C => (arrayConfig.outputBandwidth, sramC.singleBufferLimitKb, calculateBankCount _)
-      }
-
-      val bankCount = bankCountFn(bandwidth)
-
-      sramReferenceDataVector.flatMap { vector =>
-        vector.find { data =>
-          data.capacityKb == (singleBufferLimitKb / bankCount) && data.bandwidthBits >= bandwidth
-        }
-      } match {
-        case Some(refData) => Some(DividedSramModel(bankCount, refData))
-        case None =>
-          throw SramBuildError(s"Cannot find the SRAM Size: ${(singleBufferLimitKb / bankCount)} KB and Bandwidth: ${bandwidth}")
-      }
-    }
-  }
+//  private def sliceSram(dataType: DataType.Value): Option[DividedSramModel] = {
+//    if (sramReferenceDataVector.isEmpty) {
+//      None
+//    } else {
+//      val arrayConfig = array.arrayConfig
+//
+//      val (bandwidth, singleBufferLimitKb, bankCountFn) = dataType match {
+//        case DataType.A => (arrayConfig.bandwidthOfInputA, sramA.singleBufferLimitKb, calculateBankCount _)
+//        case DataType.B => (arrayConfig.bandwidthOfInputB, sramB.singleBufferLimitKb, calculateBankCount _)
+//        case DataType.C => (arrayConfig.outputBandwidth, sramC.singleBufferLimitKb, calculateBankCount _)
+//      }
+//
+//      val bankCount = bankCountFn(bandwidth)
+//
+//      sramReferenceDataVector.flatMap { vector =>
+//        vector.find { data =>
+//          data.capacityKb == (singleBufferLimitKb / bankCount) && data.bandwidthBits >= bandwidth
+//        }
+//      } match {
+//        case Some(refData) => Some(DividedSramModel(bankCount, refData))
+//        case None =>
+//          throw SramBuildError(s"Cannot find the SRAM Size: ${(singleBufferLimitKb / bankCount)} KB and Bandwidth: ${bandwidth}")
+//      }
+//    }
+//
+//    val singleBufferLimitKb = dataType match {
+//      case DataType.A => sramA.singleBufferLimitKb
+//      case DataType.B => sramB.singleBufferLimitKb
+//      case DataType.C => sramC.singleBufferLimitKb
+//    }
+//
+//
+//    sramReferenceDataVector.flatMap { vector =>
+//      vector.find { data =>
+//        data.capacityKb == singleBufferLimitKb
+//      }
+//    } match {
+//      case Some(refData) => Some(DividedSramModel(1, refData))
+//      case None =>
+//        throw SramBuildError(s"Error in slice SRAM")
+//    }
+//
+//  }
 
   private def calculateBankCount(arrayBandwidth: Int): Int = {
     val bandwidthRatio = offChipMemory.outputBandwidth.toDouble / arrayBandwidth.toDouble

@@ -528,35 +528,34 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     if(!(capacityA > 0 && capacityB > 0 && capacityC > 0 ))
       throw SramBuildError("SRAM Cannot contain even 1 tile increase SRAM size")
 
-//    val sramReferenceDataA: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
-//      vector.find{ data =>
-//        data.capacityKb == simConfig.singleBufferLimitKbA && data.bandwidthBits >= arrayConfig.bandwidthOfInputA
-//      }
-//    }
-//
-//    val sramReferenceDataB: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
-//      vector.find{ data =>
-//        data.capacityKb == simConfig.singleBufferLimitKbB && data.bandwidthBits >= arrayConfig.bandwidthOfInputB
-//      }
-//    }
-//
-//    val sramReferenceDataC: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
-//      vector.find{ data =>
-//        data.capacityKb == simConfig.singleBufferLimitKbC && data.bandwidthBits >= arrayConfig.outputBandwidth
-//      }
-//    }
-//
-//    if(simConfig.sramReferenceDataVector.isDefined &&
-//      (sramReferenceDataA.isEmpty || sramReferenceDataB.isEmpty || sramReferenceDataC.isEmpty)){
-//      throw ParseError("Cannot find SRAM data from external reports ...")
-//    }
+    val sramReferenceDataA: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+      vector.find{ data =>
+        data.capacityKb == simConfig.singleBufferLimitKbA && data.bandwidthBits >= arrayConfig.bandwidthOfInputA
+      }
+    }
+
+    val sramReferenceDataB: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+      vector.find{ data =>
+        data.capacityKb == simConfig.singleBufferLimitKbB && data.bandwidthBits >= arrayConfig.bandwidthOfInputB
+      }
+    }
+
+    val sramReferenceDataC: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+      vector.find{ data =>
+        data.capacityKb == simConfig.singleBufferLimitKbC && data.bandwidthBits >= arrayConfig.outputBandwidth
+      }
+    }
+
+    if(sramReferenceDataA.isEmpty || sramReferenceDataB.isEmpty || sramReferenceDataC.isEmpty){
+      throw ParseError("Cannot find SRAM data from external reports ...")
+    }
 
     val sramA = new DoubleBufferSram(
       dataType = DataType.A,
       outputBandwidth = arrayConfig.bandwidthOfInputA,
       singleBufferTileCapacity = capacityA,
       singleBufferLimitKb = simConfig.singleBufferLimitKbA,
-//      referenceData = sramReferenceDataA,
+      referenceData = sramReferenceDataA,
       loggerOption = loggerOption
     )
     val sramB = new DoubleBufferSram(
@@ -564,14 +563,14 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       outputBandwidth = arrayConfig.bandwidthOfInputB,
       singleBufferTileCapacity = capacityB,
       singleBufferLimitKb = simConfig.singleBufferLimitKbB,
-//      referenceData = sramReferenceDataB,
+      referenceData = sramReferenceDataB,
       loggerOption = loggerOption
     )
     val sramC = new OutputDoubleBufferSram(
       outputBandwidth = simConfig.offChipMemoryBandwidth,
       singleBufferTileCapacity = capacityC,
       singleBufferLimitKb = simConfig.singleBufferLimitKbC,
-//      referenceData = sramReferenceDataC,
+      referenceData = sramReferenceDataC,
       loggerOption = loggerOption
     )
 
@@ -597,7 +596,6 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
         interface = interface,
         layer = layer,
         array = array,
-        sramReferenceDataVector = simConfig.sramReferenceDataVector,
         debugStartCycle = simConfig.debugStartCycle,
         debugEndCycle = simConfig.debugEndCycle,
         debugMode = simConfig.debugPrint,
@@ -633,6 +631,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
         sramWriteAccessCountA = simulation.getSramWriteAccessCountA,
         sramReadAccessCountB = simulation.getSramReadAccessCountB,
         sramWriteAccessCountB = simulation.getSramWriteAccessCountB,
+
+        sramReadAccessCountC = simulation.getSramReadAccessCountC,
+        sramWriteAccessCountC = simulation.getSramWriteAccessCountC,
 
         offChipMemoryHitRatio = simulation.getTotalOffChipMemoryHitCount,
         offChipMemoryMissRatio = simulation.getTotalOffChipMemoryMissCount,
@@ -704,7 +705,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
         arrayAreaUm2 = simulation.getArrayArea,
         areaUm2 = simulation.getArea,
 
-        edap = simulation.calculateEDAP
+        tops = simulation.calculateTOPS
 
       )
 

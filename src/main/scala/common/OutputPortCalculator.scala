@@ -32,17 +32,7 @@ trait OutputPortCalculator {
       case Dataflow.Os =>
 
         if(streamingDimensionSize != -1){
-
-          val mappedDimensionSize = groupPeRow * vectorPeRow * streamingDimensionSize
-          val arrayRowDimension = groupPeRow * vectorPeRow * numMultiplier
-
-          val additionalAdditionNumber = if(mappedDimensionSize % arrayRowDimension == 0){
-            streamingDimensionSize
-          } else {
-            mappedDimensionSize / arrayRowDimension + 1
-          }
-
-          adBitWidth + ceil(log(additionalAdditionNumber)/log(2)).toInt
+          adBitWidth + ceil(log(streamingDimensionSize)/log(2)).toInt
         } else {
           Console.err.println("Output stationary must need output port bandwidth")
           sys.exit(1)

@@ -6,11 +6,11 @@ import common.Dataflow
 import scala.collection.parallel.CollectionConverters._
 
 class ArchitectureOptimizer(
-  val simConfig: SystemArchitectureOptimizer.SimulationConfig,
-  val architectureCandidates: ArrayBuffer[Architecture],
-  val minSramSize: Int,
-  val loggerOption: LoggerOption,
-) extends Logger {
+                             val simConfig: SystemArchitectureOptimizer.SimulationConfig,
+                             val architectureCandidates: ArrayBuffer[Architecture],
+                             val minSramSize: Int,
+                             val loggerOption: LoggerOption,
+                           ) extends Logger {
 
   setMode(loggerOption)
 
@@ -72,7 +72,7 @@ class ArchitectureOptimizer(
       s"Cycle, " +
       s"Area, " +
       s"Energy, " +
-      s"Area Energy Delay Product, " +
+      s"TOPS/W/mm^2, " +
       s"Streaming Dimension, " +
       s"Single Buffer Size A, " +
       s"Single Buffer Size B, " +
@@ -107,41 +107,41 @@ class ArchitectureOptimizer(
   }
 
   private def logExecutableArch(
-    candidates: ArrayBuffer[Architecture],
-    validCandidates: ArrayBuffer[Architecture]
-  ): Unit = {
+                                 candidates: ArrayBuffer[Architecture],
+                                 validCandidates: ArrayBuffer[Architecture]
+                               ): Unit = {
     log(s"\t\t${candidates.size} architectures were candidates")
     log(s"\t\t${validCandidates.size} architectures were valid")
     log("")
   }
 
   private def logProcessOne(
-    validCandidates: ArrayBuffer[Architecture],
-    simulatedCandidates: ArrayBuffer[ArchitectureResult],
-    rankedSimulatedCandidates: ArrayBuffer[ArchitectureResult],
-  ): Unit = {
+                             validCandidates: ArrayBuffer[Architecture],
+                             simulatedCandidates: ArrayBuffer[ArchitectureResult],
+                             rankedSimulatedCandidates: ArrayBuffer[ArchitectureResult],
+                           ): Unit = {
     log(s"\t\t${validCandidates.size} valid architectures were passed to process")
     log(s"\t\t${simulatedCandidates.size} architectures were successfully processed")
     log(s"\t\t${rankedSimulatedCandidates.size} architectures meet performance criteria")
-//    logStatistics(rankedSimulatedCandidates)
+    //    logStatistics(rankedSimulatedCandidates)
     log("")
   }
 
   private def logProcessTwo(
-    preProcess: ArrayBuffer[ArchitectureResult],
-    postProcess: ArrayBuffer[ArchitectureResult],
-    rankedPostProcess: ArrayBuffer[ArchitectureResult],
-    iteration: Int,
-  ): Unit = {
+                             preProcess: ArrayBuffer[ArchitectureResult],
+                             postProcess: ArrayBuffer[ArchitectureResult],
+                             rankedPostProcess: ArrayBuffer[ArchitectureResult],
+                             iteration: Int,
+                           ): Unit = {
 
     log(s"\t\t[Iteration ${iteration+1} Result]")
     log(s"\t\t\t${preProcess.size} architectures were processed")
     log(s"\t\t\t${postProcess.size} optimized architectures were evaluated")
     log(s"\t\t\t${rankedPostProcess.size} architectures meet performance criteria")
 
-//    log(s"\t\tPre Process Results")
-//    preProcess.foreach(logSummary)
-//    postProcess.foreach(logSummary)
+    //    log(s"\t\tPre Process Results")
+    //    preProcess.foreach(logSummary)
+    //    postProcess.foreach(logSummary)
 
     // Calculate improvement statistics
     if (preProcess.nonEmpty && rankedPostProcess.nonEmpty) {
@@ -191,12 +191,22 @@ class ArchitectureOptimizer(
         log(s"\t\t\tArea: ${String.format("%.2f", areaImprovement)}% improvement")
       }
 
-      if (preProcessBest.simulationResult.edap.isDefined && postProcessBest.simulationResult.edap.isDefined) {
-        val energyAreaProductImprovement= (preProcessBest.simulationResult.edap.get - postProcessBest.simulationResult.edap.get) /
-          preProcessBest.simulationResult.edap.get * 100
-        log(s"\t\t\tArea-Energy-Delay Product: ${String.format("%.6f", energyAreaProductImprovement)}% improvement")
-      }
+//      if (preProcessBest.simulationResult.tops.isDefined && postProcessBest.simulationResult.tops.isDefined) {
+//        val energyAreaProductImprovement= (preProcessBest.simulationResult.tops.get - postProcessBest.simulationResult.tops.get) /
+//          preProcessBest.simulationResult.tops.get * 100
+//        log(s"\t\t\tArea-Energy-Delay Product: ${String.format("%.6f", energyAreaProductImprovement)}% improvement")
+//      }
+      if (preProcessBest.simulationResult.tops.isDefined && postProcessBest.simulationResult.tops.isDefined) {
+        val oldValue = preProcessBest.simulationResult.tops.get
+        val newValue = postProcessBest.simulationResult.tops.get
 
+        if (oldValue <= 0 || newValue <= 0) {
+          log(s"\t\t\tWarning: Invalid efficiency values - old: $oldValue, new: $newValue")
+        } else {
+          val improvement = (newValue - oldValue) / oldValue * 100
+          log(s"\t\t\tTOPS/W/mm² Efficiency: ${String.format("%.2f", improvement)}% improvement")
+        }
+      }
     }
 
     log("")
@@ -204,10 +214,10 @@ class ArchitectureOptimizer(
   }
 
   private def logProcessThree(
-    preProcess: ArrayBuffer[ArchitectureResult],
-    postProcess: ArrayBuffer[ArchitectureResult],
-    rankedPostProcess: ArrayBuffer[ArchitectureResult],
-  ): Unit = {
+                               preProcess: ArrayBuffer[ArchitectureResult],
+                               postProcess: ArrayBuffer[ArchitectureResult],
+                               rankedPostProcess: ArrayBuffer[ArchitectureResult],
+                             ): Unit = {
 
     log(s"\t\t${preProcess.size} architectures were processed")
     log(s"\t\t${postProcess.size} optimized architectures were evaluated")
@@ -264,13 +274,25 @@ class ArchitectureOptimizer(
       log(s"\t\tArea: ${String.format("%.2f", areaImprovement)}% improvement")
     }
 
-    if (preProcessBest.simulationResult.edap.isDefined && postProcessBest.simulationResult.edap.isDefined) {
-      val energyAreaProductImprovement= (preProcessBest.simulationResult.edap.get - postProcessBest.simulationResult.edap.get) /
-        preProcessBest.simulationResult.edap.get * 100
-      log(s"\t\tEnergy Area Delay Product: ${String.format("%.6f", energyAreaProductImprovement)}% improvement")
+//    if (preProcessBest.simulationResult.tops.isDefined && postProcessBest.simulationResult.tops.isDefined) {
+//      val energyAreaProductImprovement= (preProcessBest.simulationResult.tops.get - postProcessBest.simulationResult.tops.get) /
+//        preProcessBest.simulationResult.tops.get * 100
+//      log(s"\t\tEnergy Area Delay Product: ${String.format("%.6f", energyAreaProductImprovement)}% improvement")
+//    }
+
+    if (preProcessBest.simulationResult.tops.isDefined && postProcessBest.simulationResult.tops.isDefined) {
+      val oldValue = preProcessBest.simulationResult.tops.get
+      val newValue = postProcessBest.simulationResult.tops.get
+
+      if (oldValue <= 0 || newValue <= 0) {
+        log(s"\t\t\tWarning: Invalid efficiency values - old: $oldValue, new: $newValue")
+      } else {
+        val improvement = (newValue - oldValue) / oldValue * 100
+        log(s"\t\t\tTOPS/W/mm² Efficiency: ${String.format("%.2f", improvement)}% improvement")
+      }
     }
 
-//    logStatistics(rankedPostProcess)
+    //    logStatistics(rankedPostProcess)
 
   }
 
@@ -284,50 +306,60 @@ class ArchitectureOptimizer(
       log(s"\t\tCycle: ${simulationResult.cycle}")
       log(s"\t\tArea: ${String.format("%.2f", simulationResult.areaUm2.get)} um²")
       log(s"\t\tEnergy: ${String.format("%.2f", simulationResult.energyPj.get)} pJ")
-      log(s"\t\tEnergy Delay Area Product: ${String.format("%.2f", simulationResult.edap.get)} pJ*um^2*cycle")
+      log(s"\t\tTOPS/W/mm^2: ${String.format("%.2f", simulationResult.tops.get)} pJ * um^2 * s")
       log(s"\t\tStreaming Dimension Size: ${architecture.streamingDimensionSize}")
       log(s"\t\tSingleBuffer A: ${architecture.singleBufferLimitKbA} KB")
       log(s"\t\tSingleBuffer B: ${architecture.singleBufferLimitKbB} KB")
       log(s"\t\tSingleBuffer C: ${architecture.singleBufferLimitKbC} KB")
       log(s"\t\tAverage Memory Utilization: ${String.format("%.2f", simulationResult.averageMemoryUtilization)} %\n")
+//
+//      log(s"\n\t\t Off chip memory Energy: ${String.format("%.2f", simulationResult.offChipMemoryEnergyPj.get)}")
+//      log(s"\t\t sram A energy  ${String.format("%.2f", simulationResult.sramEnergyPjA.get)}")
+//      log(s"\t\t sram B energy  ${String.format("%.2f", simulationResult.sramEnergyPjB.get)}")
+//      log(s"\t\t sram C energy  ${String.format("%.2f", simulationResult.sramEnergyPjC.get)}")
+//      log(s"\t\t Array energy ${String.format("%.2f", simulationResult.arrayEnergy.get)}\n")
+//
+//      log(s"\t\t sram A read access count  ${simulationResult.sramReadAccessCountA}")
+//      log(s"\t\t sram A write access count  ${simulationResult.sramWriteAccessCountA}")
+//
+//      log(s"\t\t sram B read access count  ${simulationResult.sramReadAccessCountB}")
+//      log(s"\t\t sram B write access count  ${simulationResult.sramWriteAccessCountB}")
+//
+//      log(s"\t\t sram C read access count  ${simulationResult.sramReadAccessCountC}")
+//      log(s"\t\t sram C write access count  ${simulationResult.sramWriteAccessCountC}")
+//
       log(s"\t\t[Array Bandwidth Information]")
       log(s"\t\t\tInput Bandwidth A: ${architecture.arrayConfig.bandwidthOfInputA}")
       log(s"\t\t\tInput Bandwidth B: ${architecture.arrayConfig.bandwidthOfInputB}")
       log(s"\t\t\tOutput Bandwidth C: ${architecture.arrayConfig.outputBandwidth}\n")
       log(s"\t\t[SRAM Modeling Information]")
       log(s"\t\t\t[Input SRAM A]")
-      log(s"\t\t\t\tBank Count: ${simulationResult.sramModelDataTable.get.sramA.bankCount}")
-      log(s"\t\t\t\tBank Capacity: ${simulationResult.sramModelDataTable.get.sramA.referenceData.capacityKb} KB")
-      log(s"\t\t\t\tBank Bandwidth: ${simulationResult.sramModelDataTable.get.sramA.referenceData.bandwidthBits}")
+      log(s"\t\t\t\tBank Capacity: ${simulationResult.sramModelDataTable.get.sramA.capacityKb} KB")
+      log(s"\t\t\t\tBank Bandwidth: ${simulationResult.sramModelDataTable.get.sramA.bandwidthBits}")
 
-      log(s"\t\t\t\tBank Read Energy Per Access: ${simulationResult.sramModelDataTable.get.sramA.referenceData.readEnergyPj} pJ")
-      log(s"\t\t\t\tBank Write Energy Per Access: ${simulationResult.sramModelDataTable.get.sramA.referenceData.writeEnergyPj} pJ")
-      log(s"\t\t\t\tBank Leakage Power: ${simulationResult.sramModelDataTable.get.sramA.referenceData.leakagePowerPw} pW")
-      log(s"\t\t\t\tBank Area: ${simulationResult.sramModelDataTable.get.sramA.referenceData.areaUm2} um^2\n")
-      log(s"\t\t\t\tTotal SRAM Capacity: ${simulationResult.sramModelDataTable.get.sramA.totalSramCapacityKb} KB")
-      log(s"\t\t\t\tTotal SRAM Area: ${simulationResult.sramModelDataTable.get.sramA.totalSramSizeUm2} um^2")
+      log(s"\t\t\t\tBank Read Energy Per Access: ${simulationResult.sramModelDataTable.get.sramA.readEnergyPj} pJ")
+      log(s"\t\t\t\tBank Write Energy Per Access: ${simulationResult.sramModelDataTable.get.sramA.writeEnergyPj} pJ")
+      log(s"\t\t\t\tBank Leakage Power: ${simulationResult.sramModelDataTable.get.sramA.leakagePowerPw} pW")
+      log(s"\t\t\t\tBank Area: ${simulationResult.sramModelDataTable.get.sramA.areaUm2} um^2\n")
+
       log(s"")
       log(s"\t\t\t[Weight SRAM B]")
-      log(s"\t\t\t\tBank Count: ${simulationResult.sramModelDataTable.get.sramB.bankCount}")
-      log(s"\t\t\t\tBank Capacity: ${simulationResult.sramModelDataTable.get.sramB.referenceData.capacityKb} KB")
-      log(s"\t\t\t\tBank Bandwidth: ${simulationResult.sramModelDataTable.get.sramB.referenceData.bandwidthBits}")
-      log(s"\t\t\t\tBank Read Energy Per Access: ${simulationResult.sramModelDataTable.get.sramB.referenceData.readEnergyPj} pJ")
-      log(s"\t\t\t\tBank Write Energy Per Access: ${simulationResult.sramModelDataTable.get.sramB.referenceData.writeEnergyPj} pJ")
-      log(s"\t\t\t\tBank Leakage Power: ${simulationResult.sramModelDataTable.get.sramB.referenceData.leakagePowerPw} pW")
-      log(s"\t\t\t\tBank Area: ${simulationResult.sramModelDataTable.get.sramB.referenceData.areaUm2} um^2\n")
-      log(s"\t\t\t\tTotal SRAM Capacity: ${simulationResult.sramModelDataTable.get.sramB.totalSramCapacityKb} KB")
-      log(s"\t\t\t\tTotal SRAM Area: ${simulationResult.sramModelDataTable.get.sramB.totalSramSizeUm2} um^2")
+      log(s"\t\t\t\tBank Capacity: ${simulationResult.sramModelDataTable.get.sramB.capacityKb} KB")
+      log(s"\t\t\t\tBank Bandwidth: ${simulationResult.sramModelDataTable.get.sramB.bandwidthBits}")
+      log(s"\t\t\t\tBank Read Energy Per Access: ${simulationResult.sramModelDataTable.get.sramB.readEnergyPj} pJ")
+      log(s"\t\t\t\tBank Write Energy Per Access: ${simulationResult.sramModelDataTable.get.sramB.writeEnergyPj} pJ")
+      log(s"\t\t\t\tBank Leakage Power: ${simulationResult.sramModelDataTable.get.sramB.leakagePowerPw} pW")
+      log(s"\t\t\t\tBank Area: ${simulationResult.sramModelDataTable.get.sramB.areaUm2} um^2\n")
+
       log(s"")
       log(s"\t\t\t[Output SRAM C]")
-      log(s"\t\t\t\tBank Count: ${simulationResult.sramModelDataTable.get.sramC.bankCount}")
-      log(s"\t\t\t\tBank Capacity: ${simulationResult.sramModelDataTable.get.sramC.referenceData.capacityKb} KB")
-      log(s"\t\t\t\tBank Bandwidth: ${simulationResult.sramModelDataTable.get.sramC.referenceData.bandwidthBits}")
-      log(s"\t\t\t\tBank Read Energy Per Access: ${simulationResult.sramModelDataTable.get.sramC.referenceData.readEnergyPj} pJ")
-      log(s"\t\t\t\tBank Write Energy Per Access: ${simulationResult.sramModelDataTable.get.sramC.referenceData.writeEnergyPj} pJ")
-      log(s"\t\t\t\tBank Leakage Power: ${simulationResult.sramModelDataTable.get.sramC.referenceData.leakagePowerPw} pW")
-      log(s"\t\t\t\tBank Area: ${simulationResult.sramModelDataTable.get.sramC.referenceData.areaUm2} um^2\n")
-      log(s"\t\t\t\tTotal SRAM Capacity: ${simulationResult.sramModelDataTable.get.sramC.totalSramCapacityKb} KB")
-      log(s"\t\t\t\tTotal SRAM Area: ${simulationResult.sramModelDataTable.get.sramC.totalSramSizeUm2} um^2\n")
+      log(s"\t\t\t\tBank Capacity: ${simulationResult.sramModelDataTable.get.sramC.capacityKb} KB")
+      log(s"\t\t\t\tBank Bandwidth: ${simulationResult.sramModelDataTable.get.sramC.bandwidthBits}")
+      log(s"\t\t\t\tBank Read Energy Per Access: ${simulationResult.sramModelDataTable.get.sramC.readEnergyPj} pJ")
+      log(s"\t\t\t\tBank Write Energy Per Access: ${simulationResult.sramModelDataTable.get.sramC.writeEnergyPj} pJ")
+      log(s"\t\t\t\tBank Leakage Power: ${simulationResult.sramModelDataTable.get.sramC.leakagePowerPw} pW")
+      log(s"\t\t\t\tBank Area: ${simulationResult.sramModelDataTable.get.sramC.areaUm2} um^2\n")
+
 
     } else {
       log(s"\t[${architecture.arrayConfig.arrayConfigString}]")
@@ -344,37 +376,31 @@ class ArchitectureOptimizer(
       log(s"\t\t\tOutput Bandwidth C: ${architecture.arrayConfig.outputBandwidth}\n")
       log(s"\t\t[SRAM Modeling information]")
       log(s"\t\t\t[Input SRAM A]")
-      log(s"\t\t\t\tBank Count: ${simulationResult.sramModelDataTable.get.sramA.bankCount}")
-      log(s"\t\t\t\tBank Capacity: ${simulationResult.sramModelDataTable.get.sramA.referenceData.capacityKb} KB")
-      log(s"\t\t\t\tBank Bandwidth: ${simulationResult.sramModelDataTable.get.sramA.referenceData.bandwidthBits}")
-      log(s"\t\t\t\tBank Read Energy Per Access: ${simulationResult.sramModelDataTable.get.sramA.referenceData.readEnergyPj} pJ")
-      log(s"\t\t\t\tBank Write Energy Per Access: ${simulationResult.sramModelDataTable.get.sramA.referenceData.writeEnergyPj} pJ")
-      log(s"\t\t\t\tBank Leakage Power: ${simulationResult.sramModelDataTable.get.sramA.referenceData.leakagePowerPw} pW")
-      log(s"\t\t\t\tBank Area: ${simulationResult.sramModelDataTable.get.sramA.referenceData.areaUm2} um^2\n")
-      log(s"\t\t\t\tTotal SRAM Capacity: ${simulationResult.sramModelDataTable.get.sramA.totalSramCapacityKb} KB")
-      log(s"\t\t\t\tTotal SRAM Area: ${simulationResult.sramModelDataTable.get.sramA.totalSramSizeUm2} um^2")
+      log(s"\t\t\t\tBank Capacity: ${simulationResult.sramModelDataTable.get.sramA.capacityKb} KB")
+      log(s"\t\t\t\tBank Bandwidth: ${simulationResult.sramModelDataTable.get.sramA.bandwidthBits}")
+      log(s"\t\t\t\tBank Read Energy Per Access: ${simulationResult.sramModelDataTable.get.sramA.readEnergyPj} pJ")
+      log(s"\t\t\t\tBank Write Energy Per Access: ${simulationResult.sramModelDataTable.get.sramA.writeEnergyPj} pJ")
+      log(s"\t\t\t\tBank Leakage Power: ${simulationResult.sramModelDataTable.get.sramA.leakagePowerPw} pW")
+      log(s"\t\t\t\tBank Area: ${simulationResult.sramModelDataTable.get.sramA.areaUm2} um^2\n")
+
       log(s"")
       log(s"\t\t\t[Weight SRAM B]")
-      log(s"\t\t\t\tBank Count: ${simulationResult.sramModelDataTable.get.sramB.bankCount}")
-      log(s"\t\t\t\tBank Capacity: ${simulationResult.sramModelDataTable.get.sramB.referenceData.capacityKb} KB")
-      log(s"\t\t\t\tBank Bandwidth: ${simulationResult.sramModelDataTable.get.sramB.referenceData.bandwidthBits}")
-      log(s"\t\t\t\tBank Read Energy Per Access: ${simulationResult.sramModelDataTable.get.sramB.referenceData.readEnergyPj} pJ")
-      log(s"\t\t\t\tBank Write Energy Per Access: ${simulationResult.sramModelDataTable.get.sramB.referenceData.writeEnergyPj} pJ")
-      log(s"\t\t\t\tBank Leakage Power: ${simulationResult.sramModelDataTable.get.sramB.referenceData.leakagePowerPw} pW")
-      log(s"\t\t\t\tBank Area: ${simulationResult.sramModelDataTable.get.sramB.referenceData.areaUm2} um^2\n")
-      log(s"\t\t\t\tTotal SRAM Capacity: ${simulationResult.sramModelDataTable.get.sramB.totalSramCapacityKb} KB")
-      log(s"\t\t\t\tTotal SRAM Area: ${simulationResult.sramModelDataTable.get.sramB.totalSramSizeUm2} um^2")
+      log(s"\t\t\t\tBank Capacity: ${simulationResult.sramModelDataTable.get.sramB.capacityKb} KB")
+      log(s"\t\t\t\tBank Bandwidth: ${simulationResult.sramModelDataTable.get.sramB.bandwidthBits}")
+      log(s"\t\t\t\tBank Read Energy Per Access: ${simulationResult.sramModelDataTable.get.sramB.readEnergyPj} pJ")
+      log(s"\t\t\t\tBank Write Energy Per Access: ${simulationResult.sramModelDataTable.get.sramB.writeEnergyPj} pJ")
+      log(s"\t\t\t\tBank Leakage Power: ${simulationResult.sramModelDataTable.get.sramB.leakagePowerPw} pW")
+      log(s"\t\t\t\tBank Area: ${simulationResult.sramModelDataTable.get.sramB.areaUm2} um^2\n")
+
       log(s"")
       log(s"\t\t\t[Output SRAM C]")
-      log(s"\t\t\t\tBank Count: ${simulationResult.sramModelDataTable.get.sramC.bankCount}")
-      log(s"\t\t\t\tBank Capacity: ${simulationResult.sramModelDataTable.get.sramC.referenceData.capacityKb} KB")
-      log(s"\t\t\t\tBank Bandwidth: ${simulationResult.sramModelDataTable.get.sramC.referenceData.bandwidthBits}")
-      log(s"\t\t\t\tBank Read Energy Per Access: ${simulationResult.sramModelDataTable.get.sramC.referenceData.readEnergyPj} pJ")
-      log(s"\t\t\t\tBank Write Energy Per Access: ${simulationResult.sramModelDataTable.get.sramC.referenceData.writeEnergyPj} pJ")
-      log(s"\t\t\t\tBank Leakage Power: ${simulationResult.sramModelDataTable.get.sramC.referenceData.leakagePowerPw} pW")
-      log(s"\t\t\t\tBank Area: ${simulationResult.sramModelDataTable.get.sramC.referenceData.areaUm2} um^2\n")
-      log(s"\t\t\t\tTotal SRAM Capacity: ${simulationResult.sramModelDataTable.get.sramC.totalSramCapacityKb} KB")
-      log(s"\t\t\t\tTotal SRAM Area: ${simulationResult.sramModelDataTable.get.sramC.totalSramSizeUm2} um^2\n")
+      log(s"\t\t\t\tBank Capacity: ${simulationResult.sramModelDataTable.get.sramC.capacityKb} KB")
+      log(s"\t\t\t\tBank Bandwidth: ${simulationResult.sramModelDataTable.get.sramC.bandwidthBits}")
+      log(s"\t\t\t\tBank Read Energy Per Access: ${simulationResult.sramModelDataTable.get.sramC.readEnergyPj} pJ")
+      log(s"\t\t\t\tBank Write Energy Per Access: ${simulationResult.sramModelDataTable.get.sramC.writeEnergyPj} pJ")
+      log(s"\t\t\t\tBank Leakage Power: ${simulationResult.sramModelDataTable.get.sramC.leakagePowerPw} pW")
+      log(s"\t\t\t\tBank Area: ${simulationResult.sramModelDataTable.get.sramC.areaUm2} um^2\n")
+
 
     }
 
@@ -392,7 +418,7 @@ class ArchitectureOptimizer(
         s"${simulationResult.cycle}, " +
         s"${String.format("%.2f", simulationResult.areaUm2.get)}, " +
         s"${String.format("%.2f", simulationResult.energyPj.get)}, " +
-        s"${String.format("%.6f", simulationResult.edap.get)}, " +
+        s"${String.format("%.6f", simulationResult.tops.get)}, " +
         s"${architecture.streamingDimensionSize}, " +
         s"${architecture.singleBufferLimitKbA}, " +
         s"${architecture.singleBufferLimitKbB}, " +
@@ -406,7 +432,7 @@ class ArchitectureOptimizer(
         s"${simulationResult.cycle}, " +
         s"${String.format("%.2f", simulationResult.areaUm2.get)}, " +
         s"${String.format("%.2f", simulationResult.energyPj.get)}, " +
-        s"${String.format("%.6f", simulationResult.edap.get)}, " +
+        s"${String.format("%.6f", simulationResult.tops.get)}, " +
         s"${architecture.streamingDimensionSize}, " +
         s"${architecture.singleBufferLimitKbA}, " +
         s"${architecture.singleBufferLimitKbB}, " +
@@ -524,10 +550,10 @@ class ArchitectureOptimizer(
           case Left(_) =>
             if (currentArch.streamingDimensionSize > 1) {
 
-//              log(s"\t\t\tStreaming Dimension ${currentArch.streamingDimensionSize} is too high to build SRAM")
+              //              log(s"\t\t\tStreaming Dimension ${currentArch.streamingDimensionSize} is too high to build SRAM")
               val newStreamingDimSize = Math.max(1, currentArch.streamingDimensionSize / 2)
 
-//              log(s"\t\t\thalf the streaming dimension as $newStreamingDimSize\n")
+              //              log(s"\t\t\thalf the streaming dimension as $newStreamingDimSize\n")
               currentArch = currentArch.withStreamingDimensionSize(newStreamingDimSize)
               attempts += 1
 
@@ -555,7 +581,6 @@ class ArchitectureOptimizer(
       buildAndRunSimulation(architecture = arch)
     }
 
-    // Safely convert back to ArrayBuffer
     val resultBuffer = new ArrayBuffer[ArchitectureResult]()
     resultBuffer ++= parallelResults.seq
     resultBuffer
@@ -564,18 +589,18 @@ class ArchitectureOptimizer(
 
 
   private def optimizeSramStreamingTradeOffs(
-    archResultBuffer: ArrayBuffer[ArchitectureResult],
-    processMargin: Double
-  ): ArrayBuffer[ArchitectureResult] = {
+                                              archResultBuffer: ArrayBuffer[ArchitectureResult],
+                                              processMargin: Double
+                                            ): ArrayBuffer[ArchitectureResult] = {
     val maxIterations = 10
     var iteration = 0
     var globalMadeProgress = true
 
     case class ArchitectureState(
-      archResult: ArchitectureResult,
-      canOptimize: Boolean = true,
-      madeProgress: Boolean = false
-    )
+                                  archResult: ArchitectureResult,
+                                  canOptimize: Boolean = true,
+                                  madeProgress: Boolean = false
+                                )
 
     var architectureStates = archResultBuffer.map(ArchitectureState(_))
     var previousResults = archResultBuffer.clone()
@@ -627,7 +652,7 @@ class ArchitectureOptimizer(
     }
 
     val result = architectureStates.map(_.archResult)
-//    logStatistics(result)
+    //    logStatistics(result)
     log("")
     result
 
@@ -645,9 +670,9 @@ class ArchitectureOptimizer(
         newResult.areaUm2.exists( a =>
           currentResult.areaUm2.exists(ca => a < ca)
         )
-      case SystemArchitectureOptimizer.OptimizationMetric.EDAP =>
-        newResult.edap.exists(a =>
-          currentResult.edap.exists(ca => a < ca)
+      case SystemArchitectureOptimizer.OptimizationMetric.TOPS =>
+        newResult.tops.exists(a =>
+          currentResult.tops.exists(ca => a > ca)
         )
     }
   }
@@ -657,7 +682,7 @@ class ArchitectureOptimizer(
     val currentArch = currentArchResult.architecture
 
     if(currentArch.singleBufferLimitKbA <= minSramSize){
-//      log(s"\t\t\tCannot reduce SRAM size further (minimum reached: $minSramSize")
+      //      log(s"\t\t\tCannot reduce SRAM size further (minimum reached: $minSramSize")
       return currentArchResult
     }
 
@@ -670,7 +695,7 @@ class ArchitectureOptimizer(
 
     val sramReducedArch = currentArch.withUniformSramSizes(nextSramSize)
 
-//    log(s"\t\t\tTrying to reduce SRAM size from ${currentArch.singleBufferLimitKbA} KB to $nextSramSize KB")
+    //    log(s"\t\t\tTrying to reduce SRAM size from ${currentArch.singleBufferLimitKbA} KB to $nextSramSize KB")
 
     val sramReducedArchResult = buildAndRunSimulation(sramReducedArch)
     val isSramReductionValid = sramReducedArchResult.simulationResult.cycle != Long.MaxValue
@@ -678,9 +703,9 @@ class ArchitectureOptimizer(
     if(isSramReductionValid) {
       sramReducedArchResult
     } else {
-//      log("\t\t\tSRAM reduction failed to build. Trying combined reduction next")
+      //      log("\t\t\tSRAM reduction failed to build. Trying combined reduction next")
       if(currentArch.streamingDimensionSize <= 1){
-//        log(s"\t\t\tCannot reduce streaming dimension further (minimum reached: 1")
+        //        log(s"\t\t\tCannot reduce streaming dimension further (minimum reached: 1")
         currentArchResult
       } else {
         val nextStreamingDimensionSize = math.max(1, currentArch.streamingDimensionSize / 2)
@@ -701,8 +726,8 @@ class ArchitectureOptimizer(
   }
 
   private def halfSingleSramSizes(
-    archResultBuffer: ArrayBuffer[ArchitectureResult],
-  ): ArrayBuffer[ArchitectureResult] = {
+                                   archResultBuffer: ArrayBuffer[ArchitectureResult],
+                                 ): ArrayBuffer[ArchitectureResult] = {
 
     @tailrec
     def halfSingleSramSize(currentEval: ArchitectureResult): ArchitectureResult= {
@@ -716,7 +741,7 @@ class ArchitectureOptimizer(
       val currentSimulationResult = currentEval.simulationResult
 
       if(currentSingleSramSize <= minSramSize){
-//        log(s"\t\t\t${currentArch.arrayConfig.arrayConfigString} cannot reduce SRAM size further (minimum reached: ${minSramSize}KB)")
+        //        log(s"\t\t\t${currentArch.arrayConfig.arrayConfigString} cannot reduce SRAM size further (minimum reached: ${minSramSize}KB)")
         return currentEval
       }
 
@@ -738,7 +763,7 @@ class ArchitectureOptimizer(
 
     }
 
-//    archResultBuffer.par.map(halfSingleSramSize).to(ArrayBuffer)
+    //    archResultBuffer.par.map(halfSingleSramSize).to(ArrayBuffer)
     val parallelResults = archResultBuffer.par.map(halfSingleSramSize)
 
     val resultBuffer = ArrayBuffer.empty[ArchitectureResult]
@@ -749,37 +774,41 @@ class ArchitectureOptimizer(
   }
 
   private def rankResults(
-    results: ArrayBuffer[ArchitectureResult],
-    marginPercent: Double,
-  ): ArrayBuffer[ArchitectureResult] = {
-
+                           results: ArrayBuffer[ArchitectureResult],
+                           marginPercent: Double,
+                         ): ArrayBuffer[ArchitectureResult] = {
+    if (results.isEmpty) {
+      println(s"Warning: No results to rank - returning empty buffer")
+      log(s"\t\tWarning: No results to rank - returning empty buffer")
+      return ArrayBuffer.empty[ArchitectureResult]
+    }
     val metric = simConfig.metric
 
     val threshold = metric match {
       case SystemArchitectureOptimizer.OptimizationMetric.Cycle =>
         val minCycle: Long = results.map(_.simulationResult.cycle).min
-        (minCycle.toDouble * (1 + marginPercent/100.0)).toLong
+        minCycle.toDouble * (1.0 + marginPercent/100.0)
       case SystemArchitectureOptimizer.OptimizationMetric.Energy =>
         val minEnergy = results.flatMap(_.simulationResult.energyPj).min
-        minEnergy * (1 + marginPercent/100.0)
+        minEnergy * (1.0 + marginPercent/100.0)
       case SystemArchitectureOptimizer.OptimizationMetric.Area =>
         val minArea = results.flatMap(_.simulationResult.areaUm2).min
-        minArea * (1 + marginPercent/100.0)
-      case SystemArchitectureOptimizer.OptimizationMetric.EDAP =>
-        val minAreaEnergyProduct = results.flatMap(_.simulationResult.edap).min
-        minAreaEnergyProduct * (1 + marginPercent/100.0)
+        minArea * (1.0 + marginPercent/100.0)
+      case SystemArchitectureOptimizer.OptimizationMetric.TOPS =>
+        val minAreaEnergyProduct = results.flatMap(_.simulationResult.tops).max
+        minAreaEnergyProduct * (1.0 - marginPercent/100.0)
     }
 
     val filteredResults = results.filter { result =>
       metric match {
         case SystemArchitectureOptimizer.OptimizationMetric.Cycle =>
-          result.simulationResult.cycle <= threshold
+          result.simulationResult.cycle <= threshold.toLong
         case SystemArchitectureOptimizer.OptimizationMetric.Energy =>
           result.simulationResult.energyPj.exists(_ <= threshold)
         case SystemArchitectureOptimizer.OptimizationMetric.Area =>
           result.simulationResult.areaUm2.exists(_ <= threshold)
-        case SystemArchitectureOptimizer.OptimizationMetric.EDAP =>
-          result.simulationResult.edap.exists(_ <= threshold)
+        case SystemArchitectureOptimizer.OptimizationMetric.TOPS =>
+          result.simulationResult.tops.exists(_ >= threshold)
       }
     }
 
@@ -790,8 +819,8 @@ class ArchitectureOptimizer(
         filteredResults.sortBy(_.simulationResult.energyPj.get)
       case SystemArchitectureOptimizer.OptimizationMetric.Area =>
         filteredResults.sortBy(_.simulationResult.areaUm2.get)
-      case SystemArchitectureOptimizer.OptimizationMetric.EDAP =>
-        filteredResults.sortBy(_.simulationResult.edap.get)
+      case SystemArchitectureOptimizer.OptimizationMetric.TOPS =>
+        filteredResults.sortBy(_.simulationResult.tops.get).reverse
     }
 
     sortedResults
@@ -799,8 +828,8 @@ class ArchitectureOptimizer(
   }
 
   private def buildAndRunSimulation(
-    architecture: Architecture
-  ): ArchitectureResult = {
+                                     architecture: Architecture
+                                   ): ArchitectureResult = {
     buildSimulationComp(architecture) match {
       case Right(comp) =>
         val result = runSimulation(comp)
@@ -809,35 +838,59 @@ class ArchitectureOptimizer(
         ArchitectureResult(architecture = architecture, simulationResult = SimulationResult(Long.MaxValue, Double.MaxValue, Double.MaxValue))
     }
   }
-//
+  //
   private def buildSrams(
-    arrayConfig: ArrayConfig,
-    simConfig: SystemArchitectureOptimizer.SimulationConfig,
-    singleBufferLimitKbA: Int,
-    singleBufferLimitKbB: Int,
-    singleBufferLimitKbC: Int,
-    tileSizeA: Int,
-    tileSizeB: Int,
-    tileSizeC: Int,
-    loggerOption: LoggerOption
-  ): Either[SramBuildError,(DoubleBufferSram, DoubleBufferSram, OutputDoubleBufferSram)] = {
+                          arrayConfig: ArrayConfig,
+                          simConfig: SystemArchitectureOptimizer.SimulationConfig,
+                          singleBufferLimitKbA: Int,
+                          singleBufferLimitKbB: Int,
+                          singleBufferLimitKbC: Int,
+                          tileSizeA: Int,
+                          tileSizeB: Int,
+                          tileSizeC: Int,
+                          loggerOption: LoggerOption
+                        ): Either[SramBuildError,(DoubleBufferSram, DoubleBufferSram, OutputDoubleBufferSram)] = {
 
     val capacityA = singleBufferLimitKbA * 8 * 1024 / tileSizeA
     val capacityB = singleBufferLimitKbB * 8 * 1024 / tileSizeB
     val capacityC = singleBufferLimitKbC * 8 * 1024 / tileSizeC
 
     if(!(capacityA > 0 && capacityB > 0 && capacityC > 0 )) {
-//        log(s"\t\tBuilding SRAM is failed: ${arrayConfig.arrayConfigString}\n" +
-//          s"\t\t\tSRAM A Capacity: $capacityA, SRAM B Capacity: $capacityB, SRAM C Capacity: $capacityC\n" +
-//          s"\t\t\tTile Size A: $tileSizeA, Tile Size B: $tileSizeB, Tile Size C: $tileSizeC")
+      //        log(s"\t\tBuilding SRAM is failed: ${arrayConfig.arrayConfigString}\n" +
+      //          s"\t\t\tSRAM A Capacity: $capacityA, SRAM B Capacity: $capacityB, SRAM C Capacity: $capacityC\n" +
+      //          s"\t\t\tTile Size A: $tileSizeA, Tile Size B: $tileSizeB, Tile Size C: $tileSizeC")
 
       Left(SramBuildError("SRAM Cannot contain even 1 tile"))
     } else {
+
+      val sramReferenceDataA: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+        vector.find{ data =>
+          data.capacityKb == singleBufferLimitKbA && data.bandwidthBits >= arrayConfig.bandwidthOfInputA
+        }
+      }
+
+      val sramReferenceDataB: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+        vector.find{ data =>
+          data.capacityKb == singleBufferLimitKbB && data.bandwidthBits >= arrayConfig.bandwidthOfInputB
+        }
+      }
+
+      val sramReferenceDataC: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+        vector.find{ data =>
+          data.capacityKb == singleBufferLimitKbC && data.bandwidthBits >= arrayConfig.outputBandwidth
+        }
+      }
+
+      if(sramReferenceDataA.isEmpty || sramReferenceDataB.isEmpty || sramReferenceDataC.isEmpty){
+        throw ParseError("Cannot find SRAM data from external reports ...")
+      }
+
       val sramA = new DoubleBufferSram(
         dataType = DataType.A,
         outputBandwidth = arrayConfig.bandwidthOfInputA,
         singleBufferTileCapacity = capacityA,
         singleBufferLimitKb = singleBufferLimitKbA,
+        referenceData = sramReferenceDataA,
         loggerOption = loggerOption
       )
       val sramB = new DoubleBufferSram(
@@ -845,12 +898,14 @@ class ArchitectureOptimizer(
         outputBandwidth = arrayConfig.bandwidthOfInputB,
         singleBufferTileCapacity = capacityB,
         singleBufferLimitKb = singleBufferLimitKbB,
+        referenceData = sramReferenceDataB,
         loggerOption = loggerOption
       )
       val sramC = new OutputDoubleBufferSram(
         outputBandwidth = simConfig.offChipMemoryBandwidth,
         singleBufferTileCapacity = capacityC,
         singleBufferLimitKb = singleBufferLimitKbC,
+        referenceData = sramReferenceDataC,
         loggerOption = loggerOption
       )
       Right((sramA, sramB, sramC))
@@ -858,8 +913,8 @@ class ArchitectureOptimizer(
   }
 
   private def buildSimulationComp(
-    architecture: Architecture
-  ): Either[SramBuildError,(Layer, OffChipMemory, Array, (DoubleBufferSram, DoubleBufferSram, OutputDoubleBufferSram), Interface)] = {
+                                   architecture: Architecture
+                                 ): Either[SramBuildError,(Layer, OffChipMemory, Array, (DoubleBufferSram, DoubleBufferSram, OutputDoubleBufferSram), Interface)] = {
 
     val layer = new Layer(
       layerName = simConfig.layerName,
@@ -910,8 +965,8 @@ class ArchitectureOptimizer(
 
 
   private def runSimulation(
-    components: (Layer, OffChipMemory, Array, (DoubleBufferSram, DoubleBufferSram, OutputDoubleBufferSram), Interface)
-  ): SimulationResult = {
+                             components: (Layer, OffChipMemory, Array, (DoubleBufferSram, DoubleBufferSram, OutputDoubleBufferSram), Interface)
+                           ): SimulationResult = {
 
     val (layer, offChipMemory, array, srams, interface)= components
     val (sramA, sramB, sramC) = srams
@@ -927,7 +982,6 @@ class ArchitectureOptimizer(
         interface = interface,
         layer = layer,
         array = array,
-        sramReferenceDataVector = simConfig.sramReferenceDataVector,
         loggerOption = loggerOption,
       )
 
@@ -956,10 +1010,15 @@ class ArchitectureOptimizer(
 
         offChipMemoryReadAccessCount = simulation.getOffChipMemoryReadAccessCount,
         offChipMemoryWriteAccessCount = simulation.getOffChipMemoryWriteAccessCount,
+
         sramReadAccessCountA = simulation.getSramReadAccessCountA,
         sramWriteAccessCountA = simulation.getSramWriteAccessCountA,
+
         sramReadAccessCountB = simulation.getSramReadAccessCountB,
         sramWriteAccessCountB = simulation.getSramWriteAccessCountB,
+
+        sramReadAccessCountC = simulation.getSramReadAccessCountC,
+        sramWriteAccessCountC = simulation.getSramWriteAccessCountC,
 
         offChipMemoryHitRatio = simulation.getTotalOffChipMemoryHitCount,
         offChipMemoryMissRatio = simulation.getTotalOffChipMemoryMissCount,
@@ -1004,7 +1063,7 @@ class ArchitectureOptimizer(
         sramLeakageEnergyPjA = simulation.getSramLeakageEnergyA,
         sramEnergyPjA = simulation.getSramEnergyA,
 
-        sramReadEnergyPjB = simulation.getSramWriteEnergyB,
+        sramReadEnergyPjB = simulation.getSramReadEnergyB,
         sramWriteEnergyPjB = simulation.getSramWriteEnergyB,
         sramLeakageEnergyPjB = simulation.getSramLeakageEnergyB,
         sramEnergyPjB = simulation.getSramEnergyB,
@@ -1031,7 +1090,7 @@ class ArchitectureOptimizer(
         arrayAreaUm2 = simulation.getArrayArea,
         areaUm2 = simulation.getArea,
 
-        edap = simulation.calculateEDAP
+        tops = simulation.calculateTOPS
 
       )
 

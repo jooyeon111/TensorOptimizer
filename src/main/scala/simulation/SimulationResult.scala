@@ -27,10 +27,14 @@ case class SimulationResult(
 
   offChipMemoryReadAccessCount: Long,
   offChipMemoryWriteAccessCount: Long,
+
   sramReadAccessCountA: Long,
   sramWriteAccessCountA: Long,
   sramReadAccessCountB: Long,
   sramWriteAccessCountB: Long,
+
+  sramReadAccessCountC: Long,
+  sramWriteAccessCountC: Long,
 
   offChipMemoryHitRatio: Double,
   offChipMemoryMissRatio: Double,
@@ -108,7 +112,7 @@ case class SimulationResult(
   arrayAreaUm2: Option[Double],
   areaUm2: Option[Double],
 
-  edap: Option[Double],
+  tops: Option[Double],
 
 ) extends Logger {
 
@@ -188,37 +192,28 @@ case class SimulationResult(
       log(s"")
       log(s"\t[SRAM Data from NVSim]")
       log(s"\t\t[Input SRAM A]")
-      log(s"\t\t\tBank Count: ${sramModelDataTable.get.sramA.bankCount}")
-      log(s"\t\t\tBank Capacity: ${sramModelDataTable.get.sramA.referenceData.capacityKb} KB")
-      log(s"\t\t\tBank Bandwidth: ${sramModelDataTable.get.sramA.referenceData.bandwidthBits}")
-      log(s"\t\t\tBank Read Energy Per Access: ${sramModelDataTable.get.sramA.referenceData.readEnergyPj} pJ")
-      log(s"\t\t\tBank Write Energy Per Access: ${sramModelDataTable.get.sramA.referenceData.writeEnergyPj} pJ")
-      log(s"\t\t\tBank Leakage Power: ${sramModelDataTable.get.sramA.referenceData.leakagePowerPw} pW")
-      log(s"\t\t\tBank Area: ${sramModelDataTable.get.sramA.referenceData.areaUm2} um^2\n")
-      log(s"\t\t\tTotal SRAM Capacity: ${sramModelDataTable.get.sramA.totalSramCapacityKb} KB")
-      log(s"\t\t\tTotal SRAM Area: ${sramModelDataTable.get.sramA.totalSramSizeUm2} um^2")
+      log(s"\t\t\tCapacity: ${sramModelDataTable.get.sramA.capacityKb} KB")
+      log(s"\t\t\tBandwidth: ${sramModelDataTable.get.sramA.bandwidthBits}")
+      log(s"\t\t\tRead Energy Per Access: ${sramModelDataTable.get.sramA.readEnergyPj} pJ")
+      log(s"\t\t\tWrite Energy Per Access: ${sramModelDataTable.get.sramA.writeEnergyPj} pJ")
+      log(s"\t\t\tLeakage Power: ${sramModelDataTable.get.sramA.leakagePowerPw} pW")
+      log(s"\t\t\tArea: ${sramModelDataTable.get.sramA.areaUm2} um^2\n")
       log(s"")
       log(s"\t\t\t[Weight SRAM B]")
-      log(s"\t\t\tBank Count: ${sramModelDataTable.get.sramB.bankCount}")
-      log(s"\t\t\tBank Capacity: ${sramModelDataTable.get.sramB.referenceData.capacityKb} KB")
-      log(s"\t\t\tBank Bandwidth: ${sramModelDataTable.get.sramB.referenceData.bandwidthBits}")
-      log(s"\t\t\tBank Read Energy Per Access: ${sramModelDataTable.get.sramB.referenceData.readEnergyPj} pJ")
-      log(s"\t\t\tBank Write Energy Per Access: ${sramModelDataTable.get.sramB.referenceData.writeEnergyPj} pJ")
-      log(s"\t\t\tBank Leakage Power: ${sramModelDataTable.get.sramB.referenceData.leakagePowerPw} pW")
-      log(s"\t\t\tBank Area: ${sramModelDataTable.get.sramB.referenceData.areaUm2} um^2\n")
-      log(s"\t\t\tTotal SRAM Capacity: ${sramModelDataTable.get.sramB.totalSramCapacityKb} KB")
-      log(s"\t\t\tTotal SRAM Area: ${sramModelDataTable.get.sramB.totalSramSizeUm2} um^2")
+      log(s"\t\t\tCapacity: ${sramModelDataTable.get.sramB.capacityKb} KB")
+      log(s"\t\t\tBandwidth: ${sramModelDataTable.get.sramB.bandwidthBits}")
+      log(s"\t\t\tRead Energy Per Access: ${sramModelDataTable.get.sramB.readEnergyPj} pJ")
+      log(s"\t\t\tWrite Energy Per Access: ${sramModelDataTable.get.sramB.writeEnergyPj} pJ")
+      log(s"\t\t\tLeakage Power: ${sramModelDataTable.get.sramB.leakagePowerPw} pW")
+      log(s"\t\t\tArea: ${sramModelDataTable.get.sramB.areaUm2} um^2\n")
       log(s"")
       log(s"\t\t\t[Output SRAM C]")
-      log(s"\t\t\tBank Count: ${sramModelDataTable.get.sramC.bankCount}")
-      log(s"\t\t\tBank Capacity: ${sramModelDataTable.get.sramC.referenceData.capacityKb} KB")
-      log(s"\t\t\tBank Bandwidth: ${sramModelDataTable.get.sramC.referenceData.bandwidthBits}")
-      log(s"\t\t\tBank Read Energy Per Access: ${sramModelDataTable.get.sramC.referenceData.readEnergyPj} pJ")
-      log(s"\t\t\tBank Write Energy Per Access: ${sramModelDataTable.get.sramC.referenceData.writeEnergyPj} pJ")
-      log(s"\t\t\tBank Leakage Power: ${sramModelDataTable.get.sramC.referenceData.leakagePowerPw} pW")
-      log(s"\t\t\tBank Area: ${sramModelDataTable.get.sramC.referenceData.areaUm2} um^2\n")
-      log(s"\t\t\tTotal SRAM Capacity: ${sramModelDataTable.get.sramC.totalSramCapacityKb} KB")
-      log(s"\t\t\tTotal SRAM Area: ${sramModelDataTable.get.sramC.totalSramSizeUm2} um^2")
+      log(s"\t\t\tCapacity: ${sramModelDataTable.get.sramC.capacityKb} KB")
+      log(s"\t\t\tBandwidth: ${sramModelDataTable.get.sramC.bandwidthBits}")
+      log(s"\t\t\tRead Energy Per Access: ${sramModelDataTable.get.sramC.readEnergyPj} pJ")
+      log(s"\t\t\tWrite Energy Per Access: ${sramModelDataTable.get.sramC.writeEnergyPj} pJ")
+      log(s"\t\t\tLeakage Power: ${sramModelDataTable.get.sramC.leakagePowerPw} pW")
+      log(s"\t\t\tBank Area: ${sramModelDataTable.get.sramC.areaUm2} um^2\n")
       log(s"")
 
       if(arraySynthesisSource.isEmpty){
@@ -311,15 +306,15 @@ case class SimulationResult(
     }
 
     if (isEnergyReportValid && isAreaReportValid) {
-      log("\t[Energy-Area-Delay Product]")
-      log(s"\t\tEnergy-Area-Delay Product: ${String.format("%.2f", edap.get)} pJ*um^2")
+      log("\t[TOPS/W/mm^2]")
+      log(s"\t\tTOPS/W/mm^2: ${String.format("%.2f", tops.get)} TOPS/W/mm^2")
       log(s"")
       log(s"\t[Final CSV Format (Array Active Cycle, Cycle, Area, Energy, Area Energy Delay Product, Average Memory Utilization)]")
       log(s"\t\t$arrayActiveCount, " +
         s"$cycle, " +
         s"${String.format("%.2f", areaUm2.get)}, " +
         s"${String.format("%.2f", energyPj.get)}, " +
-        s"${String.format("%.2f", edap.get)}, " +
+        s"${String.format("%.2f", tops.get)}, " +
         s"${String.format("%.2f", averageMemoryUtilization)}")
       log(s"")
     }
@@ -401,10 +396,15 @@ object SimulationResult {
 
       offChipMemoryReadAccessCount = defaults.longValue,
       offChipMemoryWriteAccessCount = defaults.longValue,
+
       sramReadAccessCountA = defaults.longValue,
       sramWriteAccessCountA = defaults.longValue,
+
       sramReadAccessCountB = defaults.longValue,
       sramWriteAccessCountB = defaults.longValue,
+
+      sramReadAccessCountC = defaults.longValue,
+      sramWriteAccessCountC = defaults.longValue,
 
       offChipMemoryHitRatio = defaults.doubleValue,
       offChipMemoryMissRatio = defaults.doubleValue,
@@ -483,7 +483,7 @@ object SimulationResult {
       areaUm2 = Some(wrongArea),
 
       //9. EDAP
-      edap = None,
+      tops = None,
     )
   }
 }

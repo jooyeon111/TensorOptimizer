@@ -71,26 +71,6 @@ trait RtlGenerationManager extends OutputPortCalculator with RtlGenerator with L
 
   }
 
-  private def showConfigBandwidths(configs: Vector[ArrayConfig], resultType: String): Unit = {
-    configs.foreach(config =>log(
-      s"\t[${config.arrayConfigString}] " +
-        s"\tInput Bandwidth A: ${config.bandwidthOfInputA} " +
-        s"\tInput Bandwidth B: ${config.bandwidthOfInputB} " +
-        s"\tOutput Bandwidth C: ${config.outputBandwidth}"
-    ))
-
-    log(s"")
-    log(s"${configs.length} have been $resultType")
-    log(s"Minimum value input bandwidth A: ${configs.map(_.bandwidthOfInputA).min}")
-    log(s"Minimum value input bandwidth B: ${configs.map(_.bandwidthOfInputB).min}")
-    log(s"Minimum value output bandwidth C: ${configs.map(_.outputBandwidth).min}")
-    log(s"Max value input bandwidth A: ${configs.map(_.bandwidthOfInputA).max}")
-    log(s"Max value input bandwidth B: ${configs.map(_.bandwidthOfInputB).max}")
-    log(s"Max value output bandwidth C: ${configs.map(_.outputBandwidth).max}")
-    log(s"")
-
-  }
-
   private def generateVerilogForConfig(
     config: ArrayConfig,
     streamingDimensionSize: Int,
