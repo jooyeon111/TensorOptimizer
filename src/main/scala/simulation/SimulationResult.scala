@@ -307,14 +307,14 @@ case class SimulationResult(
 
     if (isEnergyReportValid && isAreaReportValid) {
       log("\t[TOPS/W/mm^2]")
-      log(s"\t\tTOPS/W/mm^2: ${String.format("%.2f", tops.get)} TOPS/W/mm^2")
+      log(s"\t\tTOPS/W/mm^2: ${String.format("%f", tops.get)} TOPS/W/mm^2")
       log(s"")
-      log(s"\t[Final CSV Format (Array Active Cycle, Cycle, Area, Energy, Area Energy Delay Product, Average Memory Utilization)]")
+      log(s"\t[Final CSV Format (Array Active Cycle, Cycle, Area, Energy,  TOPS/W/mm^2, Average Memory Utilization)]")
       log(s"\t\t$arrayActiveCount, " +
         s"$cycle, " +
         s"${String.format("%.2f", areaUm2.get)}, " +
         s"${String.format("%.2f", energyPj.get)}, " +
-        s"${String.format("%.2f", tops.get)}, " +
+        s"${String.format("%f", tops.get)}, " +
         s"${String.format("%.2f", averageMemoryUtilization)}")
       log(s"")
     }

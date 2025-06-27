@@ -580,13 +580,10 @@ class ArchitectureOptimizer(
     val parallelResults = architectureBuffer.par.map { arch =>
       buildAndRunSimulation(architecture = arch)
     }
-
     val resultBuffer = new ArrayBuffer[ArchitectureResult]()
     resultBuffer ++= parallelResults.seq
     resultBuffer
-
   }
-
 
   private def optimizeSramStreamingTradeOffs(
                                               archResultBuffer: ArrayBuffer[ArchitectureResult],
@@ -709,9 +706,27 @@ class ArchitectureOptimizer(
         currentArchResult
       } else {
         val nextStreamingDimensionSize = math.max(1, currentArch.streamingDimensionSize / 2)
+
+        val updatedArrayConfig = currentArch.arrayConfig.copy(
+          arraySynthesisData = FewShotPredictor.predict(
+            FewShotPredictor.InputFeatures(
+              dataflow = currentArch.arrayConfig.dataflow.toString.toUpperCase,
+              totalNumberOfMultipliers = currentArch.arrayConfig.totalNumberOfMultipliers,
+              r = currentArch.arrayConfig.groupPeRow,
+              c = currentArch.arrayConfig.groupPeCol,
+              a = currentArch.arrayConfig.vectorPeRow,
+              b = currentArch.arrayConfig.vectorPeCol,
+              p = currentArch.arrayConfig.numMultiplier,
+              streamingDimensionSize = nextStreamingDimensionSize
+            )
+          ).toOption
+        )
+
+
         val combinedReducedArch = currentArch
           .withUniformSramSizes(nextSramSize)
           .withStreamingDimensionSize(nextStreamingDimensionSize)
+          .copy(arrayConfig = updatedArrayConfig)
 
         val combinedReducedArchResult = buildAndRunSimulation(combinedReducedArch)
         val isCombinedResultValid = combinedReducedArchResult.simulationResult.cycle != Long.MaxValue

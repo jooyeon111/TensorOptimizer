@@ -1,5 +1,6 @@
 .PHONY: all
 all:
+# Optimizer
 	make -f Makefile.sim.optimizer.bert_base all
 	make -f Makefile.sim.optimizer.bloom_1b all
 	make -f Makefile.sim.optimizer.falcon_1b all
@@ -7,6 +8,8 @@ all:
 	make -f Makefile.sim.optimizer.llama_3b all
 	make -f Makefile.sim.optimizer.mistral_7b all
 	make -f Makefile.sim.optimizer.resnet_18 all
+# Analyzer
 	make -f Makefile.sim.analyzer.baseline all
+	make -f Makefile.sim.analyer.proposed all
 
 

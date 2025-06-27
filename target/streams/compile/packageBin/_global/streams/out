@@ -244,14 +244,10 @@
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/rtl/os_sta_8x128x4x4x1.sv[0m
 [0m[[0m[0mdebug[0m] [0m[0m	output/simulation[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation[0m
-[0m[[0m[0mdebug[0m] [0m[0m	output/simulation/result_bert_base_representation_projection_mult:16384.txt[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/result_bert_base_representation_projection_mult:16384.txt[0m
-[0m[[0m[0mdebug[0m] [0m[0m	output/simulation/result_bert_base_qkt_mult:16384.txt[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/result_bert_base_qkt_mult:16384.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	output/simulation/debug_bert_base_projection_ws_{16x16}x{2x2}x16}_sd_size_256_buffer_A:128_buffer_B:32_buffer_C:128.txt[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/debug_bert_base_projection_ws_{16x16}x{2x2}x16}_sd_size_256_buffer_A:128_buffer_B:32_buffer_C:128.txt[0m
 [0m[[0m[0mdebug[0m] [0m[0m	output/simulation/result_bert_base_projection_mult:16384.txt[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/result_bert_base_projection_mult:16384.txt[0m
-[0m[[0m[0mdebug[0m] [0m[0m	output/simulation/result_bert_base_qktv_mult:16384.txt[0m
-[0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/output/simulation/result_bert_base_qktv_mult:16384.txt[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation[0m
 [0m[[0m[0mdebug[0m] [0m[0m	  /home/jooyeon/aigis/target/scala-2.13/classes/simulation[0m
 [0m[[0m[0mdebug[0m] [0m[0m	simulation/RunTimeError$.class[0m

@@ -9,7 +9,6 @@ LAYER_DIR := $(INPUT_SIM)/layer
 TEST_OPTION_MULT := $(CONFIG_DIR)/proposed.cfg
 TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
 TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
-TEST_OPTION_RTL_RESULT_REF := $(SYNTHESIS)/weight.bin
 
 # bert
 BERT_BASE_PATH := $(LAYER_DIR)/bert/base
@@ -85,7 +84,7 @@ STAGE4_BLOCK2_CONV2 := $(RESNET_18_PATH)/stage4_block2_conv2.cfg
 FC := $(RESNET_18_PATH)/fc.cfg
 
 # Common arguments for all SBT runs
-COMMON_ARGS := $(TEST_OPTION_MULT) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_RTL_RESULT_REF)
+COMMON_ARGS := $(TEST_OPTION_MULT) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
 
 # Define targets for specific layers
 .PHONY: all bert_base bloom_1b falcon_1b llama_3b mistral_7b phi_2 resnet_18
@@ -95,42 +94,42 @@ all: bert_base bloom_1b falcon_1b llama_3b mistral_7b phi_2 resnet_18
 
 # Target to run a specific layer model
 bert_base:
-	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_EMBDDING) $(COMMON_ARGS)"
+	#sbt "runMain simulation.AnalyzerMain $(BERT_BASE_EMBDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKTV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_FINAL) $(COMMON_ARGS)"
 
 bloom_1b:
-	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_EMBEDDING) $(COMMON_ARGS)"
+	#sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKTV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_FINAL) $(COMMON_ARGS)"
 
 falcon_1b:
-	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_EMBEDDING) $(COMMON_ARGS)"
+	#sbt "runMain simulation.AnalyzerMain $(FALCON_1B_EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKTV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_FINAL) $(COMMON_ARGS)"
 
 llama_3b:
-	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_EMBEDDING) $(COMMON_ARGS)"
+	#sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_QKTV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_FINAL) $(COMMON_ARGS)"
 
 mistral_7b:
-	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_EMBEDDING) $(COMMON_ARGS)"
+	#sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKTV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_FINAL) $(COMMON_ARGS)"
 
 phi_2:
-	sbt "runMain simulation.AnalyzerMain $(PHI_2_EMBEDDING) $(COMMON_ARGS)"
+	#sbt "runMain simulation.AnalyzerMain $(PHI_2_EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKTV) $(COMMON_ARGS)"

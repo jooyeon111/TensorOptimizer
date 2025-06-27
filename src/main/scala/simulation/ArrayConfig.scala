@@ -48,7 +48,7 @@ case class ArrayConfig(
 
   val asArrayDimension: ArrayDimension = this
   val arrayConfigString: String = s"${dataflow.toString.toLowerCase}_$arrayDimensionString"
-  private val totalNumberOfMultipliers: Int = groupPeRow * groupPeCol * vectorPeRow * vectorPeCol * numMultiplier
+  val totalNumberOfMultipliers: Int = groupPeRow * groupPeCol * vectorPeRow * vectorPeCol * numMultiplier
 
   private val dimensionOfInputA: Int = groupPeRow * vectorPeRow * numMultiplier
   private val dimensionOfInputB: Int = groupPeCol * vectorPeCol * numMultiplier

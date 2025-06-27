@@ -7,6 +7,7 @@ import rtl.commonRtl.{Arithmetic, PortConfig}
 trait RtlGenerator {
 
   def generateRtl(verilogGenerationConfig: VerilogGenerationConfig): Unit = {
+
     val VerilogGenerationConfig(splitVerilogOutput, dataflow, arrayConfig, integerType, portBitWidthInfo, streamingDimensionSize) = verilogGenerationConfig
 
     integerType match {
