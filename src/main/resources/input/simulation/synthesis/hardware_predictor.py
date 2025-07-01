@@ -43,7 +43,7 @@ class HardwarePredictor:
         ]
 
         self.configs = {
-            'Area': {'sample_size': 25, 'alpha': 0.1, 'ensemble_size': 5, 'n_trials': 12},
+            'Area': {'sample_size': 25, 'alpha': 0.01, 'ensemble_size': 5, 'n_trials': 12},
             'Total Power': {'sample_size': 25, 'alpha': 0.001, 'ensemble_size': 10, 'n_trials': 12}
         }
 
@@ -437,17 +437,30 @@ class HardwarePredictor:
         """Save validation predictions to CSV"""
         with open("hardware_predictor_predictions.csv", 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            headers = ['Index', 'Dataflow', 'True_Area', 'Predicted_Area', 'True_Power', 'Predicted_Power']
+            headers = ['Dataflow', 'RxCxAxBxP', 'True Area', 'Predicted Area', 'True Power', 'Predicted Power', 'Area Error Percentage', 'Power Error Percentage']
             writer.writerow(headers)
 
             for i, val_row in enumerate(val_data):
+                # Create RxCxAxBxP format
+                dimension_str = f"{val_row['R']}x{val_row['C']}x{val_row['A']}x{val_row['B']}x{val_row['P']}"
+
+                # Get predictions
+                area_pred = results['Area']['best_result']['predictions'][i] if 'best_result' in results['Area'] else 0
+                power_pred = results['Total Power']['best_result']['predictions'][i] if 'best_result' in results['Total Power'] else 0
+
+                # Calculate error percentages
+                area_error = abs((val_row['Area'] - area_pred) / val_row['Area']) * 100 if val_row['Area'] != 0 else 0
+                power_error = abs((val_row['Total Power'] - power_pred) / val_row['Total Power']) * 100 if val_row['Total Power'] != 0 else 0
+
                 row_data = [
-                    i + 1,
                     val_row['Dataflow'],
+                    dimension_str,
                     val_row['Area'],
-                    results['Area']['best_result']['predictions'][i] if 'best_result' in results['Area'] else 0,
+                    round(area_pred, 2),
                     val_row['Total Power'],
-                    results['Total Power']['best_result']['predictions'][i] if 'best_result' in results['Total Power'] else 0
+                    round(power_pred, 2),
+                    round(area_error, 2),
+                    round(power_error, 2)
                 ]
                 writer.writerow(row_data)
 
@@ -549,56 +562,96 @@ class HardwarePredictor:
                     predictions['Area'][i], predictions['Total Power'][i]  # Only predicted values
                 ])
 
-        # Rest of the method remains the same...
         return predictions
-        # """Predict new samples using training data"""
-        # print("\n🔮 NEW SAMPLE PREDICTIONS")
-        # print("-" * 30)
-        #
-        # # Engineer features for new samples
-        # new_samples = self.engineer_features(new_samples)
-        #
-        # predictions = {}
-        # for target in ['Area', 'Total Power']:
-        #     # Encode new samples
-        #     for sample in new_samples:
-        #         sample['Dataflow_encoded'] = self.dataflow_mapping.get(sample['Dataflow'], 0)
-        #
-        #     target_predictions, _ = self.ensemble_predict(train_data, new_samples, target, self.configs[target])
-        #     predictions[target] = target_predictions
-        #
-        # # Save results with JSON metadata
-        # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        #
-        # with open("hardware_predictor_new_predictions.csv", 'w', newline='') as csvfile:
-        #     writer = csv.writer(csvfile)
-        #     headers = ['Sample_ID', 'Dataflow', 'Total_Multipliers', 'R', 'C', 'A', 'B', 'P',
-        #                'Streaming_Size', 'Predicted_Area', 'Predicted_Power']
-        #     writer.writerow(headers)
-        #
-        #     for i, sample in enumerate(new_samples):
-        #         writer.writerow([
-        #             i + 1, sample['Dataflow'], sample['Total Number of Multipliers'],
-        #             sample['R'], sample['C'], sample['A'], sample['B'], sample['P'],
-        #             sample['Streaming Dimension Size'],
-        #             predictions['Area'][i], predictions['Total Power'][i]
-        #         ])
-        #
-        # # Save prediction metadata as JSON
-        # prediction_metadata = {
-        #     'timestamp': datetime.now().isoformat(),
-        #     'prediction_session': timestamp,
-        #     'input_samples': new_samples,
-        #     'predictions': predictions,
-        #     'dataflow_mapping': self.dataflow_mapping,
-        #     'feature_columns': self.feature_columns
-        # }
-        #
-        # with open(f"hardware_predictor_new_predictions_metadata.json", 'w') as f:
-        #     json.dump(prediction_metadata, f, indent=2)
-        #
-        # return predictions
 
+    def evaluate_test_set(self, train_data: List[Dict], test_data: List[Dict]) -> Dict[str, Any]:
+        """Evaluate model performance on test set and calculate MAPE"""
+        print("\n📊 TEST SET EVALUATION")
+        print("-" * 30)
+
+        # Check if test data has ground truth values
+        has_ground_truth = all('Area' in sample and 'Total Power' in sample for sample in test_data)
+
+        if not has_ground_truth:
+            print("⚠️  Test data does not contain ground truth values (Area, Total Power)")
+            print("   Only predictions will be generated.")
+            return self.predict_new_samples(train_data, test_data)
+
+        # Engineer features for test samples
+        test_samples = self.engineer_features(test_data)
+
+        # Encode test samples
+        for sample in test_samples:
+            sample['Dataflow_encoded'] = self.dataflow_mapping.get(sample['Dataflow'], 0)
+
+        test_results = {}
+        for target in ['Area', 'Total Power']:
+            print(f"\n🎯 Evaluating {target} on test set...")
+
+            # Get predictions
+            predictions, _ = self.ensemble_predict(train_data, test_samples, target, self.configs[target])
+
+            # Calculate metrics
+            true_values = [sample[target] for sample in test_samples]
+            metrics = self.calculate_metrics(true_values, predictions)
+
+            test_results[target] = {
+                'predictions': predictions,
+                'true_values': true_values,
+                'metrics': metrics
+            }
+
+            print(f"   Test MAPE: {metrics['MAPE']:.2f}%")
+            print(f"   Test R²: {metrics['R2']:.3f}")
+            print(f"   Test RMSE: {metrics['RMSE']:.2f}")
+
+        # Save test results
+        self._save_test_results(test_samples, test_results)
+
+        return test_results
+
+    def _save_test_results(self, test_data: List[Dict], test_results: Dict[str, Any]):
+        """Save test evaluation results"""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        # Save detailed test predictions in requested format
+        with open("hardware_predictor_test_evaluation.csv", 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            headers = ['Dataflow', 'RxCxAxBxP', 'True Area', 'Predicted Area', 'True Power', 'Predicted Power', 'Area Error Percentage', 'Power Error Percentage']
+            writer.writerow(headers)
+
+            for i, sample in enumerate(test_data):
+                # Create RxCxAxBxP format
+                dimension_str = f"{sample['R']}x{sample['C']}x{sample['A']}x{sample['B']}x{sample['P']}"
+
+                # Calculate error percentages
+                area_error = abs((sample['Area'] - test_results['Area']['predictions'][i]) / sample['Area']) * 100 if sample['Area'] != 0 else 0
+                power_error = abs((sample['Total Power'] - test_results['Total Power']['predictions'][i]) / sample['Total Power']) * 100 if sample['Total Power'] != 0 else 0
+
+                writer.writerow([
+                    sample['Dataflow'],
+                    dimension_str,
+                    sample['Area'],
+                    round(test_results['Area']['predictions'][i], 2),
+                    sample['Total Power'],
+                    round(test_results['Total Power']['predictions'][i], 2),
+                    round(area_error, 2),
+                    round(power_error, 2)
+                ])
+
+        # Save test metrics summary
+        test_summary = {
+            'timestamp': datetime.now().isoformat(),
+            'test_session': timestamp,
+            'test_metrics': {
+                target: test_results[target]['metrics']
+                for target in ['Area', 'Total Power']
+            },
+            'sample_count': len(test_data)
+        }
+
+        with open("hardware_predictor_test_metrics.json", 'w') as f:
+            json.dump(test_summary, f, indent=2)
 
 def train_and_inference_mode():
     """Complete training and inference mode"""
@@ -615,102 +668,21 @@ def train_and_inference_mode():
     # Train and validate
     results = predictor.predict_both_targets(train_data, val_data)
 
-    # Test new samples
-    # test_samples = [
-    #     {'Dataflow': 'OS', 'Total Number of Multipliers': 256, 'R': 16, 'C': 16, 'A': 1, 'B': 1, 'P': 1, 'Streaming Dimension Size': 1},
-    #     {'Dataflow': 'WS', 'Total Number of Multipliers': 512, 'R': 8, 'C': 8, 'A': 2, 'B': 2, 'P': 2, 'Streaming Dimension Size': 64},
-    #     {'Dataflow': 'IS', 'Total Number of Multipliers': 1024, 'R': 32, 'C': 32, 'A': 1, 'B': 1, 'P': 1, 'Streaming Dimension Size': 128}
-    # ]
-    #
-    # predictions = predictor.predict_new_samples(train_data, test_samples)
-    #
-    # print(f"\n📊 NEW SAMPLE RESULTS:")
-    # for i, sample in enumerate(test_samples):
-    #     print(f"Sample {i+1} ({sample['Dataflow']}): Area={predictions['Area'][i]:.1f}, Power={predictions['Total Power'][i]:.1f}")
-    #
-    # print(f"\n✅ Training completed - models saved to current directory")
+    # Evaluate on test set and calculate MAPE
+    test_results = predictor.evaluate_test_set(train_data, test_data)
 
-    predictions = predictor.predict_new_samples(train_data, test_data)
+    if 'Area' in test_results and 'metrics' in test_results['Area']:
+        print(f"\n📈 FINAL TEST SET PERFORMANCE:")
+        print(f"   Area - MAPE: {test_results['Area']['metrics']['MAPE']:.2f}%, R²: {test_results['Area']['metrics']['R2']:.3f}")
+        print(f"   Power - MAPE: {test_results['Total Power']['metrics']['MAPE']:.2f}%, R²: {test_results['Total Power']['metrics']['R2']:.3f}")
+    else:
+        print(f"\n📊 TEST DATA RESULTS (Predictions Only):")
+        for i, sample in enumerate(test_data):
+            print(f"Sample {i+1} ({sample['Dataflow']}): Area={test_results['Area'][i]:.1f}, Power={test_results['Total Power'][i]:.1f}")
 
-    print(f"\n📊 TEST DATA RESULTS:")
-    for i, sample in enumerate(test_data):
-        print(f"Sample {i+1} ({sample['Dataflow']}): Area={predictions['Area'][i]:.1f}, Power={predictions['Total Power'][i]:.1f}")
+    print(f"\n✅ Training and evaluation completed - models and results saved to current directory")
 
-    print(f"\n✅ Training completed - models saved to current directory")
-
-    return results
-
-
-def inference_with_saved_models_mode():
-    """Inference using saved models"""
-    print("🔮 INFERENCE WITH SAVED MODELS")
-    print("=" * 40)
-
-    predictor = HardwarePredictor(clean_previous=False)
-
-    # Check for saved models
-    area_models = [f for f in os.listdir('.') if f.startswith('hardware_predictor_area_model')]
-    power_models = [f for f in os.listdir('.') if f.startswith('hardware_predictor_total_power_model')]
-
-    if not area_models or not power_models:
-        print("❌ No saved models found. Run training mode first.")
-        return None
-
-    # Use latest models
-    area_model = sorted(area_models)[-1]
-    power_model = sorted(power_models)[-1]
-
-    # New samples for prediction
-    new_samples = [
-        {'Dataflow': 'IS', 'Total Number of Multipliers': 512, 'R': 16, 'C': 8, 'A': 1, 'B': 2, 'P': 2, 'Streaming Dimension Size': 1},
-        # {'Dataflow': 'IS', 'Total Number of Multipliers': 2048, 'R': 32, 'C': 8, 'A': 2, 'B': 2, 'P': 2, 'Streaming Dimension Size': 1},
-        # {'Dataflow': 'WS', 'Total Number of Multipliers': 4096, 'R': 64, 'C': 8, 'A': 2, 'B': 4, 'P': 1, 'Streaming Dimension Size': 1},
-        # {'Dataflow': 'WS', 'Total Number of Multipliers': 8192, 'R': 8, 'C': 8, 'A': 8, 'B': 2, 'P': 8, 'Streaming Dimension Size': 1},
-        # {'Dataflow': 'OS', 'Total Number of Multipliers': 16384, 'R': 128, 'C': 8, 'A': 4, 'B': 4, 'P': 1, 'Streaming Dimension Size': 512},
-        # {'Dataflow': 'WS', 'Total Number of Multipliers': 32768, 'R': 8, 'C': 16, 'A': 16, 'B': 8, 'P': 2, 'Streaming Dimension Size': 1},
-    ]
-
-    # Make predictions
-    area_predictions = predictor.predict_with_saved_model(area_model, new_samples.copy())
-    power_predictions = predictor.predict_with_saved_model(power_model, new_samples.copy())
-
-    # Save inference results with JSON metadata
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-    # Save CSV results
-    inference_results_file = f"hardware_predictor_inference_results_{timestamp}.csv"
-    with open(inference_results_file, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        headers = ['Sample_ID', 'Dataflow', 'Total_Multipliers', 'R', 'C', 'A', 'B', 'P',
-                   'Streaming_Size', 'Predicted_Area', 'Predicted_Power']
-        writer.writerow(headers)
-
-        for i, sample in enumerate(new_samples):
-            writer.writerow([
-                i + 1, sample['Dataflow'], sample['Total Number of Multipliers'],
-                sample['R'], sample['C'], sample['A'], sample['B'], sample['P'],
-                sample['Streaming Dimension Size'], area_predictions[i], power_predictions[i]
-            ])
-
-    # Save JSON metadata
-    inference_summary = {
-        'timestamp': datetime.now().isoformat(),
-        'inference_session': timestamp,
-        'models_used': {'area_model': area_model, 'power_model': power_model},
-        'samples_processed': len(new_samples),
-        'input_samples': new_samples,
-        'predictions': {'Area': area_predictions, 'Total Power': power_predictions}
-    }
-
-    with open(f"hardware_predictor_inference_summary_{timestamp}.json", 'w') as f:
-        json.dump(inference_summary, f, indent=2)
-
-    print(f"\n📊 PREDICTIONS:")
-    for i, sample in enumerate(new_samples):
-        print(f"Sample {i+1} ({sample['Dataflow']}): Area={area_predictions[i]:.1f}, Power={power_predictions[i]:.1f}")
-
-    return {'Area': area_predictions, 'Total Power': power_predictions}
-
+    return results, test_results
 
 def main():
     """Main execution controller"""
@@ -718,16 +690,8 @@ def main():
     print("=" * 50)
 
     # Set mode: "1" for training+inference, "2" for inference only
-    mode = "1"
-
-    if mode == "1":
-        return train_and_inference_mode()
-    elif mode == "2":
-        return inference_with_saved_models_mode()
-    else:
-        print("Invalid mode")
-        return None
-
+    results, test_results = train_and_inference_mode()
+    return results, test_results
 
 if __name__ == "__main__":
-    results = main()
+    results, test_results = main()

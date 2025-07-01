@@ -68,7 +68,6 @@ class ArchitectureOptimizer(
     log(s"[Show Top Results CSV Format (" +
       s"Dataflow, " +
       s"STA Config, " +
-      s"array Active Cycle, " +
       s"Cycle, " +
       s"Area, " +
       s"Energy, " +
@@ -213,6 +212,7 @@ class ArchitectureOptimizer(
 
   }
 
+  //TODO fix log
   private def logProcessThree(
                                preProcess: ArrayBuffer[ArchitectureResult],
                                postProcess: ArrayBuffer[ArchitectureResult],
@@ -274,12 +274,6 @@ class ArchitectureOptimizer(
       log(s"\t\tArea: ${String.format("%.2f", areaImprovement)}% improvement")
     }
 
-//    if (preProcessBest.simulationResult.tops.isDefined && postProcessBest.simulationResult.tops.isDefined) {
-//      val energyAreaProductImprovement= (preProcessBest.simulationResult.tops.get - postProcessBest.simulationResult.tops.get) /
-//        preProcessBest.simulationResult.tops.get * 100
-//      log(s"\t\tEnergy Area Delay Product: ${String.format("%.6f", energyAreaProductImprovement)}% improvement")
-//    }
-
     if (preProcessBest.simulationResult.tops.isDefined && postProcessBest.simulationResult.tops.isDefined) {
       val oldValue = preProcessBest.simulationResult.tops.get
       val newValue = postProcessBest.simulationResult.tops.get
@@ -312,22 +306,6 @@ class ArchitectureOptimizer(
       log(s"\t\tSingleBuffer B: ${architecture.singleBufferLimitKbB} KB")
       log(s"\t\tSingleBuffer C: ${architecture.singleBufferLimitKbC} KB")
       log(s"\t\tAverage Memory Utilization: ${String.format("%.2f", simulationResult.averageMemoryUtilization)} %\n")
-//
-//      log(s"\n\t\t Off chip memory Energy: ${String.format("%.2f", simulationResult.offChipMemoryEnergyPj.get)}")
-//      log(s"\t\t sram A energy  ${String.format("%.2f", simulationResult.sramEnergyPjA.get)}")
-//      log(s"\t\t sram B energy  ${String.format("%.2f", simulationResult.sramEnergyPjB.get)}")
-//      log(s"\t\t sram C energy  ${String.format("%.2f", simulationResult.sramEnergyPjC.get)}")
-//      log(s"\t\t Array energy ${String.format("%.2f", simulationResult.arrayEnergy.get)}\n")
-//
-//      log(s"\t\t sram A read access count  ${simulationResult.sramReadAccessCountA}")
-//      log(s"\t\t sram A write access count  ${simulationResult.sramWriteAccessCountA}")
-//
-//      log(s"\t\t sram B read access count  ${simulationResult.sramReadAccessCountB}")
-//      log(s"\t\t sram B write access count  ${simulationResult.sramWriteAccessCountB}")
-//
-//      log(s"\t\t sram C read access count  ${simulationResult.sramReadAccessCountC}")
-//      log(s"\t\t sram C write access count  ${simulationResult.sramWriteAccessCountC}")
-//
       log(s"\t\t[Array Bandwidth Information]")
       log(s"\t\t\tInput Bandwidth A: ${architecture.arrayConfig.bandwidthOfInputA}")
       log(s"\t\t\tInput Bandwidth B: ${architecture.arrayConfig.bandwidthOfInputB}")
@@ -414,7 +392,6 @@ class ArchitectureOptimizer(
     if(simulationResult.isEnergyReportValid && simulationResult.isAreaReportValid) {
       log(s"\t${architecture.arrayConfig.dataflow}, " +
         s"${architecture.arrayConfig.asArrayDimension.arrayDimensionString}, " +
-        s"${simulationResult.arrayActiveCount}, " +
         s"${simulationResult.cycle}, " +
         s"${String.format("%.2f", simulationResult.areaUm2.get)}, " +
         s"${String.format("%.2f", simulationResult.energyPj.get)}, " +

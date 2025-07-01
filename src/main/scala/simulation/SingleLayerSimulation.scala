@@ -131,7 +131,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     val arraySynthesisData: Option[ArraySynthesisData] = arraySynthesisSource match {
       case Some(ArraySynthesisSource.FewShotPrediction) =>
         try {
-          val dataflow = testConfig.getString("Dataflow").get
+          val dataflowString = testConfig.getString("Dataflow").get
           val groupPeRow = testConfig.getInt("Group PE Row").getOrElse(
             throw ParseError("Group PE Row not found")
           )
@@ -147,13 +147,40 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
           val numMultiplier = testConfig.getInt("Multipliers Per PE").getOrElse(
             throw ParseError("Multipliers Per PE not found")
           )
-          val streamingDimSize = testConfig.getInt("Streaming Dimension Size").getOrElse(
-            throw ParseError("Streaming Dimension Size not found")
+//          val streamingDimSize = testConfig.getInt("Streaming Dimension Size").getOrElse(
+//            throw ParseError("Streaming Dimension Size not found")
+//          )
+
+          val dimensionM = layerConfig.getInt("M").getOrElse(
+            throw ParseError("M dimension not found")
           )
+          val dimensionN = layerConfig.getInt("N").getOrElse(
+            throw ParseError("N dimension not found")
+          )
+          val dimensionK = layerConfig.getInt("K").getOrElse(
+            throw ParseError("K dimension not found")
+          )
+
+          val dataflow = dataflowString match {
+            case "IS" => Dataflow.Is
+            case "OS" => Dataflow.Os
+            case "WS" => Dataflow.Ws
+            case _ =>
+              throw ParseError("Invalid dataflow")
+          }
+
+          val streamingDimSize = parseStreamingDimension(
+            testConfig = testConfig,
+            dataflow = dataflow,
+            dimensionM = dimensionM,
+            dimensionN = dimensionN,
+            dimensionK = dimensionK
+          )
+
           val totalMultipliers = groupPeRow * groupPeCol * vectorPeRow * vectorPeCol * numMultiplier
 
           println(s"Predicting array synthesis data:")
-          println(s"   Dataflow: $dataflow")
+          println(s"   Dataflow: $dataflowString")
           println(s"   Total Multipliers: $totalMultipliers")
           println(s"   PE Config: ${groupPeRow}x${groupPeCol}, ${vectorPeRow}x${vectorPeCol}, $numMultiplier")
 
@@ -171,7 +198,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
           // Make prediction
           FewShotPredictor.predict(
             FewShotPredictor.InputFeatures(
-              dataflow = dataflow,
+              dataflow = dataflowString,
               totalNumberOfMultipliers = totalMultipliers,
               r = groupPeRow,
               c = groupPeCol,
@@ -182,17 +209,12 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
             )
           ) match {
             case Success(result) =>
-              println(s"Prediction successful:")
-//              println(f"  Area: ${result.areaUm2}%.1f µm²")
-//              println(f"  Switch: ${result.switchPowerPw}%.2f Pw")
-//              println(f"  Internal: ${result.internalPowerPw}%.2f Pw")
-//              println(f"  Leakage: ${result.leakagePowerPw}%.2f Pw")
-//              println(f"  Total Power ${result.totalPowerMw}%.2f mW")
-              println(f"  Area: ${result.areaUm2} µm²")
-              println(f"  Switch: ${result.switchPowerPw} Pw")
-              println(f"  Internal: ${result.internalPowerPw} Pw")
-              println(f"  Leakage: ${result.leakagePowerPw} Pw")
-              println(f"  Total Power ${result.totalPowerMw} mW")
+//              println(s"Prediction successful:")
+//              println(f"  Area: ${result.areaUm2} µm²")
+//              println(f"  Switch: ${result.switchPowerPw} Pw")
+//              println(f"  Internal: ${result.internalPowerPw} Pw")
+//              println(f"  Leakage: ${result.leakagePowerPw} Pw")
+//              println(f"  Total Power ${result.totalPowerMw} mW")
               Some(result)
             case Failure(exception) =>
               println(s"❌ Prediction failed: ${exception.getMessage}")
@@ -221,11 +243,11 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
               throw ParseError("Leakage Power Not found")
             )
           )
-          println(s"✅ Loaded from file:")
+//          println(s"✅ Loaded from file:")
 //          println(f"   📏 Area: ${result.areaUm2}%,.1f µm²")
 //          println(f"   ⚡ Total Power: ${result.totalPowerPw / 1e9}%.1f mW")
-          println(f"   📏 Area: ${result.areaUm2} µm²")
-          println(f"   ⚡ Total Power: ${result.totalPowerMw} mW")
+//          println(f"   📏 Area: ${result.areaUm2} µm²")
+//          println(f"   ⚡ Total Power: ${result.totalPowerMw} mW")
           result
         }
 
@@ -299,31 +321,35 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
         throw ParseError("Invalid dataflow")
     }
 
-    val streamingDimensionSize = dataflow match {
-      case Dataflow.Is =>
-        testConfig
-          .getInt("Streaming Dimension Size")
-          .getOrElse(throw ParseError("Streaming Dimension Not Found"))
+//    val streamingDimensionSize = dataflow match {
+//      case Dataflow.Is =>
+//        testConfig
+//          .getInt("Streaming Dimension Size")
+//          .getOrElse(throw ParseError("Streaming Dimension Not Found"))
+//
+//      case Dataflow.Os =>
+//        val sDim = testConfig
+//          .getInt("Streaming Dimension Size")
+//          .getOrElse(throw ParseError("Streaming Dimension Not Found"))
+//
+//        if(sDim >= dimensionK){
+//          println("Streaming Dimension is Equal or Larger in output stationary")
+//          println(s"Streaming dimension in configuration file is $sDim")
+//          println(s"Streaming dimension is changed into $dimensionK")
+//          dimensionK
+//        } else {
+//          sDim
+//        }
+//
+//      case Dataflow.Ws =>
+//        testConfig
+//          .getInt("Streaming Dimension Size")
+//          .getOrElse(throw ParseError("Streaming Dimension Not Found"))
+//    }
 
-      case Dataflow.Os =>
-        val sDim = testConfig
-          .getInt("Streaming Dimension Size")
-          .getOrElse(throw ParseError("Streaming Dimension Not Found"))
-
-        if(sDim >= dimensionK){
-          println("Streaming Dimension is Equal or Larger in output stationary")
-          println(s"Streaming dimension in configuration file is $sDim")
-          println(s"Streaming dimension is changed into $dimensionK")
-          dimensionK
-        } else {
-          sDim
-        }
-
-      case Dataflow.Ws =>
-        testConfig
-          .getInt("Streaming Dimension Size")
-          .getOrElse(throw ParseError("Streaming Dimension Not Found"))
-    }
+    val streamingDimensionSize = parseStreamingDimension(
+      testConfig, dataflow, dimensionM, dimensionN, dimensionK
+    )
 
     val offChipMemoryUploadOrder = dataflow match {
       case Dataflow.Is => OffChipMemoryUploadOrder.mkn
@@ -412,6 +438,34 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       arraySynthesisData = arraySynthesisData,
     )
 
+  }
+
+  private def parseStreamingDimension(
+    testConfig: ConfigParser.Config,
+    dataflow: Dataflow.Value,
+    dimensionM: Int,
+    dimensionN: Int,
+    dimensionK: Int
+  ): Int = {
+    val configuredStreamingDim = testConfig
+      .getInt("Streaming Dimension Size")
+      .getOrElse(throw ParseError("Streaming Dimension Not Found"))
+
+    val limitDimension = dataflow match {
+      case Dataflow.Is => dimensionN
+      case Dataflow.Os => dimensionK
+      case Dataflow.Ws => dimensionM
+      case _ => throw new RuntimeException(s"Invalid dataflow")
+    }
+
+    if (configuredStreamingDim >= limitDimension) {
+      println("Streaming Dimension is Equal or Larger in output stationary")
+      println(s"Streaming dimension in configuration file is $configuredStreamingDim")
+      println(s"Streaming dimension is changed into $limitDimension")
+      limitDimension
+    } else {
+      configuredStreamingDim
+    }
   }
 
   private def initializeComponents(simConfig: SimulationConfig) = {
