@@ -6,11 +6,11 @@ import common.Dataflow
 import scala.collection.parallel.CollectionConverters._
 
 class ArchitectureOptimizer(
-                             val simConfig: SystemArchitectureOptimizer.SimulationConfig,
-                             val architectureCandidates: ArrayBuffer[Architecture],
-                             val minSramSize: Int,
-                             val loggerOption: LoggerOption,
-                           ) extends Logger {
+  val simConfig: SystemArchitectureOptimizer.SimulationConfig,
+  val architectureCandidates: ArrayBuffer[Architecture],
+  val minSramSize: Int,
+  val loggerOption: LoggerOption,
+) extends Logger {
 
   setMode(loggerOption)
 
@@ -300,7 +300,7 @@ class ArchitectureOptimizer(
       log(s"\t\tCycle: ${simulationResult.cycle}")
       log(s"\t\tArea: ${String.format("%.2f", simulationResult.areaUm2.get)} um²")
       log(s"\t\tEnergy: ${String.format("%.2f", simulationResult.energyPj.get)} pJ")
-      log(s"\t\tTOPS/W/mm^2: ${String.format("%.2f", simulationResult.tops.get)} pJ * um^2 * s")
+      log(s"\t\tTOPS/W/mm^2: ${String.format("%.2f", simulationResult.tops.get)}")
       log(s"\t\tStreaming Dimension Size: ${architecture.streamingDimensionSize}")
       log(s"\t\tSingleBuffer A: ${architecture.singleBufferLimitKbA} KB")
       log(s"\t\tSingleBuffer B: ${architecture.singleBufferLimitKbB} KB")
@@ -526,17 +526,13 @@ class ArchitectureOptimizer(
 
           case Left(_) =>
             if (currentArch.streamingDimensionSize > 1) {
-
-              //              log(s"\t\t\tStreaming Dimension ${currentArch.streamingDimensionSize} is too high to build SRAM")
               val newStreamingDimSize = Math.max(1, currentArch.streamingDimensionSize / 2)
-
-              //              log(s"\t\t\thalf the streaming dimension as $newStreamingDimSize\n")
               currentArch = currentArch.withStreamingDimensionSize(newStreamingDimSize)
               attempts += 1
-
             } else {
               attempts = maxAttempts
             }
+
         }
 
       }
@@ -563,18 +559,19 @@ class ArchitectureOptimizer(
   }
 
   private def optimizeSramStreamingTradeOffs(
-                                              archResultBuffer: ArrayBuffer[ArchitectureResult],
-                                              processMargin: Double
-                                            ): ArrayBuffer[ArchitectureResult] = {
+    archResultBuffer: ArrayBuffer[ArchitectureResult],
+    processMargin: Double
+  ): ArrayBuffer[ArchitectureResult] = {
+
     val maxIterations = 10
     var iteration = 0
     var globalMadeProgress = true
 
     case class ArchitectureState(
-                                  archResult: ArchitectureResult,
-                                  canOptimize: Boolean = true,
-                                  madeProgress: Boolean = false
-                                )
+      archResult: ArchitectureResult,
+      canOptimize: Boolean = true,
+      madeProgress: Boolean = false
+    )
 
     var architectureStates = archResultBuffer.map(ArchitectureState(_))
     var previousResults = archResultBuffer.clone()
@@ -820,8 +817,8 @@ class ArchitectureOptimizer(
   }
 
   private def buildAndRunSimulation(
-                                     architecture: Architecture
-                                   ): ArchitectureResult = {
+    architecture: Architecture
+  ): ArchitectureResult = {
     buildSimulationComp(architecture) match {
       case Right(comp) =>
         val result = runSimulation(comp)
@@ -830,7 +827,7 @@ class ArchitectureOptimizer(
         ArchitectureResult(architecture = architecture, simulationResult = SimulationResult(Long.MaxValue, Double.MaxValue, Double.MaxValue))
     }
   }
-  //
+
   private def buildSrams(
                           arrayConfig: ArrayConfig,
                           simConfig: SystemArchitectureOptimizer.SimulationConfig,
@@ -847,35 +844,61 @@ class ArchitectureOptimizer(
     val capacityB = singleBufferLimitKbB * 8 * 1024 / tileSizeB
     val capacityC = singleBufferLimitKbC * 8 * 1024 / tileSizeC
 
+    val sramReferenceDataA: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+      vector.find{ data =>
+        data.capacityKb == singleBufferLimitKbA && data.bandwidthBits >= arrayConfig.bandwidthOfInputA
+      }
+    }
+
+    val sramReferenceDataB: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+      vector.find{ data =>
+        data.capacityKb == singleBufferLimitKbB && data.bandwidthBits >= arrayConfig.bandwidthOfInputB
+      }
+    }
+
+    val sramReferenceDataC: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+      vector.find{ data =>
+        data.capacityKb == singleBufferLimitKbC && data.bandwidthBits >= arrayConfig.outputBandwidth
+      }
+    }
+
+//    if(sramReferenceDataA.isEmpty || sramReferenceDataB.isEmpty || sramReferenceDataC.isEmpty){
+//      throw ParseError("Cannot find SRAM data from external reports ...")
+//    }
+
     if(!(capacityA > 0 && capacityB > 0 && capacityC > 0 )) {
       //        log(s"\t\tBuilding SRAM is failed: ${arrayConfig.arrayConfigString}\n" +
       //          s"\t\t\tSRAM A Capacity: $capacityA, SRAM B Capacity: $capacityB, SRAM C Capacity: $capacityC\n" +
       //          s"\t\t\tTile Size A: $tileSizeA, Tile Size B: $tileSizeB, Tile Size C: $tileSizeC")
 
       Left(SramBuildError("SRAM Cannot contain even 1 tile"))
+    } else if (sramReferenceDataA.isEmpty || sramReferenceDataB.isEmpty || sramReferenceDataC.isEmpty){
+
+      Left(SramBuildError("Cannot find SRAM data from external reports"))
+
     } else {
 
-      val sramReferenceDataA: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
-        vector.find{ data =>
-          data.capacityKb == singleBufferLimitKbA && data.bandwidthBits >= arrayConfig.bandwidthOfInputA
-        }
-      }
-
-      val sramReferenceDataB: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
-        vector.find{ data =>
-          data.capacityKb == singleBufferLimitKbB && data.bandwidthBits >= arrayConfig.bandwidthOfInputB
-        }
-      }
-
-      val sramReferenceDataC: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
-        vector.find{ data =>
-          data.capacityKb == singleBufferLimitKbC && data.bandwidthBits >= arrayConfig.outputBandwidth
-        }
-      }
-
-      if(sramReferenceDataA.isEmpty || sramReferenceDataB.isEmpty || sramReferenceDataC.isEmpty){
-        throw ParseError("Cannot find SRAM data from external reports ...")
-      }
+//      val sramReferenceDataA: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+//        vector.find{ data =>
+//          data.capacityKb == singleBufferLimitKbA && data.bandwidthBits >= arrayConfig.bandwidthOfInputA
+//        }
+//      }
+//
+//      val sramReferenceDataB: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+//        vector.find{ data =>
+//          data.capacityKb == singleBufferLimitKbB && data.bandwidthBits >= arrayConfig.bandwidthOfInputB
+//        }
+//      }
+//
+//      val sramReferenceDataC: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
+//        vector.find{ data =>
+//          data.capacityKb == singleBufferLimitKbC && data.bandwidthBits >= arrayConfig.outputBandwidth
+//        }
+//      }
+//
+//      if(sramReferenceDataA.isEmpty || sramReferenceDataB.isEmpty || sramReferenceDataC.isEmpty){
+//        throw ParseError("Cannot find SRAM data from external reports ...")
+//      }
 
       val sramA = new DoubleBufferSram(
         dataType = DataType.A,

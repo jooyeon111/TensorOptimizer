@@ -266,32 +266,13 @@ class SystemSimulator(
       energy <- getTotalEnergy // Energy in pJ
       area <- getArea // Area in μm²
     } yield {
-      // Calculate total operations performed
-//      val totalOps = layer.operationVector.map { op =>
-//        op.gemmDimension.m * op.gemmDimension.n * op.gemmDimension.k
-//      }.sum
-//
-//      // Convert units for TOPS/W/mm²:
-//      val clockFrequencyHz = 1e9 // Assume 1 GHz clock frequency
-//      val timeSeconds = cycle.toDouble / clockFrequencyHz
-//      val teraOps = totalOps / 1e12
-//      val powerWatts = (energy * 1e-12) / timeSeconds // Convert pJ to W
-//      val areaInMm2 = area / 1e6 // Convert μm² to mm²
-//
-//      // Calculate TOPS/W/mm² (Throughput Efficiency)
-//      val throughputTOPS = teraOps / timeSeconds
-//      val efficiency = throughputTOPS / (powerWatts * areaInMm2)
-//
-//      efficiency
+
       if (cycle <= 0 || energy <= 0 || area <= 0) {
         println(s"Warning: Invalid inputs - cycle:$cycle, energy:$energy, area:$area")
         return Some(1e-12)
       }
 
-      // Calculate total MAC operations
-      val totalOps = layer.operationVector.map { op =>
-        2.0 * op.gemmDimension.m * op.gemmDimension.n * op.gemmDimension.k
-      }.sum
+      val totalOps = layer.gemmDimension.m * layer.gemmDimension.n * layer.gemmDimension.k
 
       if (totalOps <= 0) {
         println(s"Warning: No operations calculated")
@@ -316,7 +297,7 @@ class SystemSimulator(
       val throughputTOPS = teraOps / executionTimeSeconds
       val efficiency = throughputTOPS / (powerWatts * areaInMm2)
 
-      // Debug output for first few calculations
+      // Debug output for the first few calculations
       if (cycle < 10000) {
         println(f"TOPS/W/mm² Debug:")
         println(f"  Operations: ${totalOps}%.0f (${totalOps/1e9}%.3f billion)")
