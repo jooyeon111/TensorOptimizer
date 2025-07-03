@@ -285,7 +285,7 @@ class SystemSimulator(
       }
 
       // Use existing clockPeriod for timing
-      val executionTimeSeconds: Long = cycle * clockPeriod
+      val executionTimeSeconds = cycle * clockPeriod
 
       // Unit conversions
       val teraOps = totalOps / 1e12
