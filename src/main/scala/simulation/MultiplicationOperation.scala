@@ -21,6 +21,9 @@ class MultiplicationOperation(
     val arrayRowDimension = arrayConfig.groupPeRow * arrayConfig.vectorPeRow * arrayConfig.numMultiplier
     val originalDimensionSize = gemmDimension.m * gemmDimension.k
 
+    assert(arrayRowDimension > 0, "[warn] array row dimension must be positive integer")
+    assert(originalDimensionSize > 0, "[warn] original dimension must be positive integer")
+
     val matrixRow = arrayConfig.dataflow match {
       case Dataflow.Is | Dataflow.Ws =>
         gemmDimension.m

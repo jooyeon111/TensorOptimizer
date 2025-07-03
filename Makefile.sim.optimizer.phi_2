@@ -37,7 +37,7 @@ all: run-layer
 run-layer:
 	#sbt "runMain simulation.SystemArchitectureOptimizer $(EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.SystemArchitectureOptimizer $(QKV) $(COMMON_ARGS)"
-	sbt "runMain simulation.SystemArchitectureOptimizer $(QKT) $(COMMON_ARGS)"
-	sbt "runMain simulation.SystemArchitectureOptimizer $(QKTV) $(COMMON_ARGS)"
-	sbt "runMain simulation.SystemArchitectureOptimizer $(FINAL) $(COMMON_ARGS)"
+	#sbt "runMain simulation.SystemArchitectureOptimizer $(QKT) $(COMMON_ARGS)"
+	#sbt "runMain simulation.SystemArchitectureOptimizer $(QKTV) $(COMMON_ARGS)"
+	#sbt "runMain simulation.SystemArchitectureOptimizer $(FINAL) $(COMMON_ARGS)"
 

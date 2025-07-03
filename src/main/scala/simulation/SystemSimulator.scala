@@ -272,15 +272,20 @@ class SystemSimulator(
         return Some(1e-12)
       }
 
-      val totalOps = layer.gemmDimension.m * layer.gemmDimension.n * layer.gemmDimension.k
+      val totalOps: Long = layer.gemmDimension.m.toLong * layer.gemmDimension.n.toLong * layer.gemmDimension.k.toLong
 
       if (totalOps <= 0) {
-        println(s"Warning: No operations calculated")
+        println(s"Warning: No operations calculated" +
+          s" M: ${layer.gemmDimension.m}" +
+          s" N: ${layer.gemmDimension.n}" +
+          s" K: ${layer.gemmDimension.k}" +
+          s" ${totalOps}")
+
         return Some(1e-12)
       }
 
       // Use existing clockPeriod for timing
-      val executionTimeSeconds = cycle * clockPeriod
+      val executionTimeSeconds: Long = cycle * clockPeriod
 
       // Unit conversions
       val teraOps = totalOps / 1e12
@@ -294,7 +299,7 @@ class SystemSimulator(
       }
 
       // Calculate TOPS/W/mm²
-      val throughputTOPS = teraOps / executionTimeSeconds
+      val throughputTOPS: Double = teraOps / executionTimeSeconds
       val efficiency = throughputTOPS / (powerWatts * areaInMm2)
 
       // Debug output for the first few calculations
