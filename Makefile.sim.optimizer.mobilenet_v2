@@ -1,0 +1,180 @@
+# Common paths
+INPUT_SIM := input/simulation
+CONFIG_DIR := $(INPUT_SIM)/configs/architecture_explorer
+HARDWARE_REF := $(INPUT_SIM)/hardware_reference
+SYNTHESIS := $(INPUT_SIM)/synthesis
+LAYER_DIR := $(INPUT_SIM)/layer
+
+# Test options
+TEST_OPTION_MULT := $(CONFIG_DIR)/hbm2_total_multiplier_16384.cfg
+TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
+TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
+
+# Define layer model (can be easily changed)
+MODEL := mobilenet
+MODEL_VARIANT := v2
+
+# Layer configuration paths (generic format)
+LAYER_PATH := $(LAYER_DIR)/$(MODEL)
+VARIANT_PATH := $(LAYER_PATH)/$(MODEL_VARIANT)
+
+CONV1 := $(VARIANT_PATH)/conv1.cfg
+
+#STAGE1
+STAGE1_BLOCK1_CONV1 := $(VARIANT_PATH)/stage1_block1_conv1.cfg
+STAGE1_BLOCK1_CONV2 := $(VARIANT_PATH)/stage1_block1_conv2.cfg
+
+#STAGE2
+STAGE2_BLOCK1_CONV1 := $(VARIANT_PATH)/stage2_block1_conv1.cfg
+STAGE2_BLOCK1_CONV2 := $(VARIANT_PATH)/stage2_block1_conv2.cfg
+STAGE2_BLOCK1_CONV3 := $(VARIANT_PATH)/stage2_block1_conv3.cfg
+
+STAGE2_BLOCK2_CONV1 := $(VARIANT_PATH)/stage2_block2_conv1.cfg
+STAGE2_BLOCK2_CONV2 := $(VARIANT_PATH)/stage2_block2_conv2.cfg
+STAGE2_BLOCK2_CONV3 := $(VARIANT_PATH)/stage2_block2_conv3.cfg
+
+#STAGE3
+STAGE3_BLOCK1_CONV1 := $(VARIANT_PATH)/stage3_block1_conv1.cfg
+STAGE3_BLOCK1_CONV2 := $(VARIANT_PATH)/stage3_block1_conv2.cfg
+STAGE3_BLOCK1_CONV3 := $(VARIANT_PATH)/stage3_block1_conv3.cfg
+
+STAGE3_BLOCK2_CONV1 := $(VARIANT_PATH)/stage3_block2_conv1.cfg
+STAGE3_BLOCK2_CONV2 := $(VARIANT_PATH)/stage3_block2_conv2.cfg
+STAGE3_BLOCK2_CONV3 := $(VARIANT_PATH)/stage3_block2_conv3.cfg
+
+STAGE3_BLOCK3_CONV1 := $(VARIANT_PATH)/stage3_block3_conv1.cfg
+STAGE3_BLOCK3_CONV2 := $(VARIANT_PATH)/stage3_block3_conv2.cfg
+STAGE3_BLOCK3_CONV3 := $(VARIANT_PATH)/stage3_block3_conv3.cfg
+
+#STAGE4
+STAGE4_BLOCK1_CONV1 := $(VARIANT_PATH)/stage4_block1_conv1.cfg
+STAGE4_BLOCK1_CONV2 := $(VARIANT_PATH)/stage4_block1_conv2.cfg
+STAGE4_BLOCK1_CONV3 := $(VARIANT_PATH)/stage4_block1_conv3.cfg
+
+STAGE4_BLOCK2_CONV1 := $(VARIANT_PATH)/stage4_block2_conv1.cfg
+STAGE4_BLOCK2_CONV2 := $(VARIANT_PATH)/stage4_block2_conv2.cfg
+STAGE4_BLOCK2_CONV3 := $(VARIANT_PATH)/stage4_block2_conv3.cfg
+
+STAGE4_BLOCK3_CONV1 := $(VARIANT_PATH)/stage4_block3_conv1.cfg
+STAGE4_BLOCK3_CONV2 := $(VARIANT_PATH)/stage4_block3_conv2.cfg
+STAGE4_BLOCK3_CONV3 := $(VARIANT_PATH)/stage4_block3_conv3.cfg
+
+STAGE4_BLOCK4_CONV1 := $(VARIANT_PATH)/stage4_block4_conv1.cfg
+STAGE4_BLOCK4_CONV2 := $(VARIANT_PATH)/stage4_block4_conv2.cfg
+STAGE4_BLOCK4_CONV3 := $(VARIANT_PATH)/stage4_block4_conv3.cfg
+
+#STAGE5
+STAGE5_BLOCK1_CONV1 := $(VARIANT_PATH)/stage5_block1_conv1.cfg
+STAGE5_BLOCK1_CONV2 := $(VARIANT_PATH)/stage5_block1_conv2.cfg
+STAGE5_BLOCK1_CONV3 := $(VARIANT_PATH)/stage5_block1_conv3.cfg
+
+STAGE5_BLOCK2_CONV1 := $(VARIANT_PATH)/stage5_block2_conv1.cfg
+STAGE5_BLOCK2_CONV2 := $(VARIANT_PATH)/stage5_block2_conv2.cfg
+STAGE5_BLOCK2_CONV3 := $(VARIANT_PATH)/stage5_block2_conv3.cfg
+
+STAGE5_BLOCK3_CONV1 := $(VARIANT_PATH)/stage5_block3_conv1.cfg
+STAGE5_BLOCK3_CONV2 := $(VARIANT_PATH)/stage5_block3_conv2.cfg
+STAGE5_BLOCK3_CONV3 := $(VARIANT_PATH)/stage5_block3_conv3.cfg
+
+#STAGE6
+STAGE6_BLOCK1_CONV1 := $(VARIANT_PATH)/stage6_block1_conv1.cfg
+STAGE6_BLOCK1_CONV2 := $(VARIANT_PATH)/stage6_block1_conv2.cfg
+STAGE6_BLOCK1_CONV3 := $(VARIANT_PATH)/stage6_block1_conv3.cfg
+
+STAGE6_BLOCK2_CONV1 := $(VARIANT_PATH)/stage6_block2_conv1.cfg
+STAGE6_BLOCK2_CONV2 := $(VARIANT_PATH)/stage6_block2_conv2.cfg
+STAGE6_BLOCK2_CONV3 := $(VARIANT_PATH)/stage6_block2_conv3.cfg
+
+STAGE6_BLOCK3_CONV1 := $(VARIANT_PATH)/stage6_block3_conv1.cfg
+STAGE6_BLOCK3_CONV2 := $(VARIANT_PATH)/stage6_block3_conv2.cfg
+STAGE6_BLOCK3_CONV3 := $(VARIANT_PATH)/stage6_block3_conv3.cfg
+
+#STAGE7
+STAGE7_BLOCK1_CONV1 := $(VARIANT_PATH)/stage7_block1_conv1.cfg
+STAGE7_BLOCK1_CONV2 := $(VARIANT_PATH)/stage7_block1_conv2.cfg
+STAGE7_BLOCK1_CONV3 := $(VARIANT_PATH)/stage7_block1_conv3.cfg
+
+#CLASSIFICATION
+FINAL_CONV := $(VARIANT_PATH)/final_conv.cfg
+FC := $(VARIANT_PATH)/fc.cfg
+
+# Common arguments for all SBT runs
+COMMON_ARGS := $(TEST_OPTION_MULT) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+
+# Define targets for specific layers
+.PHONY: all conv1 stage1 stage2 stage3 stage4 stage5 stage6 stage7 classification
+
+# Default target runs all configurations for the specified model/variant
+all: conv1 stage1 stage2 stage3 stage4 stage5 stage6 stage7 classification
+
+# Target to run a specific layer model
+conv1:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(CONV1) $(COMMON_ARGS)"
+
+stage1:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_BLOCK1_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_BLOCK1_CONV2) $(COMMON_ARGS)"
+
+stage2:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_BLOCK1_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_BLOCK1_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_BLOCK1_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_BLOCK2_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_BLOCK2_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_BLOCK2_CONV3) $(COMMON_ARGS)"
+
+stage3:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_BLOCK1_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_BLOCK1_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_BLOCK1_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_BLOCK2_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_BLOCK2_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_BLOCK2_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_BLOCK3_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_BLOCK3_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_BLOCK3_CONV3) $(COMMON_ARGS)"
+
+stage4:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_BLOCK1_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_BLOCK1_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_BLOCK1_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_BLOCK2_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_BLOCK2_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_BLOCK2_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_BLOCK3_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_BLOCK3_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_BLOCK3_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_BLOCK4_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_BLOCK4_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_BLOCK4_CONV3) $(COMMON_ARGS)"
+
+stage5:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE5_BLOCK1_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE5_BLOCK1_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE5_BLOCK1_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE5_BLOCK2_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE5_BLOCK2_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE5_BLOCK2_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE5_BLOCK3_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE5_BLOCK3_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE5_BLOCK3_CONV3) $(COMMON_ARGS)"
+
+stage6:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE6_BLOCK1_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE6_BLOCK1_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE6_BLOCK1_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE6_BLOCK2_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE6_BLOCK2_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE6_BLOCK2_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE6_BLOCK3_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE6_BLOCK3_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE6_BLOCK3_CONV3) $(COMMON_ARGS)"
+
+stage7:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE7_BLOCK1_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE7_BLOCK1_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE7_BLOCK1_CONV3) $(COMMON_ARGS)"
+
+classification:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FINAL_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FC) $(COMMON_ARGS)"
