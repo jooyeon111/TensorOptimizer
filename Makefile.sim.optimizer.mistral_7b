@@ -18,7 +18,6 @@ MODEL_VARIANT := 7b
 LAYER_PATH := $(LAYER_DIR)/$(MODEL)
 VARIANT_PATH := $(LAYER_PATH)/$(MODEL_VARIANT)
 
-EMBEDDING := $(VARIANT_PATH)/embedding.cfg
 QKV := $(VARIANT_PATH)/projection.cfg
 QKT := $(VARIANT_PATH)/qkt.cfg
 QKTV := $(VARIANT_PATH)/qktv.cfg
@@ -35,7 +34,6 @@ all: run-layer
 
 # Target to run a specific layer model
 run-layer:
-	#sbt "runMain simulation.SystemArchitectureOptimizer $(EMBEDDING) $(COMMON_ARGS)"
 	sbt "runMain simulation.SystemArchitectureOptimizer $(QKV) $(COMMON_ARGS)"
 	sbt "runMain simulation.SystemArchitectureOptimizer $(QKT) $(COMMON_ARGS)"
 	sbt "runMain simulation.SystemArchitectureOptimizer $(QKTV) $(COMMON_ARGS)"
