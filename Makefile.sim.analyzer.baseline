@@ -162,7 +162,7 @@ STAGE4_BLOCK3_CONV2 := $(RESNET_50_PATH)/stage4_block3_conv2.cfg
 STAGE4_BLOCK3_CONV3 := $(RESNET_50_PATH)/stage4_block3_conv3.cfg
 
 #FC
-RESNET_50_FC := $(RESNET_50_PATH)/weight.cfg
+RESNET_50_FC := $(RESNET_50_PATH)/fc.cfg
 
 #mobile net v2 path
 MOBILENET_V2_PATH := $(LAYER_DIR)/mobilenet/v2

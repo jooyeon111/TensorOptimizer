@@ -80,7 +80,7 @@ STAGE4_BLOCK3_CONV2 := $(VARIANT_PATH)/stage4_block3_conv2.cfg
 STAGE4_BLOCK3_CONV3 := $(VARIANT_PATH)/stage4_block3_conv3.cfg
 
 #FC
-FC := $(VARIANT_PATH)/weight.cfg
+FC := $(VARIANT_PATH)/fc.cfg
 # Common arguments for all SBT runs
 COMMON_ARGS := $(TEST_OPTION_MULT) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
 
