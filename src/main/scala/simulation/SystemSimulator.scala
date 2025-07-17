@@ -302,16 +302,15 @@ class SystemSimulator(
       val throughputTOPS: Double = teraOps / executionTimeSeconds
       val efficiency = throughputTOPS / (powerWatts * areaInMm2)
 
-      // Debug output for the first few calculations
-      if (cycle < 10000) {
-        println(f"TOPS/W/mm² Debug:")
-        println(f"  Operations: ${totalOps}%.0f (${totalOps/1e9}%.3f billion)")
-        println(f"  Cycles: $cycle, Time: ${executionTimeSeconds*1e6}%.2f μs")
-        println(f"  Energy: ${energy}%.2f pJ, Power: ${powerWatts*1e6}%.2f μW")
-        println(f"  Area: ${area}%.0f μm² (${areaInMm2}%.3f mm²)")
-        println(f"  Throughput: ${throughputTOPS}%.6f TOPS")
-        println(f"  Efficiency: ${efficiency}%.6e TOPS/W/mm²")
-      }
+//      if (cycle < 10000) {
+//        println(f"TOPS/W/mm² Debug:")
+//        println(f"  Operations: ${totalOps}%.0f (${totalOps/1e9}%.3f billion)")
+//        println(f"  Cycles: $cycle, Time: ${executionTimeSeconds*1e6}%.2f μs")
+//        println(f"  Energy: ${energy}%.2f pJ, Power: ${powerWatts*1e6}%.2f μW")
+//        println(f"  Area: ${area}%.0f μm² (${areaInMm2}%.3f mm²)")
+//        println(f"  Throughput: ${throughputTOPS}%.6f TOPS")
+//        println(f"  Efficiency: ${efficiency}%.6e TOPS/W/mm²")
+//      }
 
       // Final validation
       if (efficiency.isNaN || efficiency.isInfinite || efficiency <= 0) {
