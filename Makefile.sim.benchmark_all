@@ -17,6 +17,6 @@ all:
 
 # Analyzer
 	make -f Makefile.sim.analyzer.baseline all
-	make -f Makefile.sim.analyer.proposed all
+	make -f Makefile.sim.analyzer.proposed all
 
 
