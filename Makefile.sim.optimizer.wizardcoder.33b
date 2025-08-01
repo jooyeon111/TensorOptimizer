@@ -11,8 +11,8 @@ TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
 TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
 
 # Define layer model (can be easily changed)
-MODEL := llama
-MODEL_VARIANT := 3b
+MODEL := wizardcoder
+MODEL_VARIANT := 33b
 
 # Layer configuration paths (generic format)
 LAYER_PATH := $(LAYER_DIR)/$(MODEL)

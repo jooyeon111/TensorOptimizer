@@ -1,0 +1,41 @@
+# Common paths
+INPUT_SIM := input/simulation
+CONFIG_DIR := $(INPUT_SIM)/configs/architecture_explorer
+HARDWARE_REF := $(INPUT_SIM)/hardware_reference
+SYNTHESIS := $(INPUT_SIM)/synthesis
+LAYER_DIR := $(INPUT_SIM)/layer
+
+# Test options
+TEST_OPTION_MULT := $(CONFIG_DIR)/hbm2_total_multiplier_16384.cfg
+TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
+TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
+
+# Define layer model (can be easily changed)
+MODEL := llama
+MODEL_VARIANT := 7b
+
+# Layer configuration paths (generic format)
+LAYER_PATH := $(LAYER_DIR)/$(MODEL)
+VARIANT_PATH := $(LAYER_PATH)/$(MODEL_VARIANT)
+
+QKV := $(VARIANT_PATH)/projection.cfg
+QKT := $(VARIANT_PATH)/qkt.cfg
+QKTV := $(VARIANT_PATH)/qktv.cfg
+FINAL := $(VARIANT_PATH)/representation_projection.cfg
+
+# Common arguments for all SBT runs
+COMMON_ARGS := $(TEST_OPTION_MULT) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+
+# Define targets for specific layers
+.PHONY: all run-layer
+
+# Default target runs all configurations for the specified model/variant
+all: run-layer
+
+# Target to run a specific layer model
+run-layer:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(QKV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(QKT) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(QKTV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FINAL) $(COMMON_ARGS)"
+

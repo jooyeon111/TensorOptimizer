@@ -6,7 +6,7 @@ all:
 	make -f Makefile.sim.optimizer.bloom_1b all
 	make -f Makefile.sim.optimizer.falcon_1b all
 	make -f Makefile.sim.optimizer.phi_2 all
-	make -f Makefile.sim.optimizer.llama_3b all
+	make -f Makefile.sim.optimizer.llama_7b all
 	make -f Makefile.sim.optimizer.mistral_7b all
 	#CNN
 	make -f Makefile.sim.optimizer.resnet_50 all

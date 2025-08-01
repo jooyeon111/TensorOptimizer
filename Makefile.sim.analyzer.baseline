@@ -32,11 +32,11 @@ FALCON_1B_QKTV := $(FALCON_1B_PATH)/qktv.cfg
 FALCON_1B_FINAL := $(FALCON_1B_PATH)/representation_projection.cfg
 
 # llama
-LLAMA_3B_PATH := $(LAYER_DIR)/llama/3b
-LLAMA_3B_QKV := $(LLAMA_3B_PATH)/projection.cfg
-LLAMA_3B_QKT := $(LLAMA_3B_PATH)/qkt.cfg
-LLAMA_3B_QKTV := $(LLAMA_3B_PATH)/qktv.cfg
-LLAMA_3B_FINAL := $(LLAMA_3B_PATH)/representation_projection.cfg
+LLAMA_7B_PATH := $(LAYER_DIR)/llama/7b
+LLAMA_7B_QKV := $(LLAMA_3B_PATH)/projection.cfg
+LLAMA_7B_QKT := $(LLAMA_3B_PATH)/qkt.cfg
+LLAMA_7B_QKTV := $(LLAMA_3B_PATH)/qktv.cfg
+LLAMA_7B_FINAL := $(LLAMA_3B_PATH)/representation_projection.cfg
 
 # mistral
 MISTRAL_7B_PATH := $(LAYER_DIR)/mistral/7b
@@ -276,10 +276,10 @@ falcon_1b:
 	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_FINAL) $(COMMON_ARGS)"
 
 llama_3b:
-	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_QKV) $(COMMON_ARGS)"
-	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_QKT) $(COMMON_ARGS)"
-	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_QKTV) $(COMMON_ARGS)"
-	sbt "runMain simulation.AnalyzerMain $(LLAMA_3B_FINAL) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKV) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKT) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKTV) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_FINAL) $(COMMON_ARGS)"
 
 mistral_7b:
 	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKV) $(COMMON_ARGS)"
