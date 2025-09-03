@@ -1,0 +1,103 @@
+# Common paths
+INPUT_SIM := input/simulation
+CONFIG_DIR := $(INPUT_SIM)/configs/analyzer/oneLayer
+HARDWARE_REF := $(INPUT_SIM)/hardware_reference
+SYNTHESIS := $(INPUT_SIM)/synthesis
+LAYER_DIR := $(INPUT_SIM)/layer
+
+# Test options
+
+TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
+TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
+
+# Define layer model (can be easily changed)
+MODEL := resnet
+MODEL_VARIANT := 50
+
+# Layer configuration paths (generic format)
+LAYER_PATH := $(LAYER_DIR)/$(MODEL)
+VARIANT_PATH := $(LAYER_PATH)/$(MODEL_VARIANT)
+TARGET_LAYER := $(VARIANT_PATH)/stage1_block1_conv2.cfg
+
+# Common arguments for all SBT runs
+OS_32 := $(CONFIG_DIR)/os_128x128_sd32.cfg
+OS_64 := $(CONFIG_DIR)/os_128x128_sd64.cfg
+OS_128 := $(CONFIG_DIR)/os_128x128_sd128.cfg
+OS_256 := $(CONFIG_DIR)/os_128x128_sd256.cfg
+OS_512 := $(CONFIG_DIR)/os_128x128_sd512.cfg
+
+WS_32 := $(CONFIG_DIR)/ws_128x128_sd32.cfg
+WS_64 := $(CONFIG_DIR)/ws_128x128_sd64.cfg
+WS_128 := $(CONFIG_DIR)/ws_128x128_sd128.cfg
+WS_256 := $(CONFIG_DIR)/ws_128x128_sd256.cfg
+WS_512 := $(CONFIG_DIR)/ws_128x128_sd512.cfg
+
+# Complete ARGS definitions for all configurations
+OS_32_ARGS := $(TARGET_LAYER) $(OS_32) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+OS_64_ARGS := $(TARGET_LAYER) $(OS_64) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+OS_128_ARGS := $(TARGET_LAYER) $(OS_128) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+OS_256_ARGS := $(TARGET_LAYER) $(OS_256) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+OS_512_ARGS := $(TARGET_LAYER) $(OS_512) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+
+WS_32_ARGS := $(TARGET_LAYER) $(WS_32) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+WS_64_ARGS := $(TARGET_LAYER) $(WS_64) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+WS_128_ARGS := $(TARGET_LAYER) $(WS_128) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+WS_256_ARGS := $(TARGET_LAYER) $(WS_256) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+WS_512_ARGS := $(TARGET_LAYER) $(WS_512) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+
+# Define targets for specific layers
+.PHONY: all run-layer run-os-all run-ws-all run-os-32 run-os-64 run-os-128 run-os-256 run-os-512 run-ws-32 run-ws-64 run-ws-128 run-ws-256 run-ws-512
+
+# Default target runs all configurations for the specified model/variant
+all: run-layer
+
+# Target to run all OS and WS configurations
+run-layer: run-os-all run-ws-all
+
+# Run all OS (Output Stationary) configurations
+run-os-all: run-os-32 run-os-64 run-os-128 run-os-256 run-os-512
+
+# Run all WS (Weight Stationary) configurations
+run-ws-all: run-ws-32 run-ws-64 run-ws-128 run-ws-256 run-ws-512
+
+# Individual OS configuration targets
+run-os-32:
+	@echo "Running OS 32-bit configuration..."
+	sbt "runMain simulation.AnalyzerMain $(OS_32_ARGS)"
+
+run-os-64:
+	@echo "Running OS 64-bit configuration..."
+	sbt "runMain simulation.AnalyzerMain $(OS_64_ARGS)"
+
+run-os-128:
+	@echo "Running OS 128-bit configuration..."
+	sbt "runMain simulation.AnalyzerMain $(OS_128_ARGS)"
+
+run-os-256:
+	@echo "Running OS 256-bit configuration..."
+	sbt "runMain simulation.AnalyzerMain $(OS_256_ARGS)"
+
+run-os-512:
+	@echo "Running OS 512-bit configuration..."
+	sbt "runMain simulation.AnalyzerMain $(OS_512_ARGS)"
+
+# Individual WS configuration targets
+run-ws-32:
+	@echo "Running WS 32-bit configuration..."
+	sbt "runMain simulation.AnalyzerMain $(WS_32_ARGS)"
+
+run-ws-64:
+	@echo "Running WS 64-bit configuration..."
+	sbt "runMain simulation.AnalyzerMain $(WS_64_ARGS)"
+
+run-ws-128:
+	@echo "Running WS 128-bit configuration..."
+	sbt "runMain simulation.AnalyzerMain $(WS_128_ARGS)"
+
+run-ws-256:
+	@echo "Running WS 256-bit configuration..."
+	sbt "runMain simulation.AnalyzerMain $(WS_256_ARGS)"
+
+run-ws-512:
+	@echo "Running WS 512-bit configuration..."
+	sbt "runMain simulation.AnalyzerMain $(WS_512_ARGS)"

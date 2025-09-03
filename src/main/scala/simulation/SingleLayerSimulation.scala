@@ -601,6 +601,16 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     }
 
     if(sramReferenceDataA.isEmpty || sramReferenceDataB.isEmpty || sramReferenceDataC.isEmpty){
+
+      if(sramReferenceDataA.isEmpty)
+        println("SRAM A data is empty")
+
+      if(sramReferenceDataB.isEmpty)
+        println("SRAM B data is empty")
+
+      if(sramReferenceDataC.isEmpty)
+        println("SRAM C data is empty")
+
       throw ParseError("Cannot find SRAM data from external reports ...")
     }
 

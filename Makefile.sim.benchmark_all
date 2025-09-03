@@ -17,8 +17,15 @@ all:
 	make -f Makefile.sim.optimizer.vit all
 	make -f Makefile.sim.optimizer.swin all
 
-# Analyzer
-	make -f Makefile.sim.analyzer.baseline all
-	make -f Makefile.sim.analyzer.proposed all
+# Contracting Dimension
+	#make -f Makefile.sim.conv_analysis
+	#make -f Makefile.sim.falcon_analysis
 
+# Fused Architecture (prediction)
+	#make -f Makefile.sim.os16x16x4x2x8.design_compiler
+	#make -f Makefile.sim.os16x16x4x2x8.design_compiler
+	#make -f Makefile.sim.os16x16x4x2x8.design_compiler
+	#make -f Makefile.sim.os16x16x4x2x8.design_compiler
+
+# Fused Architecture (design compiler)
 

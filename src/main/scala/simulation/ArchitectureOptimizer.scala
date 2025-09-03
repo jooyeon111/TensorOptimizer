@@ -715,31 +715,45 @@ class ArchitectureOptimizer(
   }
 
   private def halfSingleSramSizes(
-                                   archResultBuffer: ArrayBuffer[ArchitectureResult],
-                                 ): ArrayBuffer[ArchitectureResult] = {
+    archResultBuffer: ArrayBuffer[ArchitectureResult],
+  ): ArrayBuffer[ArchitectureResult] = {
 
     @tailrec
     def halfSingleSramSize(currentEval: ArchitectureResult): ArchitectureResult= {
 
       val currentArch  = currentEval.architecture
       val currentSingleSramSize = currentArch.arrayConfig.dataflow match {
-        case Dataflow.Is => currentArch.singleBufferLimitKbA
-        case Dataflow.Os => currentArch.singleBufferLimitKbC
-        case Dataflow.Ws => currentArch.singleBufferLimitKbB
+        case Dataflow.Is =>
+          currentArch.singleBufferLimitKbA
+        case Dataflow.Os =>
+          currentArch.singleBufferLimitKbA
+        case Dataflow.Ws =>
+          currentArch.singleBufferLimitKbB
       }
+
+      if (currentArch.arrayConfig.dataflow == Dataflow.Os) {
+        assert(currentArch.singleBufferLimitKbA == currentArch.singleBufferLimitKbB,
+          s"For Output Stationary dataflow, SRAM A and SRAM B must have the same size. " +
+            s"Found: SRAM A = ${currentArch.singleBufferLimitKbA} KB, SRAM B = ${currentArch.singleBufferLimitKbB} KB")
+      }
+
       val currentSimulationResult = currentEval.simulationResult
 
       if(currentSingleSramSize <= minSramSize){
-        //        log(s"\t\t\t${currentArch.arrayConfig.arrayConfigString} cannot reduce SRAM size further (minimum reached: ${minSramSize}KB)")
         return currentEval
       }
 
       val nextSramSize = currentSingleSramSize / 2
 
       val nextArchitecture = currentArch.arrayConfig.dataflow match {
-        case Dataflow.Is => currentArch.withSramBufferSize(nextSramSize, DataType.A)
-        case Dataflow.Os => currentArch.withSramBufferSize(nextSramSize, DataType.C)
-        case Dataflow.Ws => currentArch.withSramBufferSize(nextSramSize, DataType.B)
+        case Dataflow.Is =>
+          currentArch.withSramBufferSize(nextSramSize, DataType.A)
+        case Dataflow.Os =>
+          currentArch
+            .withSramBufferSize(nextSramSize, DataType.A)
+            .withSramBufferSize(nextSramSize, DataType.B)
+        case Dataflow.Ws =>
+          currentArch.withSramBufferSize(nextSramSize, DataType.B)
       }
 
       val newEval = buildAndRunSimulation(nextArchitecture)
