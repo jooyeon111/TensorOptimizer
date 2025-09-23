@@ -19,6 +19,7 @@ object ArraySynthesisData {
 
 }
 
+//TODO unit change based on DC results
 case class ArraySynthesisData(
   areaUm2: Double,
   private val switchPowerMw: Double,

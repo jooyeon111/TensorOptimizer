@@ -4,6 +4,8 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/aigis/JaeJoo.iml" filepath="$PROJECT_DIR$/.idea/modules/aigis/JaeJoo.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/aigis/JaeJoo.JaeJoo-build.iml" filepath="$PROJECT_DIR$/.idea/modules/aigis/JaeJoo.JaeJoo-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/JaeJoo/JaeJoo.main.iml" filepath="$PROJECT_DIR$/.idea/modules/JaeJoo/JaeJoo.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/JaeJoo/JaeJoo.test.iml" filepath="$PROJECT_DIR$/.idea/modules/JaeJoo/JaeJoo.test.iml" />
     </modules>
   </component>
 </project>

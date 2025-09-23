@@ -53,3 +53,7 @@ rtl_gen:
 	sbt "runMain rtl.Main input/rtl/ws_8x128x4x4x1.cfg"
 	sbt "runMain rtl.Main input/rtl/ws_8x16x8x4x8.cfg"
 	sbt "runMain rtl.Main input/rtl/ws_16x16x8x4x4.cfg"
+
+
+	sbt "runMain rtl.Main input/rtl/output_stationary.cfg"
+	sbt "runMain rtl.Main input/rtl/weight_stationary.cfg"
