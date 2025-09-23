@@ -41,5 +41,5 @@ all:
 	make -f Makefile.sim.os_16x16x4x2x8.prediction
 
 # Fused Architecture (design compiler)
-	make -f Makefile.sim.fused2
-	make -f Makefile.sim.fused3
+	#make -f Makefile.sim.fused2
+	#make -f Makefile.sim.fused3

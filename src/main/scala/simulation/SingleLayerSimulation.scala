@@ -243,11 +243,11 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
               throw ParseError("Leakage Power Not found")
             )
           )
-//          println(s"✅ Loaded from file:")
-//          println(f"   📏 Area: ${result.areaUm2}%,.1f µm²")
-//          println(f"   ⚡ Total Power: ${result.totalPowerPw / 1e9}%.1f mW")
-//          println(f"   📏 Area: ${result.areaUm2} µm²")
-//          println(f"   ⚡ Total Power: ${result.totalPowerMw} mW")
+//          println(s"Loaded from file:")
+//          println(f"   Area: ${result.areaUm2}%,.1f µm²")
+//          println(f"   Total Power: ${result.totalPowerPw / 1e9}%.1f mW")
+//          println(f"   Area: ${result.areaUm2} µm²")
+//          println(f"   Total Power: ${result.totalPowerMw} mW")
           result
         }
 
