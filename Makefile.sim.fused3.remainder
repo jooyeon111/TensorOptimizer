@@ -5,7 +5,7 @@ HARDWARE_REF := $(INPUT_SIM)/hardware_reference
 LAYER_DIR := $(INPUT_SIM)/layer
 
 # Test options
-TEST_OPTION_MULT := $(CONFIG_DIR)/fused3_ws0_mode.cfg
+TEST_OPTION_MULT := $(CONFIG_DIR)/fused3_ws0.cfg
 TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
 TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/fused3_ws0_sram.cfg
 TEST_OPTION_DESIGN_COMPILER = $(HARDWARE_REF)/design_compiler/fused3.cfg
