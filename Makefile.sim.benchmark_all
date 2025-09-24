@@ -24,22 +24,27 @@ all:
 	#make -f Makefile.sim.falcon_analysis
 
 # Baseline
-	make -f Makefile.sim.ws_128x128x1x1x1.design_compiler
-	make -f Makefile.sim.ws_128x128x1x1x1.prediction
+	#make -f Makefile.sim.ws_128x128x1x1x1.design_compiler
+	#make -f Makefile.sim.ws_128x128x1x1x1.prediction
 
 # Best configs
-	make -f Makefile.sim.ws_16x16x2x2x16.design_compiler
-	make -f Makefile.sim.ws_16x16x2x2x16.prediction
-
-	make -f Makefile.sim.ws_16x16x2x4x8.design_compiler
-	make -f Makefile.sim.ws_16x16x2x4x8.prediction
-
-	make -f Makefile.sim.ws_16x16x4x4x4.design_compiler
-	make -f Makefile.sim.ws_16x16x4x4x4.prediction
-
-	make -f Makefile.sim.os_16x16x4x2x8.design_compiler
-	make -f Makefile.sim.os_16x16x4x2x8.prediction
+#	make -f Makefile.sim.ws_16x16x2x2x16.design_compiler
+#	make -f Makefile.sim.ws_16x16x2x2x16.prediction
+#
+#	make -f Makefile.sim.ws_16x16x2x4x8.design_compiler
+#	make -f Makefile.sim.ws_16x16x2x4x8.prediction
+#
+#	make -f Makefile.sim.ws_16x16x4x4x4.design_compiler
+#	make -f Makefile.sim.ws_16x16x4x4x4.prediction
+#
+#	make -f Makefile.sim.os_16x16x4x2x8.design_compiler
+#	make -f Makefile.sim.os_16x16x4x2x8.prediction
 
 # Fused Architecture (design compiler)
-	#make -f Makefile.sim.fused2
-	#make -f Makefile.sim.fused3
+
+	make -f Makefile.sim.fused2.mobile
+	make -f Makefile.sim.fused2.remainder
+
+	make -f Makefile.sim.fused3.mobile
+	make -f Makefile.sim.fused3.llm
+	make -f Makefile.sim.fused3.remainder

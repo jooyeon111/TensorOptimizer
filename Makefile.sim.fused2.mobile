@@ -1,0 +1,168 @@
+# Common paths
+INPUT_SIM := input/simulation
+CONFIG_DIR := $(INPUT_SIM)/configs/analyzer/oneLayer
+HARDWARE_REF := $(INPUT_SIM)/hardware_reference
+LAYER_DIR := $(INPUT_SIM)/layer
+
+# Test options
+TEST_OPTION_MULT := $(CONFIG_DIR)/fused2_os_mode.cfg
+TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
+TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
+TEST_OPTION_DESIGN_COMPILER = $(HARDWARE_REF)/design_compiler/fused2.cfg
+
+#mobile net v2 path
+MOBILENET_V2_PATH := $(LAYER_DIR)/mobilenet/v2
+
+MOBILENET_V2_CONV1 := $(MOBILENET_V2_PATH)/conv1.cfg
+
+#STAGE1
+MOBILENET_V2_STAGE1_BLOCK1_CONV1 := $(MOBILENET_V2_PATH)/stage1_block1_conv1.cfg
+MOBILENET_V2_STAGE1_BLOCK1_CONV2 := $(MOBILENET_V2_PATH)/stage1_block1_conv2.cfg
+
+#STAGE2
+MOBILENET_V2_STAGE2_BLOCK1_CONV1 := $(MOBILENET_V2_PATH)/stage2_block1_conv1.cfg
+MOBILENET_V2_STAGE2_BLOCK1_CONV2 := $(MOBILENET_V2_PATH)/stage2_block1_conv2.cfg
+MOBILENET_V2_STAGE2_BLOCK1_CONV3 := $(MOBILENET_V2_PATH)/stage2_block1_conv3.cfg
+
+MOBILENET_V2_STAGE2_BLOCK2_CONV1 := $(MOBILENET_V2_PATH)/stage2_block2_conv1.cfg
+MOBILENET_V2_STAGE2_BLOCK2_CONV2 := $(MOBILENET_V2_PATH)/stage2_block2_conv2.cfg
+MOBILENET_V2_STAGE2_BLOCK2_CONV3 := $(MOBILENET_V2_PATH)/stage2_block2_conv3.cfg
+
+#STAGE3
+MOBILENET_V2_STAGE3_BLOCK1_CONV1 := $(MOBILENET_V2_PATH)/stage3_block1_conv1.cfg
+MOBILENET_V2_STAGE3_BLOCK1_CONV2 := $(MOBILENET_V2_PATH)/stage3_block1_conv2.cfg
+MOBILENET_V2_STAGE3_BLOCK1_CONV3 := $(MOBILENET_V2_PATH)/stage3_block1_conv3.cfg
+
+MOBILENET_V2_STAGE3_BLOCK2_CONV1 := $(MOBILENET_V2_PATH)/stage3_block2_conv1.cfg
+MOBILENET_V2_STAGE3_BLOCK2_CONV2 := $(MOBILENET_V2_PATH)/stage3_block2_conv2.cfg
+MOBILENET_V2_STAGE3_BLOCK2_CONV3 := $(MOBILENET_V2_PATH)/stage3_block2_conv3.cfg
+
+MOBILENET_V2_STAGE3_BLOCK3_CONV1 := $(MOBILENET_V2_PATH)/stage3_block3_conv1.cfg
+MOBILENET_V2_STAGE3_BLOCK3_CONV2 := $(MOBILENET_V2_PATH)/stage3_block3_conv2.cfg
+MOBILENET_V2_STAGE3_BLOCK3_CONV3 := $(MOBILENET_V2_PATH)/stage3_block3_conv3.cfg
+
+#STAGE4
+MOBILENET_V2_STAGE4_BLOCK1_CONV1 := $(MOBILENET_V2_PATH)/stage4_block1_conv1.cfg
+MOBILENET_V2_STAGE4_BLOCK1_CONV2 := $(MOBILENET_V2_PATH)/stage4_block1_conv2.cfg
+MOBILENET_V2_STAGE4_BLOCK1_CONV3 := $(MOBILENET_V2_PATH)/stage4_block1_conv3.cfg
+
+MOBILENET_V2_STAGE4_BLOCK2_CONV1 := $(MOBILENET_V2_PATH)/stage4_block2_conv1.cfg
+MOBILENET_V2_STAGE4_BLOCK2_CONV2 := $(MOBILENET_V2_PATH)/stage4_block2_conv2.cfg
+MOBILENET_V2_STAGE4_BLOCK2_CONV3 := $(MOBILENET_V2_PATH)/stage4_block2_conv3.cfg
+
+MOBILENET_V2_STAGE4_BLOCK3_CONV1 := $(MOBILENET_V2_PATH)/stage4_block3_conv1.cfg
+MOBILENET_V2_STAGE4_BLOCK3_CONV2 := $(MOBILENET_V2_PATH)/stage4_block3_conv2.cfg
+MOBILENET_V2_STAGE4_BLOCK3_CONV3 := $(MOBILENET_V2_PATH)/stage4_block3_conv3.cfg
+
+MOBILENET_V2_STAGE4_BLOCK4_CONV1 := $(MOBILENET_V2_PATH)/stage4_block4_conv1.cfg
+MOBILENET_V2_STAGE4_BLOCK4_CONV2 := $(MOBILENET_V2_PATH)/stage4_block4_conv2.cfg
+MOBILENET_V2_STAGE4_BLOCK4_CONV3 := $(MOBILENET_V2_PATH)/stage4_block4_conv3.cfg
+
+#STAGE5
+MOBILENET_V2_STAGE5_BLOCK1_CONV1 := $(MOBILENET_V2_PATH)/stage5_block1_conv1.cfg
+MOBILENET_V2_STAGE5_BLOCK1_CONV2 := $(MOBILENET_V2_PATH)/stage5_block1_conv2.cfg
+MOBILENET_V2_STAGE5_BLOCK1_CONV3 := $(MOBILENET_V2_PATH)/stage5_block1_conv3.cfg
+
+MOBILENET_V2_STAGE5_BLOCK2_CONV1 := $(MOBILENET_V2_PATH)/stage5_block2_conv1.cfg
+MOBILENET_V2_STAGE5_BLOCK2_CONV2 := $(MOBILENET_V2_PATH)/stage5_block2_conv2.cfg
+MOBILENET_V2_STAGE5_BLOCK2_CONV3 := $(MOBILENET_V2_PATH)/stage5_block2_conv3.cfg
+
+MOBILENET_V2_STAGE5_BLOCK3_CONV1 := $(MOBILENET_V2_PATH)/stage5_block3_conv1.cfg
+MOBILENET_V2_STAGE5_BLOCK3_CONV2 := $(MOBILENET_V2_PATH)/stage5_block3_conv2.cfg
+MOBILENET_V2_STAGE5_BLOCK3_CONV3 := $(MOBILENET_V2_PATH)/stage5_block3_conv3.cfg
+
+#STAGE6
+MOBILENET_V2_STAGE6_BLOCK1_CONV1 := $(MOBILENET_V2_PATH)/stage6_block1_conv1.cfg
+MOBILENET_V2_STAGE6_BLOCK1_CONV2 := $(MOBILENET_V2_PATH)/stage6_block1_conv2.cfg
+MOBILENET_V2_STAGE6_BLOCK1_CONV3 := $(MOBILENET_V2_PATH)/stage6_block1_conv3.cfg
+
+MOBILENET_V2_STAGE6_BLOCK2_CONV1 := $(MOBILENET_V2_PATH)/stage6_block2_conv1.cfg
+MOBILENET_V2_STAGE6_BLOCK2_CONV2 := $(MOBILENET_V2_PATH)/stage6_block2_conv2.cfg
+MOBILENET_V2_STAGE6_BLOCK2_CONV3 := $(MOBILENET_V2_PATH)/stage6_block2_conv3.cfg
+
+MOBILENET_V2_STAGE6_BLOCK3_CONV1 := $(MOBILENET_V2_PATH)/stage6_block3_conv1.cfg
+MOBILENET_V2_STAGE6_BLOCK3_CONV2 := $(MOBILENET_V2_PATH)/stage6_block3_conv2.cfg
+MOBILENET_V2_STAGE6_BLOCK3_CONV3 := $(MOBILENET_V2_PATH)/stage6_block3_conv3.cfg
+
+#STAGE7
+MOBILENET_V2_STAGE7_BLOCK1_CONV1 := $(MOBILENET_V2_PATH)/stage7_block1_conv1.cfg
+MOBILENET_V2_STAGE7_BLOCK1_CONV2 := $(MOBILENET_V2_PATH)/stage7_block1_conv2.cfg
+MOBILENET_V2_STAGE7_BLOCK1_CONV3 := $(MOBILENET_V2_PATH)/stage7_block1_conv3.cfg
+
+#CLASSIFICATION
+MOBILENET_V2_FINAL_CONV := $(MOBILENET_V2_PATH)/final_conv.cfg
+MOBILENET_V2_FC := $(MOBILENET_V2_PATH)/fc.cfg
+
+
+# Common arguments for all SBT runs
+COMMON_ARGS := $(TEST_OPTION_MULT) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+
+# Define targets for specific layers
+.PHONY: all mobilenet_v2
+
+# Default target runs all configurations for the specified model/variant
+all: mobilenet_v2
+
+# Target to run a specific layer model
+mobilenet_v2:
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_CONV1) $(COMMON_ARGS)"
+
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE1_BLOCK1_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE1_BLOCK1_CONV2) $(COMMON_ARGS)"
+
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK1_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK1_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK1_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK2_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK2_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK2_CONV3) $(COMMON_ARGS)"
+
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK1_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK1_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK1_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK2_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK2_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK2_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK3_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK3_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK3_CONV3) $(COMMON_ARGS)"
+
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK1_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK1_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK1_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK2_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK2_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK2_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK3_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK3_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK3_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK4_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK4_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK4_CONV3) $(COMMON_ARGS)"
+
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK1_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK1_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK1_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK2_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK2_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK2_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK3_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK3_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK3_CONV3) $(COMMON_ARGS)"
+
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK1_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK1_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK1_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK2_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK2_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK2_CONV3) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK3_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK3_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK3_CONV3) $(COMMON_ARGS)"
+
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE7_BLOCK1_CONV1) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE7_BLOCK1_CONV2) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE7_BLOCK1_CONV3) $(COMMON_ARGS)"
+
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_FINAL_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_FC) $(COMMON_ARGS)"

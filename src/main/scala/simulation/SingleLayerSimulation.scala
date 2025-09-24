@@ -29,7 +29,8 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     offChipMemoryReferenceData: Option[OffChipMemoryReferenceData],
     sramReferenceDataVector: Option[Vector[SramReferenceData]],
     arraySynthesisSource: Option[ArraySynthesisSource.Value],
-    arraySynthesisData: Option[ArraySynthesisData]
+    arraySynthesisData: Option[ArraySynthesisData],
+    fused2Special: Boolean
   ) {
     def validate: Boolean = {
       val baseValidation = streamingDimensionSize > 0 &&
@@ -413,6 +414,10 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       throw ParseError("SRAM C Single Buffer Limit (KB)")
     )
 
+    val fused2Special: Boolean = testConfig.getBoolean("Fused2 Special").getOrElse(
+      false
+    )
+
     SimulationConfig(
       debugPrint = debugPrint,
       debugStartCycle = debugStartCycle,
@@ -436,6 +441,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       offChipMemoryReferenceData = offChipMemoryReferenceData,
       arraySynthesisSource = arraySynthesisSource,
       arraySynthesisData = arraySynthesisData,
+      fused2Special = fused2Special
     )
 
   }
@@ -630,13 +636,39 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       referenceData = sramReferenceDataB,
       loggerOption = loggerOption
     )
-    val sramC = new OutputDoubleBufferSram(
-      outputBandwidth = simConfig.offChipMemoryBandwidth,
-      singleBufferTileCapacity = capacityC,
-      singleBufferLimitKb = simConfig.singleBufferLimitKbC,
-      referenceData = sramReferenceDataC,
-      loggerOption = loggerOption
-    )
+
+    val sramC = if(simConfig.fused2Special){
+      new OutputDoubleBufferSram(
+        outputBandwidth = simConfig.offChipMemoryBandwidth,
+        singleBufferTileCapacity = capacityC,
+        singleBufferLimitKb = simConfig.singleBufferLimitKbC,
+        referenceData = Option(SramReferenceData(
+          capacityKb = 64,
+          bandwidthBytes = 256,
+          readEnergyPj = 1414,
+          writeEnergyPj = 1404,
+          leakagePowerMw = 783.827,
+          areaUm2 = 1665000
+        )),
+        loggerOption = loggerOption
+      )
+    } else {
+      new OutputDoubleBufferSram(
+        outputBandwidth = simConfig.offChipMemoryBandwidth,
+        singleBufferTileCapacity = capacityC,
+        singleBufferLimitKb = simConfig.singleBufferLimitKbC,
+        referenceData = sramReferenceDataC,
+        loggerOption = loggerOption
+      )
+    }
+
+//    val sramC = new OutputDoubleBufferSram(
+//      outputBandwidth = simConfig.offChipMemoryBandwidth,
+//      singleBufferTileCapacity = capacityC,
+//      singleBufferLimitKb = simConfig.singleBufferLimitKbC,
+//      referenceData = sramReferenceDataC,
+//      loggerOption = loggerOption
+//    )
 
     (sramA, sramB, sramC)
 
