@@ -40,11 +40,7 @@ all:
 #	make -f Makefile.sim.os_16x16x4x2x8.design_compiler
 #	make -f Makefile.sim.os_16x16x4x2x8.prediction
 
-# Fused Architecture (design compiler)
+# Fused Architecture (onlydesign compiler)
 
-	make -f Makefile.sim.fused2.mobile
+	make -f Makefile.sim.fused2.llm
 	make -f Makefile.sim.fused2.remainder
-
-	make -f Makefile.sim.fused3.mobile
-	make -f Makefile.sim.fused3.llm
-	make -f Makefile.sim.fused3.remainder
