@@ -64,6 +64,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
   def runLayerSimulation(
     layerPath: String,
     testPath: String,
+    tilingPath: String,
     offChipMemoryDataPath: Option[String] = None,
     sramDataPath: Option[String] = None,
     arrayDataPath: Option[String] = None,
@@ -73,6 +74,8 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
 
     val layerConfigParser = new ConfigManager(layerPath)
     val testConfigParser = new ConfigManager(testPath)
+    val tilingConfigParser = new ConfigManager(tilingPath)
+
     val sramDataParser = sramDataPath.map(new ConfigManager(_))
     val offChipMemoryDataParser = offChipMemoryDataPath.map(new ConfigManager(_))
     val arrayDataParser = arrayDataPath.map(new ConfigManager(_))
@@ -83,6 +86,10 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
 
     if(!testConfigParser.parse()){
       throw ParseError("Test option parsing failed" + help)
+    }
+
+    if(!tilingConfigParser.parse()){
+      throw ParseError("Tiling option parsing failed" + help)
     }
 
     sramDataParser.foreach(parser =>
@@ -110,6 +117,10 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       throw ParseError("Test Config not found")
     )
 
+    val tilingConfig = tilingConfigParser.getConfig.getOrElse(
+      throw ParseError("Tiling Config not found")
+    )
+
     val offChipMemoryReferenceData = offChipMemoryDataParser.flatMap(_.getConfig).map { config =>
       OffChipMemoryReferenceData(
         readEnergyPj = config.getDouble("Read Energy").getOrElse(
@@ -129,137 +140,29 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       Some(ArraySynthesisSource.FewShotPrediction)
     }
 
-    val arraySynthesisData: Option[ArraySynthesisData] = arraySynthesisSource match {
-      case Some(ArraySynthesisSource.FewShotPrediction) =>
-        try {
-          val dataflowString = testConfig.getString("Dataflow").get
-          val groupPeRow = testConfig.getInt("Group PE Row").getOrElse(
-            throw ParseError("Group PE Row not found")
-          )
-          val groupPeCol = testConfig.getInt("Group PE Column").getOrElse(
-            throw ParseError("Group PE Col not found")
-          )
-          val vectorPeRow = testConfig.getInt("Vector PE Row").getOrElse(
-            throw ParseError("Vector PE Row not found")
-          )
-          val vectorPeCol = testConfig.getInt("Vector PE Column").getOrElse(
-            throw ParseError("Vector PE Column not found")
-          )
-          val numMultiplier = testConfig.getInt("Multipliers Per PE").getOrElse(
-            throw ParseError("Multipliers Per PE not found")
-          )
-//          val streamingDimSize = testConfig.getInt("Streaming Dimension Size").getOrElse(
-//            throw ParseError("Streaming Dimension Size not found")
-//          )
-
-          val dimensionM = layerConfig.getInt("M").getOrElse(
-            throw ParseError("M dimension not found")
-          )
-          val dimensionN = layerConfig.getInt("N").getOrElse(
-            throw ParseError("N dimension not found")
-          )
-          val dimensionK = layerConfig.getInt("K").getOrElse(
-            throw ParseError("K dimension not found")
-          )
-
-          val dataflow = dataflowString match {
-            case "IS" => Dataflow.Is
-            case "OS" => Dataflow.Os
-            case "WS" => Dataflow.Ws
-            case _ =>
-              throw ParseError("Invalid dataflow")
-          }
-
-          val streamingDimSize = parseStreamingDimension(
-            testConfig = testConfig,
-            dataflow = dataflow,
-            dimensionM = dimensionM,
-            dimensionN = dimensionN,
-            dimensionK = dimensionK
-          )
-
-          val totalMultipliers = groupPeRow * groupPeCol * vectorPeRow * vectorPeCol * numMultiplier
-
-          println(s"Predicting array synthesis data:")
-          println(s"   Dataflow: $dataflowString")
-          println(s"   Total Multipliers: $totalMultipliers")
-          println(s"   PE Config: ${groupPeRow}x${groupPeCol}, ${vectorPeRow}x${vectorPeCol}, $numMultiplier")
-
-          if (!FewShotPredictor.isModelLoaded) {
-            println("Loading ML prediction model...")
-            FewShotPredictor.loadModelFromDefaultFiles match {
-              case Success(_) =>
-                println("Model loaded successfully")
-              case Failure(e) =>
-                println(s"Failed to load model: ${e.getMessage}")
-                throw new RuntimeException(s"Could not load prediction model: ${e.getMessage}")
-            }
-          }
-
-          // Make prediction
-          FewShotPredictor.predict(
-            FewShotPredictor.InputFeatures(
-              dataflow = dataflowString,
-              totalNumberOfMultipliers = totalMultipliers,
-              r = groupPeRow,
-              c = groupPeCol,
-              a = vectorPeRow,
-              b = vectorPeCol,
-              p = numMultiplier,
-              streamingDimensionSize = streamingDimSize
-            )
-          ) match {
-            case Success(result) =>
-//              println(s"Prediction successful:")
-//              println(f"  Area: ${result.areaUm2} µm²")
-//              println(f"  Switch: ${result.switchPowerPw} Pw")
-//              println(f"  Internal: ${result.internalPowerPw} Pw")
-//              println(f"  Leakage: ${result.leakagePowerPw} Pw")
-//              println(f"  Total Power ${result.totalPowerMw} mW")
-              Some(result)
-            case Failure(exception) =>
-              println(s"❌ Prediction failed: ${exception.getMessage}")
-              throw new RuntimeException(s"Hardware prediction failed: ${exception.getMessage}")
-          }
-        } catch {
-          case e: Exception =>
-            println(s"❌ Error in DNN prediction: ${e.getMessage}")
-            None
-        }
-
-      case Some(ArraySynthesisSource.DesignCompiler) =>
-        println("📁 Loading array synthesis data from file...")
-        arrayDataParser.flatMap(_.getConfig).map { config =>
-          val result = ArraySynthesisData(
-            areaUm2 = config.getDouble("Area").getOrElse(
-              throw ParseError("Array Area not found")
-            ),
-            switchPowerMw = config.getDouble("Switch Power").getOrElse(
-              throw ParseError("Switch Power Not found")
-            ),
-            internalPowerMw = config.getDouble("Internal Power").getOrElse(
-              throw ParseError("Internal Power Not found")
-            ),
-            leakagePowerMw = config.getDouble("Leakage Power").getOrElse(
-              throw ParseError("Leakage Power Not found")
-            )
-          )
-//          println(s"Loaded from file:")
-//          println(f"   Area: ${result.areaUm2}%,.1f µm²")
-//          println(f"   Total Power: ${result.totalPowerPw / 1e9}%.1f mW")
-//          println(f"   Area: ${result.areaUm2} µm²")
-//          println(f"   Total Power: ${result.totalPowerMw} mW")
-          result
-        }
-
-      case None =>
-        println("No array synthesis source specified")
-        None
+    val arraySynthesisData = arrayDataParser.flatMap(_.getConfig).map { config =>
+      val result = ArraySynthesisData(
+        areaUm2 = config.getDouble("Area").getOrElse(
+          throw ParseError("Array Area not found")
+        ),
+        switchPowerMw = config.getDouble("Switch Power").getOrElse(
+          throw ParseError("Switch Power Not found")
+        ),
+        internalPowerMw = config.getDouble("Internal Power").getOrElse(
+          throw ParseError("Internal Power Not found")
+        ),
+        leakagePowerMw = config.getDouble("Leakage Power").getOrElse(
+          throw ParseError("Leakage Power Not found")
+        )
+      )
+      result
     }
 
+    println("Build Simulation Config")
     val simulationConfig = buildSimulationOneLayerConfig(
       layerConfig = layerConfig,
       testConfig = testConfig,
+      tilingConfig = tilingConfig,
       offChipMemoryReferenceData = offChipMemoryReferenceData,
       sramReferenceData = sramReferenceData,
       arraySynthesisSource = arraySynthesisSource,
@@ -287,6 +190,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
   private def buildSimulationOneLayerConfig(
     layerConfig: ConfigParser.Config,
     testConfig: ConfigParser.Config,
+    tilingConfig: ConfigParser.Config,
     offChipMemoryReferenceData: Option[OffChipMemoryReferenceData] = None,
     sramReferenceData: Option[Vector[SramReferenceData]] = None,
     arraySynthesisSource: Option[ArraySynthesisSource.Value] = None,
@@ -314,7 +218,8 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     val debugEndCycle = testConfig.getInt("Debug End Cycle").getOrElse(0)
 
     //Hardware configuration
-    val dataflow = testConfig.getString("Dataflow").get match {
+    val dataflowString = testConfig.getString("Dataflow").get
+    val dataflow = dataflowString match {
       case "IS" => Dataflow.Is
       case "OS" => Dataflow.Os
       case "WS" => Dataflow.Ws
@@ -322,34 +227,8 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
         throw ParseError("Invalid dataflow")
     }
 
-//    val streamingDimensionSize = dataflow match {
-//      case Dataflow.Is =>
-//        testConfig
-//          .getInt("Streaming Dimension Size")
-//          .getOrElse(throw ParseError("Streaming Dimension Not Found"))
-//
-//      case Dataflow.Os =>
-//        val sDim = testConfig
-//          .getInt("Streaming Dimension Size")
-//          .getOrElse(throw ParseError("Streaming Dimension Not Found"))
-//
-//        if(sDim >= dimensionK){
-//          println("Streaming Dimension is Equal or Larger in output stationary")
-//          println(s"Streaming dimension in configuration file is $sDim")
-//          println(s"Streaming dimension is changed into $dimensionK")
-//          dimensionK
-//        } else {
-//          sDim
-//        }
-//
-//      case Dataflow.Ws =>
-//        testConfig
-//          .getInt("Streaming Dimension Size")
-//          .getOrElse(throw ParseError("Streaming Dimension Not Found"))
-//    }
-
     val streamingDimensionSize = parseStreamingDimension(
-      testConfig, dataflow, dimensionM, dimensionN, dimensionK
+      tilingConfig, dataflow, dimensionM, dimensionN, dimensionK
     )
 
     val offChipMemoryUploadOrder = dataflow match {
@@ -394,8 +273,6 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       streamingDimensionSize = streamingDimensionSize
     )
 
-    println(s"Bit width Port C: $bitWidthPortC")
-
     val portBitWidth = PortBitWidth(bitWidthPortA, bitWidthPortB, bitWidthPortC)
 
     val offChipMemoryBandwidth = testConfig.getInt("Off Chip Memory Bandwidth").getOrElse(
@@ -417,6 +294,47 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     val fused2Special: Boolean = testConfig.getBoolean("Fused2 Special").getOrElse(
       false
     )
+
+    val arrayData: Option[ArraySynthesisData] = if(arraySynthesisData.isDefined) {
+      println("Using design compiler array synthesis data")
+      assert(arraySynthesisSource.get == ArraySynthesisSource.DesignCompiler,
+        " This results not coming from design compiler")
+      arraySynthesisData
+    } else {
+      assert(arraySynthesisSource.get == ArraySynthesisSource.FewShotPrediction,
+        "This results not coming from prediction")
+      if (!FewShotPredictor.isModelLoaded) {
+        println("Loading ML prediction model...")
+        FewShotPredictor.loadModelFromDefaultFiles match {
+          case Success(_) =>
+            println("Model loaded successfully")
+          case Failure(e) =>
+            println(s"Failed to load model: ${e.getMessage}")
+            throw new RuntimeException(s"Could not load prediction model: ${e.getMessage}")
+        }
+      }
+
+      FewShotPredictor.predict(
+        FewShotPredictor.InputFeatures(
+          dataflow = dataflowString,
+          totalNumberOfMultipliers = groupPeRow * groupPeCol * vectorPeRow * vectorPeCol * numMultiplier,
+          r = groupPeRow,
+          c = groupPeCol,
+          a = vectorPeRow,
+          b = vectorPeCol,
+          p = numMultiplier,
+          streamingDimensionSize = streamingDimensionSize
+        )
+      ) match {
+        case Success(result) =>
+          println("Synthesis Data Prediction Success")
+          Some(result)
+        case Failure(exception) =>
+          println(s"Prediction failed: ${exception.getMessage}")
+          throw new RuntimeException(s"Hardware prediction failed: ${exception.getMessage}")
+      }
+
+    }
 
     SimulationConfig(
       debugPrint = debugPrint,
@@ -440,20 +358,21 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       sramReferenceDataVector = sramReferenceData,
       offChipMemoryReferenceData = offChipMemoryReferenceData,
       arraySynthesisSource = arraySynthesisSource,
-      arraySynthesisData = arraySynthesisData,
+      arraySynthesisData = arrayData,
       fused2Special = fused2Special
     )
 
   }
 
   private def parseStreamingDimension(
-    testConfig: ConfigParser.Config,
+    tilingConfig: ConfigParser.Config,
     dataflow: Dataflow.Value,
     dimensionM: Int,
     dimensionN: Int,
     dimensionK: Int
   ): Int = {
-    val configuredStreamingDim = testConfig
+
+    val configuredStreamingDim = tilingConfig
       .getInt("Streaming Dimension Size")
       .getOrElse(throw ParseError("Streaming Dimension Not Found"))
 
@@ -556,8 +475,16 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
   private def generateLogFileName(config: SimulationConfig): String = {
 
     val dataflowShortName = config.dataflow.toString.toLowerCase
+    val synthesisSource = config.arraySynthesisSource.get match {
+      case ArraySynthesisSource.DesignCompiler =>
+        "dc"
+      case ArraySynthesisSource.FewShotPrediction =>
+        "sim"
+      case _ =>
+        throw ParseError("Invalid synthesis source")
+    }
 
-    s"/debug_${config.layerName}_${dataflowShortName}_" +
+    s"/${synthesisSource}_${config.layerName}_${dataflowShortName}_" +
       s"{${config.groupPeRow}x${config.groupPeCol}}x" +
       s"{${config.vectorPeRow}x${config.vectorPeCol}}" +
       s"x${config.numMultiplier}}" +

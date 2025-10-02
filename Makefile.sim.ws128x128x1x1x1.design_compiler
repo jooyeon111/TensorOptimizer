@@ -1,6 +1,7 @@
 # Common paths
 INPUT_SIM := input/simulation
 CONFIG_DIR := $(INPUT_SIM)/configs/analyzer/oneLayer
+TILING_DIR := $(INPUT_SIM)/configs/analyzer/tiling
 HARDWARE_REF := $(INPUT_SIM)/hardware_reference
 LAYER_DIR := $(INPUT_SIM)/layer
 
@@ -9,6 +10,9 @@ TEST_OPTION_MULT := $(CONFIG_DIR)/ws_128x128x1x1x1.cfg
 TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
 TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
 TEST_OPTION_DESIGN_COMPILER = $(HARDWARE_REF)/design_compiler/ws_128x128x1x1x1.cfg
+TEST_OPTION_TILING_128 := $(TILING_DIR)/tiling128.cfg
+
+COMMON_ARGS := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_128) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 
 # bert
 BERT_BASE_PATH := $(LAYER_DIR)/bert/base
@@ -249,7 +253,6 @@ MOBILENET_V2_FC := $(MOBILENET_V2_PATH)/fc.cfg
 
 
 # Common arguments for all SBT runs
-COMMON_ARGS := $(TEST_OPTION_MULT) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 
 # Define targets for specific layers
 .PHONY: all bert_base bloom_1b falcon_1b llama_7b mistral_7b phi_2 vit_base swin_base resnet_50 mobilenet_v2

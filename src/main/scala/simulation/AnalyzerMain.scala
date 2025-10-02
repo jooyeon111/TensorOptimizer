@@ -1,6 +1,5 @@
 package simulation
 
-import common.FilePaths
 import scala.util.{Failure, Success, Try}
 
 object AnalyzerMain extends App
@@ -18,19 +17,22 @@ object AnalyzerMain extends App
     |[2 arguments] - Cycle Report Only Mode:
     |  First argument is target MNK layer
     |  Second argument is test setting argument
+    |  Third argument is tiling argument
     |
     |[4 arguments] - Cycle and Energy Report Mode (with Few shot model):
     |  First argument is target MNK layer
     |  Second argument is test setting argument
-    |  Third argument is off chip memory Reference Data
-    |  Fourth argument is SRAM Reference Data
+    |  Third argument is tiling argument
+    |  Fourth argument is off chip memory Reference Data
+    |  Fifth argument is SRAM Reference Data
     |
     |[5 arguments] - Cycle and Energy Report Mode (with array data):
     |  First argument is target MNK layer
     |  Second argument is test setting argument
-    |  Third argument is off chip memory Reference Data
-    |  Fourth argument is SRAM Reference Data
-    |  Fifth argument is either Array Synthesis Reference Data
+    |  Third argument is tiling argument
+    |  Fourth argument is off chip memory Reference Data
+    |  Fifth argument is SRAM Reference Data
+    |  Sixth argument is either Array Synthesis Reference Data
     |
   """.stripMargin
 
@@ -46,24 +48,25 @@ object AnalyzerMain extends App
     if(args.length == 1){
       println("RTL Synthesis Manger Mode")
       generateRtl(args(0), help)
-    } else if (args.length == 2) {
+    } else if (args.length == 3) {
       println("Cycle Report Only")
       runLayerSimulation(
         layerPath = args(0),
         testPath = args(1),
+        tilingPath = args(2),
         help = help
       )
-    } else if(args.length == 4){
+    } else if(args.length == 5){
 
-      println("Cycle and Energy Report Mode with Few shot model learning data")
+      println("Cycle and Energy Report Mode with deep learning")
       FewShotPredictor.loadModelFromDefaultFiles match {
         case Success(_) =>
-//          FewShotPredictor.debugPrediction()
           runLayerSimulation(
             layerPath = args(0),
             testPath = args(1),
-            offChipMemoryDataPath = Option(args(2)),
-            sramDataPath = Option(args(3)),
+            tilingPath = args(2),
+            offChipMemoryDataPath = Option(args(3)),
+            sramDataPath = Option(args(4)),
             help = help
           )
 
@@ -72,15 +75,16 @@ object AnalyzerMain extends App
           sys.exit(1)
       }
 
-    } else if (args.length == 5){
+    } else if (args.length == 6){
 
       println("Cycle and Energy Report Mode with Design Compiler Results")
       runLayerSimulation(
         layerPath = args(0),
         testPath = args(1),
-        offChipMemoryDataPath = Option(args(2)),
-        sramDataPath = Option(args(3)),
-        arrayDataPath = Option(args(4)),
+        tilingPath = args(2),
+        offChipMemoryDataPath = Option(args(3)),
+        sramDataPath = Option(args(4)),
+        arrayDataPath = Option(args(5)),
         help = help
       )
 

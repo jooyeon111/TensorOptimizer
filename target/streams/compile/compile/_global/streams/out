@@ -1,5 +1,6 @@
-[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/JaeJoo/src/main/scala/simulation/SingleLayerSimulation.scala:131:58: match may not be exhaustive.[0m
-[0m[[0m[33mwarn[0m] [0m[0mIt would fail on the following input: Some((x: simulation.ArraySynthesisSource.Value forSome x not in (DesignCompiler, FewShotPrediction)))[0m
-[0m[[0m[33mwarn[0m] [0m[0m    val arraySynthesisData: Option[ArraySynthesisData] = arraySynthesisSource match {[0m
-[0m[[0m[33mwarn[0m] [0m[0m                                                         ^[0m
+[0m[[0m[33mwarn[0m] [0m[0m/home/jooyeon/JaeJoo/src/main/scala/simulation/SingleLayerSimulation.scala:92:18: Auto-application to `()` is deprecated. Supply the empty argument list `()` explicitly to invoke method parse,[0m
+[0m[[0m[33mwarn[0m] [0m[0mor remove the empty argument list from its definition (Java-defined methods are exempt).[0m
+[0m[[0m[33mwarn[0m] [0m[0mIn Scala 3, an unapplied method like this will be eta-expanded into a function. [quickfixable][0m
+[0m[[0m[33mwarn[0m] [0m[0m      if(!parser.parse){[0m
+[0m[[0m[33mwarn[0m] [0m[0m                 ^[0m
 [0m[[0m[33mwarn[0m] [0m[0mone warning found[0m
