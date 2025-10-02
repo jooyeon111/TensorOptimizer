@@ -3,7 +3,6 @@ INPUT_SIM := input/simulation
 CONFIG_DIR := $(INPUT_SIM)/configs/analyzer/oneLayer
 TILING_DIR := $(INPUT_SIM)/configs/analyzer/tiling
 HARDWARE_REF := $(INPUT_SIM)/hardware_reference
-SYNTHESIS := $(INPUT_SIM)/synthesis
 LAYER_DIR := $(INPUT_SIM)/layer
 
 # Test options

@@ -2,7 +2,6 @@ package simulation
 
 import java.io.File
 import common.{ArrayDimension, Dataflow, FilePaths, OutputPortCalculator}
-import simulation.FewShotPredictor.InputFeatures
 import scala.util.{Failure, Success}
 
 trait SingleLayerSimulation extends OutputPortCalculator with Logger {
@@ -30,7 +29,6 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     sramReferenceDataVector: Option[Vector[SramReferenceData]],
     arraySynthesisSource: Option[ArraySynthesisSource.Value],
     arraySynthesisData: Option[ArraySynthesisData],
-    fused2Special: Boolean
   ) {
     def validate: Boolean = {
       val baseValidation = streamingDimensionSize > 0 &&
@@ -291,10 +289,6 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       throw ParseError("SRAM C Single Buffer Limit (KB)")
     )
 
-    val fused2Special: Boolean = testConfig.getBoolean("Fused2 Special").getOrElse(
-      false
-    )
-
     val arrayData: Option[ArraySynthesisData] = if(arraySynthesisData.isDefined) {
       println("Using design compiler array synthesis data")
       assert(arraySynthesisSource.get == ArraySynthesisSource.DesignCompiler,
@@ -327,6 +321,12 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
         )
       ) match {
         case Success(result) =>
+//
+//          println(s"Area: ${result.areaUm2}")
+//          println(s"Switch Power: ${result.switchPowerMw}")
+//          println(s"internal Power: ${result.internalPowerMw}")
+//          println(s"leakage Power: ${result.leakagePowerMw}")
+//
           println("Synthesis Data Prediction Success")
           Some(result)
         case Failure(exception) =>
@@ -359,7 +359,6 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       offChipMemoryReferenceData = offChipMemoryReferenceData,
       arraySynthesisSource = arraySynthesisSource,
       arraySynthesisData = arrayData,
-      fused2Special = fused2Special
     )
 
   }
@@ -564,38 +563,13 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       loggerOption = loggerOption
     )
 
-    val sramC = if(simConfig.fused2Special){
-      new OutputDoubleBufferSram(
-        outputBandwidth = simConfig.offChipMemoryBandwidth,
-        singleBufferTileCapacity = capacityC,
-        singleBufferLimitKb = simConfig.singleBufferLimitKbC,
-        referenceData = Option(SramReferenceData(
-          capacityKb = 64,
-          bandwidthBytes = 256,
-          readEnergyPj = 1414,
-          writeEnergyPj = 1404,
-          leakagePowerMw = 783.827,
-          areaUm2 = 1665000
-        )),
-        loggerOption = loggerOption
-      )
-    } else {
-      new OutputDoubleBufferSram(
-        outputBandwidth = simConfig.offChipMemoryBandwidth,
-        singleBufferTileCapacity = capacityC,
-        singleBufferLimitKb = simConfig.singleBufferLimitKbC,
-        referenceData = sramReferenceDataC,
-        loggerOption = loggerOption
-      )
-    }
-
-//    val sramC = new OutputDoubleBufferSram(
-//      outputBandwidth = simConfig.offChipMemoryBandwidth,
-//      singleBufferTileCapacity = capacityC,
-//      singleBufferLimitKb = simConfig.singleBufferLimitKbC,
-//      referenceData = sramReferenceDataC,
-//      loggerOption = loggerOption
-//    )
+    val sramC = new OutputDoubleBufferSram(
+      outputBandwidth = simConfig.offChipMemoryBandwidth,
+      singleBufferTileCapacity = capacityC,
+      singleBufferLimitKb = simConfig.singleBufferLimitKbC,
+      referenceData = sramReferenceDataC,
+      loggerOption = loggerOption
+    )
 
     (sramA, sramB, sramC)
 
