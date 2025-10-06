@@ -11,10 +11,8 @@ TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
 TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
 
 TEST_OPTION_TILING_128 := $(TILING_DIR)/tiling128.cfg
-TEST_OPTION_TILING_256 := $(TILING_DIR)/tiling256.cfg
 
 COMMON_ARGS_TILING_128 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_128) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
-COMMON_ARGS_TILING_256 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_256) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
 
 # bert
 BERT_BASE_PATH := $(LAYER_DIR)/bert/base
@@ -261,40 +259,40 @@ all: bert_base bloom_1b falcon_1b llama_7b mistral_7b phi_2 vit_base swin_base r
 
 # Target to run a specific layer model
 bert_base:
-	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKT) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKTV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_FINAL) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKT) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKTV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_FINAL) $(COMMON_ARGS_TILING_128)"
 
 bloom_1b:
-	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKT) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKTV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_FINAL) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKT) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKTV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_FINAL) $(COMMON_ARGS_TILING_128)"
 
 falcon_1b:
-	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKT) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKTV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_FINAL) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKT) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKTV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_FINAL) $(COMMON_ARGS_TILING_128)"
 
 llama_7b:
-	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKT) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKTV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_FINAL) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKT) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKTV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_FINAL) $(COMMON_ARGS_TILING_128)"
 
 mistral_7b:
-	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKT) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKTV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_FINAL) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKT) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKTV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_FINAL) $(COMMON_ARGS_TILING_128)"
 
 phi_2:
-	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKT) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKTV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(PHI_2_FINAL) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKT) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKTV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(PHI_2_FINAL) $(COMMON_ARGS_TILING_128)"
 
 vit_base:
 	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_EMBEDDING) $(COMMON_ARGS_TILING_128)"
