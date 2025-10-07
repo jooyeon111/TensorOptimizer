@@ -14,11 +14,13 @@ TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
 TEST_OPTION_TILING_49 := $(TILING_DIR)/tiling49.cfg
 TEST_OPTION_TILING_98 := $(TILING_DIR)/tiling98.cfg
 TEST_OPTION_TILING_128 := $(TILING_DIR)/tiling128.cfg
+TEST_OPTION_TILING_196 := $(TILING_DIR)/tiling196.cfg
 TEST_OPTION_TILING_392 := $(TILING_DIR)/tiling392.cfg
 
 COMMON_ARGS_TILING_49 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_49) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
 COMMON_ARGS_TILING_98 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_98) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
 COMMON_ARGS_TILING_128 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_128) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+COMMON_ARGS_TILING_196 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_196) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
 COMMON_ARGS_TILING_392 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_392) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
 
 # bert
@@ -348,26 +350,26 @@ resnet_50:
 	sbt "runMain simulation.AnalyzerMain $(STAGE1_SHORTCUT) $(COMMON_ARGS_TILING_128)"
 	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK2_CONV1) $(COMMON_ARGS_TILING_98)"
 	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK2_CONV2) $(COMMON_ARGS_TILING_98)"
-	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK2_CONV3) $(COMMON_ARGS_TILING_392)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK2_CONV3) $(COMMON_ARGS_TILING_196)"
 	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK3_CONV1) $(COMMON_ARGS_TILING_128)"
 	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK3_CONV2) $(COMMON_ARGS_TILING_98)"
 	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK3_CONV3) $(COMMON_ARGS_TILING_128)"
 
 	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK1_CONV1) $(COMMON_ARGS_TILING_98)"
-	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK1_CONV2) $(COMMON_ARGS_TILING_392)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK1_CONV2) $(COMMON_ARGS_TILING_196)"
 	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK1_CONV3) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(STAGE2_SHORTCUT) $(COMMON_ARGS_TILING_392)"
-	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK2_CONV1) $(COMMON_ARGS_TILING_392)"
-	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK2_CONV2) $(COMMON_ARGS_TILING_392)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_SHORTCUT) $(COMMON_ARGS_TILING_196)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK2_CONV1) $(COMMON_ARGS_TILING_196)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK2_CONV2) $(COMMON_ARGS_TILING_196)"
 	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK2_CONV3) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK3_CONV1) $(COMMON_ARGS_TILING_392)"
-	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK3_CONV2) $(COMMON_ARGS_TILING_392)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK3_CONV1) $(COMMON_ARGS_TILING_196)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK3_CONV2) $(COMMON_ARGS_TILING_196)"
 	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK3_CONV3) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK4_CONV1) $(COMMON_ARGS_TILING_392)"
-	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK4_CONV2) $(COMMON_ARGS_TILING_392)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK4_CONV1) $(COMMON_ARGS_TILING_196)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK4_CONV2) $(COMMON_ARGS_TILING_196)"
 	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK4_CONV3) $(COMMON_ARGS_TILING_128)"
 
-	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK1_CONV1) $(COMMON_ARGS_TILING_392)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK1_CONV1) $(COMMON_ARGS_TILING_196)"
 	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK1_CONV2) $(COMMON_ARGS_TILING_98)"
 	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK1_CONV3) $(COMMON_ARGS_TILING_98)"
 	sbt "runMain simulation.AnalyzerMain $(STAGE3_SHORTCUT) $(COMMON_ARGS_TILING_98)"
