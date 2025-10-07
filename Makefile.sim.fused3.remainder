@@ -163,12 +163,12 @@ swin_base:
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE1_FC1) $(COMMON_ARGS_TILING_128)"
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE1_FC2) $(COMMON_ARGS_TILING_196)"
 
-	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_PROJECTION) $(COMMON_ARGS_TILING_392)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_PROJECTION) $(COMMON_ARGS_TILING_196)"
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_QKT) $(COMMON_ARGS_TILING_128)"
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_QKTV) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_OUTPUT_PROJECTION) $(COMMON_ARGS_TILING_392)"
-	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_FC1) $(COMMON_ARGS_TILING_392)"
-	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_FC2) $(COMMON_ARGS_TILING_392)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_OUTPUT_PROJECTION) $(COMMON_ARGS_TILING_196)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_FC1) $(COMMON_ARGS_TILING_196)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_FC2) $(COMMON_ARGS_TILING_196)"
 
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE3_PROJECTION) $(COMMON_ARGS_TILING_196)"
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE3_QKT) $(COMMON_ARGS_TILING_128)"
