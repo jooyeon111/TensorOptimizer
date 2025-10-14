@@ -29,6 +29,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     sramReferenceDataVector: Option[Vector[SramReferenceData]],
     arraySynthesisSource: Option[ArraySynthesisSource.Value],
     arraySynthesisData: Option[ArraySynthesisData],
+    forcedSramAreaA: Option[Double],
+    forcedSramAreaB: Option[Double],
+    forcedSramAreaC: Option[Double],
   ) {
     def validate: Boolean = {
       val baseValidation = streamingDimensionSize > 0 &&
@@ -68,7 +71,6 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     arrayDataPath: Option[String] = None,
     help: String
   ): Unit = {
-
 
     val layerConfigParser = new ConfigManager(layerPath)
     val testConfigParser = new ConfigManager(testPath)
@@ -289,6 +291,10 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       throw ParseError("SRAM C Single Buffer Limit (KB)")
     )
 
+    val forcedSramAreaA: Option[Double] = testConfig.getDouble("SRAM A Forced Area (um^2)")
+    val forcedSramAreaB: Option[Double] = testConfig.getDouble("SRAM B Forced Area (um^2)")
+    val forcedSramAreaC: Option[Double] = testConfig.getDouble("SRAM C Forced Area (um^2)")
+
     val arrayData: Option[ArraySynthesisData] = if(arraySynthesisData.isDefined) {
       println("Using design compiler array synthesis data")
       assert(arraySynthesisSource.get == ArraySynthesisSource.DesignCompiler,
@@ -359,6 +365,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       offChipMemoryReferenceData = offChipMemoryReferenceData,
       arraySynthesisSource = arraySynthesisSource,
       arraySynthesisData = arrayData,
+      forcedSramAreaA = forcedSramAreaA,
+      forcedSramAreaB = forcedSramAreaB,
+      forcedSramAreaC = forcedSramAreaC
     )
 
   }
@@ -546,12 +555,43 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       throw ParseError("Cannot find SRAM data from external reports ...")
     }
 
+//    val sramRefDataA = if(simConfig.forcedSramAreaA.isDefined){
+//      Some(sramReferenceDataA.get.copy(areaUm2 = simConfig.forcedSramAreaA.get))
+//    } else {
+//      sramReferenceDataA
+//    }
+
+    val sramRefDataA = sramReferenceDataA.map { data =>
+      data.copy(areaUm2 = simConfig.forcedSramAreaA.getOrElse(data.areaUm2))
+    }
+
+//    val sramRefDataB = if(simConfig.forcedSramAreaB.isDefined){
+//      Some(sramReferenceDataB.get.copy(areaUm2 = simConfig.forcedSramAreaB.get))
+//    } else {
+//      sramReferenceDataB
+//    }
+
+    val sramRefDataB = sramReferenceDataB.map { data =>
+      data.copy(areaUm2 = simConfig.forcedSramAreaB.getOrElse(data.areaUm2))
+    }
+
+//    val sramRefDataC = if(simConfig.forcedSramAreaC.isDefined){
+//      Some(sramReferenceDataC.get.copy(areaUm2 = simConfig.forcedSramAreaC.get))
+//    } else {
+//      sramReferenceDataC
+//    }
+
+    val sramRefDataC = sramReferenceDataC.map { data =>
+      data.copy(areaUm2 = simConfig.forcedSramAreaC.getOrElse(data.areaUm2))
+    }
+
     val sramA = new DoubleBufferSram(
       dataType = DataType.A,
       outputBandwidth = arrayConfig.bandwidthOfInputA,
       singleBufferTileCapacity = capacityA,
       singleBufferLimitKb = simConfig.singleBufferLimitKbA,
-      referenceData = sramReferenceDataA,
+//      referenceData = sramReferenceDataA,
+      referenceData = sramRefDataA,
       loggerOption = loggerOption
     )
     val sramB = new DoubleBufferSram(
@@ -559,7 +599,8 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       outputBandwidth = arrayConfig.bandwidthOfInputB,
       singleBufferTileCapacity = capacityB,
       singleBufferLimitKb = simConfig.singleBufferLimitKbB,
-      referenceData = sramReferenceDataB,
+//      referenceData = sramReferenceDataB,
+      referenceData = sramRefDataB,
       loggerOption = loggerOption
     )
 
@@ -567,7 +608,8 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       outputBandwidth = simConfig.offChipMemoryBandwidth,
       singleBufferTileCapacity = capacityC,
       singleBufferLimitKb = simConfig.singleBufferLimitKbC,
-      referenceData = sramReferenceDataC,
+//      referenceData = sramReferenceDataC,
+      referenceData = sramRefDataC,
       loggerOption = loggerOption
     )
 
