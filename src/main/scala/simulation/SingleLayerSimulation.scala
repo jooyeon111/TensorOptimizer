@@ -32,6 +32,8 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     forcedSramAreaA: Option[Double],
     forcedSramAreaB: Option[Double],
     forcedSramAreaC: Option[Double],
+    prefix: Option[String],
+    suffix: Option[String],
   ) {
     def validate: Boolean = {
       val baseValidation = streamingDimensionSize > 0 &&
@@ -295,6 +297,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
     val forcedSramAreaB: Option[Double] = testConfig.getDouble("SRAM B Forced Area (um^2)")
     val forcedSramAreaC: Option[Double] = testConfig.getDouble("SRAM C Forced Area (um^2)")
 
+    val prefix: Option[String] = testConfig.getString("prefix")
+    val suffix: Option[String] = testConfig.getString("suffix")
+
     val arrayData: Option[ArraySynthesisData] = if(arraySynthesisData.isDefined) {
       println("Using design compiler array synthesis data")
       assert(arraySynthesisSource.get == ArraySynthesisSource.DesignCompiler,
@@ -367,7 +372,9 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       arraySynthesisData = arrayData,
       forcedSramAreaA = forcedSramAreaA,
       forcedSramAreaB = forcedSramAreaB,
-      forcedSramAreaC = forcedSramAreaC
+      forcedSramAreaC = forcedSramAreaC,
+      prefix = prefix,
+      suffix = suffix,
     )
 
   }
@@ -480,7 +487,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
 
   }
 
-  private def generateLogFileName(config: SimulationConfig): String = {
+  private def generateLogFileName(config: SimulationConfig, prefix: Option[String] = None, suffix: Option[String] = None): String = {
 
     val dataflowShortName = config.dataflow.toString.toLowerCase
     val synthesisSource = config.arraySynthesisSource.get match {
@@ -492,7 +499,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
         throw ParseError("Invalid synthesis source")
     }
 
-    s"/${synthesisSource}_${config.layerName}_${dataflowShortName}_" +
+    val baseName = s"/${synthesisSource}_${config.layerName}_${dataflowShortName}_" +
       s"{${config.groupPeRow}x${config.groupPeCol}}x" +
       s"{${config.vectorPeRow}x${config.vectorPeCol}}" +
       s"x${config.numMultiplier}}" +
@@ -501,6 +508,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       s"_buffer_B:${config.singleBufferLimitKbB}" +
       s"_buffer_C:${config.singleBufferLimitKbC}"
 
+    s"${prefix.getOrElse("")}$baseName${suffix.getOrElse("")}"
   }
 
   private def buildSrams(
