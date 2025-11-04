@@ -28,29 +28,11 @@ all:
 	make -f Makefile.sim.ws128x128x1x1x1.prediction
 
 # Best configs
-	make -f Makefile.sim.ws16x16x2x2x16.design_compiler
-	make -f Makefile.sim.ws16x16x2x2x16.prediction
-
 	make -f Makefile.sim.ws16x16x2x4x8.design_compiler
 	make -f Makefile.sim.ws16x16x2x4x8.prediction
 
-	make -f Makefile.sim.ws16x16x4x4x4.design_compiler
-	make -f Makefile.sim.ws16x16x4x4x4.prediction
+	make -f Makefile.sim.os16x16x4x2x8.design_compiler
+	make -f Makefile.sim.os16x16x4x2x8.prediction
 
-	make -f Makefile.sim.os16x16x4x4x4.design_compiler
-	make -f Makefile.sim.os16x16x4x4x4.prediction
-
-# Fused Architecture (onlydesign compiler)
-	#fusion 2
-	make -f Makefile.sim.fused2.mobilenet.max
-	make -f Makefile.sim.fused2.mobilenet.min
-	make -f Makefile.sim.fused2.remainder.max
-	make -f Makefile.sim.fused2.remainder.min
-
-	#fusion 3
-	make -f Makefile.sim.fused3.mobilenet.max
-	make -f Makefile.sim.fused3.mobilenet.min
-	make -f Makefile.sim.fused3.llm.max
-	make -f Makefile.sim.fused3.llm.min
-	make -f Makefile.sim.fused3.remainder.max
-	make -f Makefile.sim.fused3.remainder.min
+	make -f Makefile.sim.os16x32x4x2x4.design_compiler
+	make -f Makefile.sim.os16x32x4x2x4.prediction

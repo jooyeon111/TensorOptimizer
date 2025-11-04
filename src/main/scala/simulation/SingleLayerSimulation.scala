@@ -332,12 +332,12 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
         )
       ) match {
         case Success(result) =>
-//
-//          println(s"Area: ${result.areaUm2}")
-//          println(s"Switch Power: ${result.switchPowerMw}")
-//          println(s"internal Power: ${result.internalPowerMw}")
-//          println(s"leakage Power: ${result.leakagePowerMw}")
-//
+
+          println(s"Area: ${result.areaUm2}")
+          println(s"Switch Power: ${result.switchPowerMw}")
+          println(s"internal Power: ${result.internalPowerMw}")
+          println(s"leakage Power: ${result.leakagePowerMw}")
+
           println("Synthesis Data Prediction Success")
           Some(result)
         case Failure(exception) =>
@@ -487,7 +487,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
 
   }
 
-  private def generateLogFileName(config: SimulationConfig, prefix: Option[String] = None, suffix: Option[String] = None): String = {
+  private def generateLogFileName(config: SimulationConfig): String = {
 
     val dataflowShortName = config.dataflow.toString.toLowerCase
     val synthesisSource = config.arraySynthesisSource.get match {
@@ -508,7 +508,13 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
       s"_buffer_B:${config.singleBufferLimitKbB}" +
       s"_buffer_C:${config.singleBufferLimitKbC}"
 
-    s"${prefix.getOrElse("")}$baseName${suffix.getOrElse("")}"
+//    s"${prefix.getOrElse("")}$baseName${suffix.getOrElse("")}"
+
+    val prefixPart = config.prefix.map(_ + "_").getOrElse("")
+    val suffixPart = config.suffix.map("_" + _).getOrElse("")
+
+    s"/$prefixPart$baseName$suffixPart"
+
   }
 
   private def buildSrams(

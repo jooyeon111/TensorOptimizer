@@ -6,15 +6,42 @@ HARDWARE_REF := $(INPUT_SIM)/hardware_reference
 LAYER_DIR := $(INPUT_SIM)/layer
 
 # Test options
-TEST_OPTION_MULT := $(CONFIG_DIR)/ws_16x16x2x2x16.cfg
+TEST_OPTION_MULT := $(CONFIG_DIR)/os_16x16x4x2x8.cfg
 TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
 TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
+TEST_OPTION_DESIGN_COMPILER = $(HARDWARE_REF)/design_compiler/os_16x16x4x2x8.cfg
 
+TEST_OPTION_TILING_9 := $(TILING_DIR)/tiling9.cfg
+TEST_OPTION_TILING_16 := $(TILING_DIR)/tiling16.cfg
+TEST_OPTION_TILING_24 := $(TILING_DIR)/tiling24.cfg
+TEST_OPTION_TILING_32 := $(TILING_DIR)/tiling32.cfg
+TEST_OPTION_TILING_37 := $(TILING_DIR)/tiling37.cfg
+TEST_OPTION_TILING_64 := $(TILING_DIR)/tiling64.cfg
+TEST_OPTION_TILING_96 := $(TILING_DIR)/tiling96.cfg
 TEST_OPTION_TILING_128 := $(TILING_DIR)/tiling128.cfg
-TEST_OPTION_TILING_256 := $(TILING_DIR)/tiling256.cfg
+TEST_OPTION_TILING_144 := $(TILING_DIR)/tiling144.cfg
+TEST_OPTION_TILING_160 := $(TILING_DIR)/tiling160.cfg
+TEST_OPTION_TILING_192 := $(TILING_DIR)/tiling192.cfg
+TEST_OPTION_TILING_320 := $(TILING_DIR)/tiling320.cfg
+TEST_OPTION_TILING_384 := $(TILING_DIR)/tiling384.cfg
+TEST_OPTION_TILING_576 := $(TILING_DIR)/tiling576.cfg
+TEST_OPTION_TILING_960 := $(TILING_DIR)/tiling960.cfg
 
-COMMON_ARGS_TILING_128 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_128) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
-COMMON_ARGS_TILING_256 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_256) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+COMMON_ARGS_TILING_9 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_9) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_16 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_16) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_24 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_24) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_32 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_32) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_37 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_37) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_64 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_64) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_96 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_96) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_128 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_128) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_144 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_144) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_160 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_160) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_192 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_192) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_320 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_320) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_384 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_384) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_576 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_576) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_960 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_960) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 
 # bert
 BERT_BASE_PATH := $(LAYER_DIR)/bert/base
@@ -253,7 +280,6 @@ MOBILENET_V2_STAGE7_BLOCK1_CONV3 := $(MOBILENET_V2_PATH)/stage7_block1_conv3.cfg
 MOBILENET_V2_FINAL_CONV := $(MOBILENET_V2_PATH)/final_conv.cfg
 MOBILENET_V2_FC := $(MOBILENET_V2_PATH)/fc.cfg
 
-
 # Define targets for specific layers
 .PHONY: all bert_base bloom_1b falcon_1b llama_7b mistral_7b phi_2 vit_base swin_base resnet_50 mobilenet_v2
 
@@ -262,40 +288,40 @@ all: bert_base bloom_1b falcon_1b llama_7b mistral_7b phi_2 vit_base swin_base r
 
 # Target to run a specific layer model
 bert_base:
-	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKT) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKTV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_FINAL) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKT) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKTV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_FINAL) $(COMMON_ARGS_TILING_128)"
 
 bloom_1b:
-	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKT) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKTV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_FINAL) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKT) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKTV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_FINAL) $(COMMON_ARGS_TILING_128)"
 
 falcon_1b:
-	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKT) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKTV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_FINAL) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKT) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKTV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_FINAL) $(COMMON_ARGS_TILING_128)"
 
 llama_7b:
-	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKT) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKTV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_FINAL) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKT) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKTV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_FINAL) $(COMMON_ARGS_TILING_128)"
 
 mistral_7b:
-	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKT) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKTV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_FINAL) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKT) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKTV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_FINAL) $(COMMON_ARGS_TILING_128)"
 
 phi_2:
-	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKT) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKTV) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(PHI_2_FINAL) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKT) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKTV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(PHI_2_FINAL) $(COMMON_ARGS_TILING_128)"
 
 vit_base:
 	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_EMBEDDING) $(COMMON_ARGS_TILING_128)"
@@ -397,64 +423,64 @@ resnet_50:
 	sbt "runMain simulation.AnalyzerMain $(RESNET_50_FC) $(COMMON_ARGS_TILING_128)"
 
 mobilenet_v2:
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_CONV1) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_CONV1) $(COMMON_ARGS_TILING_37)"
 
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE1_BLOCK1_CONV1) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE1_BLOCK1_CONV1) $(COMMON_ARGS_TILING_9)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE1_BLOCK1_CONV2) $(COMMON_ARGS_TILING_128)"
 
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK1_CONV1) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK1_CONV2) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK1_CONV3) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK2_CONV1) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK2_CONV2) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK2_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK1_CONV1) $(COMMON_ARGS_TILING_16)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK1_CONV2) $(COMMON_ARGS_TILING_9)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK1_CONV3) $(COMMON_ARGS_TILING_96)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK2_CONV1) $(COMMON_ARGS_TILING_24)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK2_CONV2) $(COMMON_ARGS_TILING_9)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK2_CONV3) $(COMMON_ARGS_TILING_144)"
 
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK1_CONV1) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK1_CONV2) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK1_CONV3) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK2_CONV1) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK2_CONV2) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK2_CONV3) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK3_CONV1) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK3_CONV2) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK3_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK1_CONV1) $(COMMON_ARGS_TILING_24)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK1_CONV2) $(COMMON_ARGS_TILING_9)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK1_CONV3) $(COMMON_ARGS_TILING_144)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK2_CONV1) $(COMMON_ARGS_TILING_32)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK2_CONV2) $(COMMON_ARGS_TILING_9)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK2_CONV3) $(COMMON_ARGS_TILING_192)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK3_CONV1) $(COMMON_ARGS_TILING_32)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK3_CONV2) $(COMMON_ARGS_TILING_9)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK3_CONV3) $(COMMON_ARGS_TILING_192)"
 
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK1_CONV1) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK1_CONV2) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK1_CONV3) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK2_CONV1) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK2_CONV2) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK2_CONV3) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK3_CONV1) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK3_CONV2) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK3_CONV3) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK4_CONV1) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK4_CONV2) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK4_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK1_CONV1) $(COMMON_ARGS_TILING_32)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK1_CONV2) $(COMMON_ARGS_TILING_9)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK1_CONV3) $(COMMON_ARGS_TILING_192)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK2_CONV1) $(COMMON_ARGS_TILING_64)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK2_CONV2) $(COMMON_ARGS_TILING_9)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK2_CONV3) $(COMMON_ARGS_TILING_384)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK3_CONV1) $(COMMON_ARGS_TILING_64)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK3_CONV2) $(COMMON_ARGS_TILING_9)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK3_CONV3) $(COMMON_ARGS_TILING_384)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK4_CONV1) $(COMMON_ARGS_TILING_64)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK4_CONV2) $(COMMON_ARGS_TILING_9)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK4_CONV3) $(COMMON_ARGS_TILING_384)"
 
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK1_CONV1) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK1_CONV2) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK1_CONV3) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK2_CONV1) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK2_CONV2) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK2_CONV3) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK3_CONV1) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK3_CONV2) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK3_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK1_CONV1) $(COMMON_ARGS_TILING_64)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK1_CONV2) $(COMMON_ARGS_TILING_9)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK1_CONV3) $(COMMON_ARGS_TILING_384)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK2_CONV1) $(COMMON_ARGS_TILING_96)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK2_CONV2) $(COMMON_ARGS_TILING_9)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK2_CONV3) $(COMMON_ARGS_TILING_576)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK3_CONV1) $(COMMON_ARGS_TILING_96)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK3_CONV2) $(COMMON_ARGS_TILING_9)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK3_CONV3) $(COMMON_ARGS_TILING_576)"
 
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK1_CONV1) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK1_CONV2) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK1_CONV3) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK2_CONV1) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK2_CONV2) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK2_CONV3) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK3_CONV1) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK3_CONV2) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK3_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK1_CONV1) $(COMMON_ARGS_TILING_96)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK1_CONV2) $(COMMON_ARGS_TILING_9)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK1_CONV3) $(COMMON_ARGS_TILING_576)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK2_CONV1) $(COMMON_ARGS_TILING_160)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK2_CONV2) $(COMMON_ARGS_TILING_9)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK2_CONV3) $(COMMON_ARGS_TILING_960)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK3_CONV1) $(COMMON_ARGS_TILING_160)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK3_CONV2) $(COMMON_ARGS_TILING_9)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK3_CONV3) $(COMMON_ARGS_TILING_960)"
 
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE7_BLOCK1_CONV1) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE7_BLOCK1_CONV2) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE7_BLOCK1_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE7_BLOCK1_CONV1) $(COMMON_ARGS_TILING_160)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE7_BLOCK1_CONV2) $(COMMON_ARGS_TILING_9)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE7_BLOCK1_CONV3) $(COMMON_ARGS_TILING_960)"
 
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_FINAL_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_FINAL_CONV) $(COMMON_ARGS_TILING_320)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_FC) $(COMMON_ARGS_TILING_128)"
