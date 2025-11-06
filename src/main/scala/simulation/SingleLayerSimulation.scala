@@ -499,7 +499,7 @@ trait SingleLayerSimulation extends OutputPortCalculator with Logger {
         throw ParseError("Invalid synthesis source")
     }
 
-    val baseName = s"/${synthesisSource}_${config.layerName}_${dataflowShortName}_" +
+    val baseName = s"${synthesisSource}_${config.layerName}_${dataflowShortName}_" +
       s"{${config.groupPeRow}x${config.groupPeCol}}x" +
       s"{${config.vectorPeRow}x${config.vectorPeCol}}" +
       s"x${config.numMultiplier}}" +

@@ -6,7 +6,7 @@ HARDWARE_REF := $(INPUT_SIM)/hardware_reference
 LAYER_DIR := $(INPUT_SIM)/layer
 
 # Test options
-TEST_OPTION_MULT := $(CONFIG_DIR)/fused2_os_16x16x4x4x4_max.cfg
+TEST_OPTION_MULT := $(CONFIG_DIR)/fused2_os_16x16x4x2x8.cfg
 TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
 TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
 TEST_OPTION_DESIGN_COMPILER = $(HARDWARE_REF)/design_compiler/fused2.cfg
@@ -15,6 +15,7 @@ TEST_OPTION_TILING_9 := $(TILING_DIR)/tiling9.cfg
 TEST_OPTION_TILING_16 := $(TILING_DIR)/tiling16.cfg
 TEST_OPTION_TILING_24 := $(TILING_DIR)/tiling24.cfg
 TEST_OPTION_TILING_32 := $(TILING_DIR)/tiling32.cfg
+TEST_OPTION_TILING_49 := $(TILING_DIR)/tiling49.cfg
 TEST_OPTION_TILING_64 := $(TILING_DIR)/tiling64.cfg
 TEST_OPTION_TILING_96 := $(TILING_DIR)/tiling96.cfg
 TEST_OPTION_TILING_128 := $(TILING_DIR)/tiling128.cfg
@@ -29,6 +30,7 @@ COMMON_ARGS_TILING_9 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_9) $(TEST_OPTIO
 COMMON_ARGS_TILING_16 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_16) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_24 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_24) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_32 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_32) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_49 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_49) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_64 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_64) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_96 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_96) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_128 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_128) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
@@ -122,36 +124,81 @@ MOBILENET_V2_STAGE7_BLOCK1_CONV3 := $(MOBILENET_V2_PATH)/stage7_block1_conv3.cfg
 MOBILENET_V2_FINAL_CONV := $(MOBILENET_V2_PATH)/final_conv.cfg
 MOBILENET_V2_FC := $(MOBILENET_V2_PATH)/fc.cfg
 
+# vit
+VIT_BASE_PATH := $(LAYER_DIR)/vit/base
+VIT_BASE_EMBEDDING := $(VIT_BASE_PATH)/embedding.cfg
+VIT_BASE_QKV := $(VIT_BASE_PATH)/projection.cfg
+VIT_BASE_QKT := $(VIT_BASE_PATH)/qkt.cfg
+VIT_BASE_QKTV := $(VIT_BASE_PATH)/qktv.cfg
+VIT_BASE_FINAL := $(VIT_BASE_PATH)/representation_projection.cfg
+
+# swin
+SWIN_BASE_PATH := $(LAYER_DIR)/swin/base
+#embedding
+SWIN_BASE_EMBEDDING := $(SWIN_BASE_PATH)/embedding.cfg
+
+#stage1
+SWIN_STAGE1_PROJECTION := $(SWIN_BASE_PATH)/stage1_projection.cfg
+SWIN_STAGE1_QKT := $(SWIN_BASE_PATH)/stage1_qkt.cfg
+SWIN_STAGE1_QKTV := $(SWIN_BASE_PATH)/stage1_qktv.cfg
+SWIN_STAGE1_OUTPUT_PROJECTION := $(SWIN_BASE_PATH)/stage1_representation_projection.cfg
+SWIN_STAGE1_FC1 := $(SWIN_BASE_PATH)/stage1_weight1.cfg
+SWIN_STAGE1_FC2 := $(SWIN_BASE_PATH)/stage1_weight2.cfg
+
+#stage2
+SWIN_STAGE2_PROJECTION := $(SWIN_BASE_PATH)/stage2_projection.cfg
+SWIN_STAGE2_QKT := $(SWIN_BASE_PATH)/stage2_qkt.cfg
+SWIN_STAGE2_QKTV := $(SWIN_BASE_PATH)/stage2_qktv.cfg
+SWIN_STAGE2_OUTPUT_PROJECTION := $(SWIN_BASE_PATH)/stage2_representation_projection.cfg
+SWIN_STAGE2_FC1 := $(SWIN_BASE_PATH)/stage2_weight1.cfg
+SWIN_STAGE2_FC2 := $(SWIN_BASE_PATH)/stage2_weight2.cfg
+
+#stage3
+SWIN_STAGE3_PROJECTION := $(SWIN_BASE_PATH)/stage3_projection.cfg
+SWIN_STAGE3_QKT := $(SWIN_BASE_PATH)/stage3_qkt.cfg
+SWIN_STAGE3_QKTV := $(SWIN_BASE_PATH)/stage3_qktv.cfg
+SWIN_STAGE3_OUTPUT_PROJECTION := $(SWIN_BASE_PATH)/stage3_representation_projection.cfg
+SWIN_STAGE3_FC1 := $(SWIN_BASE_PATH)/stage3_weight1.cfg
+SWIN_STAGE3_FC2 := $(SWIN_BASE_PATH)/stage3_weight2.cfg
+
+#stage4
+SWIN_STAGE4_PROJECTION := $(SWIN_BASE_PATH)/stage4_projection.cfg
+SWIN_STAGE4_QKT := $(SWIN_BASE_PATH)/stage4_qkt.cfg
+SWIN_STAGE4_QKTV := $(SWIN_BASE_PATH)/stage4_qktv.cfg
+SWIN_STAGE4_OUTPUT_PROJECTION := $(SWIN_BASE_PATH)/stage4_representation_projection.cfg
+SWIN_STAGE4_FC1 := $(SWIN_BASE_PATH)/stage4_weight1.cfg
+SWIN_STAGE4_FC2 := $(SWIN_BASE_PATH)/stage4_weight2.cfg
+
 # Define targets for specific layers
-.PHONY: all  mobilenet_v2
+.PHONY: all  mobilenet_v2 vit_base swin_base
 
 # Default target runs all configurations for the specified model/variant
-all: mobilenet_v2
+all: mobilenet_v2 vit_base swin_base
 
 # Target to run a specific layer model
 
 mobilenet_v2:
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_CONV1) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_CONV1) $(COMMON_ARGS_TILING_37)"
 
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE1_BLOCK1_CONV1) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE1_BLOCK1_CONV1) $(COMMON_ARGS_TILING_9)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE1_BLOCK1_CONV2) $(COMMON_ARGS_TILING_128)"
 
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK1_CONV1) $(COMMON_ARGS_TILING_16)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK1_CONV2) $(COMMON_ARGS_TILING_9)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK1_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK1_CONV3) $(COMMON_ARGS_TILING_96)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK2_CONV1) $(COMMON_ARGS_TILING_24)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK2_CONV2) $(COMMON_ARGS_TILING_9)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK2_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE2_BLOCK2_CONV3) $(COMMON_ARGS_TILING_144)"
 
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK1_CONV1) $(COMMON_ARGS_TILING_24)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK1_CONV2) $(COMMON_ARGS_TILING_9)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK1_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK1_CONV3) $(COMMON_ARGS_TILING_144)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK2_CONV1) $(COMMON_ARGS_TILING_32)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK2_CONV2) $(COMMON_ARGS_TILING_9)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK2_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK2_CONV3) $(COMMON_ARGS_TILING_192)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK3_CONV1) $(COMMON_ARGS_TILING_32)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK3_CONV2) $(COMMON_ARGS_TILING_9)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK3_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE3_BLOCK3_CONV3) $(COMMON_ARGS_TILING_192)"
 
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK1_CONV1) $(COMMON_ARGS_TILING_32)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE4_BLOCK1_CONV2) $(COMMON_ARGS_TILING_9)"
@@ -171,10 +218,10 @@ mobilenet_v2:
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK1_CONV3) $(COMMON_ARGS_TILING_384)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK2_CONV1) $(COMMON_ARGS_TILING_96)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK2_CONV2) $(COMMON_ARGS_TILING_9)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK2_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK2_CONV3) $(COMMON_ARGS_TILING_576)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK3_CONV1) $(COMMON_ARGS_TILING_96)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK3_CONV2) $(COMMON_ARGS_TILING_9)"
-	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK3_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE5_BLOCK3_CONV3) $(COMMON_ARGS_TILING_576)"
 
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK1_CONV1) $(COMMON_ARGS_TILING_96)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_STAGE6_BLOCK1_CONV2) $(COMMON_ARGS_TILING_9)"
@@ -192,3 +239,42 @@ mobilenet_v2:
 
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_FINAL_CONV) $(COMMON_ARGS_TILING_320)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_FC) $(COMMON_ARGS_TILING_128)"
+
+
+vit_base:
+	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_EMBEDDING) $(COMMON_ARGS_TILING_768)"
+	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_QKV) $(COMMON_ARGS_TILING_768)"
+	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_QKT) $(COMMON_ARGS_TILING_64)"
+	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_QKTV) $(COMMON_ARGS_TILING_197)"
+	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_FINAL) $(COMMON_ARGS_TILING_768)"
+
+swin_base:
+	sbt "runMain simulation.AnalyzerMain $(SWIN_BASE_EMBEDDING) $(COMMON_ARGS_TILING_48)"
+
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE1_PROJECTION) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE1_QKT) $(COMMON_ARGS_TILING_32)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE1_QKTV) $(COMMON_ARGS_TILING_49)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE1_OUTPUT_PROJECTION) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE1_FC1) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE1_FC2) $(COMMON_ARGS_TILING_512)"
+
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_PROJECTION) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_QKT) $(COMMON_ARGS_TILING_32)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_QKTV) $(COMMON_ARGS_TILING_49)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_OUTPUT_PROJECTION) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_FC1) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_FC2) $(COMMON_ARGS_TILING_1024)"
+
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE3_PROJECTION) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE3_QKT) $(COMMON_ARGS_TILING_32)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE3_QKTV) $(COMMON_ARGS_TILING_49)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE3_OUTPUT_PROJECTION) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE3_FC1) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE3_FC2) $(COMMON_ARGS_TILING_1024)"
+
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_PROJECTION) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_QKT) $(COMMON_ARGS_TILING_32)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_QKTV) $(COMMON_ARGS_TILING_49)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_OUTPUT_PROJECTION) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_FC1) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_FC2) $(COMMON_ARGS_TILING_1024)"

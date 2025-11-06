@@ -36,3 +36,6 @@ all:
 
 	make -f Makefile.sim.os16x32x4x2x4.design_compiler
 	make -f Makefile.sim.os16x32x4x2x4.prediction
+
+	make -f Makefile.sim.fused2.mobilenet.vision
+	make -f Makefile.sim.fused2.resnet.llm
