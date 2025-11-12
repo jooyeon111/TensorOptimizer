@@ -9,7 +9,7 @@ LAYER_DIR := $(INPUT_SIM)/layer
 TEST_OPTION_MULT := $(CONFIG_DIR)/fused2_os_16x16x4x2x8.cfg
 TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
 TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
-TEST_OPTION_DESIGN_COMPILER = $(HARDWARE_REF)/design_compiler/fused2.cfg
+TEST_OPTION_DESIGN_COMPILER := $(HARDWARE_REF)/design_compiler/fused2.cfg
 
 TEST_OPTION_TILING_9 := $(TILING_DIR)/tiling9.cfg
 TEST_OPTION_TILING_16 := $(TILING_DIR)/tiling16.cfg
@@ -23,14 +23,17 @@ TEST_OPTION_TILING_64 := $(TILING_DIR)/tiling64.cfg
 TEST_OPTION_TILING_96 := $(TILING_DIR)/tiling96.cfg
 TEST_OPTION_TILING_128 := $(TILING_DIR)/tiling128.cfg
 TEST_OPTION_TILING_144 := $(TILING_DIR)/tiling144.cfg
+TEST_OPTION_TILING_147 := $(TILING_DIR)/tiling147.cfg
 TEST_OPTION_TILING_160 := $(TILING_DIR)/tiling160.cfg
 TEST_OPTION_TILING_192 := $(TILING_DIR)/tiling192.cfg
 TEST_OPTION_TILING_197 := $(TILING_DIR)/tiling197.cfg
 TEST_OPTION_TILING_256 := $(TILING_DIR)/tiling256.cfg
+TEST_OPTION_TILING_288 := $(TILING_DIR)/tiling288.cfg
 TEST_OPTION_TILING_320 := $(TILING_DIR)/tiling320.cfg
 TEST_OPTION_TILING_384 := $(TILING_DIR)/tiling384.cfg
 TEST_OPTION_TILING_512 := $(TILING_DIR)/tiling512.cfg
 TEST_OPTION_TILING_576 := $(TILING_DIR)/tiling576.cfg
+TEST_OPTION_TILING_640 := $(TILING_DIR)/tiling640.cfg
 TEST_OPTION_TILING_768 := $(TILING_DIR)/tiling768.cfg
 TEST_OPTION_TILING_960 := $(TILING_DIR)/tiling960.cfg
 TEST_OPTION_TILING_1024 := $(TILING_DIR)/tiling1024.cfg
@@ -47,17 +50,174 @@ COMMON_ARGS_TILING_64 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_64) $(TEST_OPT
 COMMON_ARGS_TILING_96 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_96) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_128 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_128) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_144 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_144) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_147 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_147) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_160 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_160) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_192 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_192) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_197 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_197) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_256 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_256) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_288 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_288) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_320 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_320) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_384 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_384) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_512 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_512) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_576 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_576) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_640 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_640) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_768 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_768) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_960 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_960) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
 COMMON_ARGS_TILING_1024 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_1024) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+
+# bert
+BERT_BASE_PATH := $(LAYER_DIR)/bert/base
+BERT_BASE_QKV := $(BERT_BASE_PATH)/projection.cfg
+BERT_BASE_QKT := $(BERT_BASE_PATH)/qkt.cfg
+BERT_BASE_QKTV := $(BERT_BASE_PATH)/qktv.cfg
+BERT_BASE_FINAL := $(BERT_BASE_PATH)/representation_projection.cfg
+
+# bloom
+BLOOM_1B_PATH := $(LAYER_DIR)/bloom/1b
+BLOOM_1B_QKV := $(BLOOM_1B_PATH)/projection.cfg
+BLOOM_1B_QKT := $(BLOOM_1B_PATH)/qkt.cfg
+BLOOM_1B_QKTV := $(BLOOM_1B_PATH)/qktv.cfg
+BLOOM_1B_FINAL := $(BLOOM_1B_PATH)/representation_projection.cfg
+
+# falcon
+FALCON_1B_PATH := $(LAYER_DIR)/falcon/1b
+FALCON_1B_QKV := $(FALCON_1B_PATH)/projection.cfg
+FALCON_1B_QKT := $(FALCON_1B_PATH)/qkt.cfg
+FALCON_1B_QKTV := $(FALCON_1B_PATH)/qktv.cfg
+FALCON_1B_FINAL := $(FALCON_1B_PATH)/representation_projection.cfg
+
+# llama
+LLAMA_7B_PATH := $(LAYER_DIR)/llama/7b
+LLAMA_7B_QKV := $(LLAMA_7B_PATH)/projection.cfg
+LLAMA_7B_QKT := $(LLAMA_7B_PATH)/qkt.cfg
+LLAMA_7B_QKTV := $(LLAMA_7B_PATH)/qktv.cfg
+LLAMA_7B_FINAL := $(LLAMA_7B_PATH)/representation_projection.cfg
+
+# mistral
+MISTRAL_7B_PATH := $(LAYER_DIR)/mistral/7b
+MISTRAL_7B_QKV := $(MISTRAL_7B_PATH)/projection.cfg
+MISTRAL_7B_QKT := $(MISTRAL_7B_PATH)/qkt.cfg
+MISTRAL_7B_QKTV := $(MISTRAL_7B_PATH)/qktv.cfg
+MISTRAL_7B_FINAL := $(MISTRAL_7B_PATH)/representation_projection.cfg
+
+# phi
+PHI_2_PATH := $(LAYER_DIR)/phi/2
+PHI_2_QKV := $(PHI_2_PATH)/projection.cfg
+PHI_2_QKT := $(PHI_2_PATH)/qkt.cfg
+PHI_2_QKTV := $(PHI_2_PATH)/qktv.cfg
+PHI_2_FINAL := $(PHI_2_PATH)/representation_projection.cfg
+
+# vit
+VIT_BASE_PATH := $(LAYER_DIR)/vit/base
+VIT_BASE_EMBEDDING := $(VIT_BASE_PATH)/embedding.cfg
+VIT_BASE_QKV := $(VIT_BASE_PATH)/projection.cfg
+VIT_BASE_QKT := $(VIT_BASE_PATH)/qkt.cfg
+VIT_BASE_QKTV := $(VIT_BASE_PATH)/qktv.cfg
+VIT_BASE_FINAL := $(VIT_BASE_PATH)/representation_projection.cfg
+
+# swin
+SWIN_BASE_PATH := $(LAYER_DIR)/swin/base
+#embedding
+SWIN_BASE_EMBEDDING := $(SWIN_BASE_PATH)/embedding.cfg
+
+#stage1
+SWIN_STAGE1_PROJECTION := $(SWIN_BASE_PATH)/stage1_projection.cfg
+SWIN_STAGE1_QKT := $(SWIN_BASE_PATH)/stage1_qkt.cfg
+SWIN_STAGE1_QKTV := $(SWIN_BASE_PATH)/stage1_qktv.cfg
+SWIN_STAGE1_OUTPUT_PROJECTION := $(SWIN_BASE_PATH)/stage1_representation_projection.cfg
+SWIN_STAGE1_FC1 := $(SWIN_BASE_PATH)/stage1_weight1.cfg
+SWIN_STAGE1_FC2 := $(SWIN_BASE_PATH)/stage1_weight2.cfg
+
+#stage2
+SWIN_STAGE2_PROJECTION := $(SWIN_BASE_PATH)/stage2_projection.cfg
+SWIN_STAGE2_QKT := $(SWIN_BASE_PATH)/stage2_qkt.cfg
+SWIN_STAGE2_QKTV := $(SWIN_BASE_PATH)/stage2_qktv.cfg
+SWIN_STAGE2_OUTPUT_PROJECTION := $(SWIN_BASE_PATH)/stage2_representation_projection.cfg
+SWIN_STAGE2_FC1 := $(SWIN_BASE_PATH)/stage2_weight1.cfg
+SWIN_STAGE2_FC2 := $(SWIN_BASE_PATH)/stage2_weight2.cfg
+
+#stage3
+SWIN_STAGE3_PROJECTION := $(SWIN_BASE_PATH)/stage3_projection.cfg
+SWIN_STAGE3_QKT := $(SWIN_BASE_PATH)/stage3_qkt.cfg
+SWIN_STAGE3_QKTV := $(SWIN_BASE_PATH)/stage3_qktv.cfg
+SWIN_STAGE3_OUTPUT_PROJECTION := $(SWIN_BASE_PATH)/stage3_representation_projection.cfg
+SWIN_STAGE3_FC1 := $(SWIN_BASE_PATH)/stage3_weight1.cfg
+SWIN_STAGE3_FC2 := $(SWIN_BASE_PATH)/stage3_weight2.cfg
+
+#stage4
+SWIN_STAGE4_PROJECTION := $(SWIN_BASE_PATH)/stage4_projection.cfg
+SWIN_STAGE4_QKT := $(SWIN_BASE_PATH)/stage4_qkt.cfg
+SWIN_STAGE4_QKTV := $(SWIN_BASE_PATH)/stage4_qktv.cfg
+SWIN_STAGE4_OUTPUT_PROJECTION := $(SWIN_BASE_PATH)/stage4_representation_projection.cfg
+SWIN_STAGE4_FC1 := $(SWIN_BASE_PATH)/stage4_weight1.cfg
+SWIN_STAGE4_FC2 := $(SWIN_BASE_PATH)/stage4_weight2.cfg
+
+#resnet50
+RESNET_50_PATH := $(LAYER_DIR)/resnet/50
+
+RESNET_50_CONV1 := $(RESNET_50_PATH)/conv1.cfg
+#STAGE1
+STAGE1_BLOCK1_CONV1 := $(RESNET_50_PATH)/stage1_block1_conv1.cfg
+STAGE1_BLOCK1_CONV2 := $(RESNET_50_PATH)/stage1_block1_conv2.cfg
+STAGE1_BLOCK1_CONV3 := $(RESNET_50_PATH)/stage1_block1_conv3.cfg
+STAGE1_SHORTCUT := $(RESNET_50_PATH)/stage1_block1_shortcut.cfg
+STAGE1_BLOCK2_CONV1 := $(RESNET_50_PATH)/stage1_block2_conv1.cfg
+STAGE1_BLOCK2_CONV2 := $(RESNET_50_PATH)/stage1_block2_conv2.cfg
+STAGE1_BLOCK2_CONV3 := $(RESNET_50_PATH)/stage1_block2_conv3.cfg
+STAGE1_BLOCK3_CONV1 := $(RESNET_50_PATH)/stage1_block3_conv1.cfg
+STAGE1_BLOCK3_CONV2 := $(RESNET_50_PATH)/stage1_block3_conv2.cfg
+STAGE1_BLOCK3_CONV3 := $(RESNET_50_PATH)/stage1_block3_conv3.cfg
+
+#STAGE2
+STAGE2_BLOCK1_CONV1 := $(RESNET_50_PATH)/stage2_block1_conv1.cfg
+STAGE2_BLOCK1_CONV2 := $(RESNET_50_PATH)/stage2_block1_conv2.cfg
+STAGE2_BLOCK1_CONV3 := $(RESNET_50_PATH)/stage2_block1_conv3.cfg
+STAGE2_SHORTCUT := $(RESNET_50_PATH)/stage2_block1_shortcut.cfg
+STAGE2_BLOCK2_CONV1 := $(RESNET_50_PATH)/stage2_block2_conv1.cfg
+STAGE2_BLOCK2_CONV2 := $(RESNET_50_PATH)/stage2_block2_conv2.cfg
+STAGE2_BLOCK2_CONV3 := $(RESNET_50_PATH)/stage2_block2_conv3.cfg
+STAGE2_BLOCK3_CONV1 := $(RESNET_50_PATH)/stage2_block3_conv1.cfg
+STAGE2_BLOCK3_CONV2 := $(RESNET_50_PATH)/stage2_block3_conv2.cfg
+STAGE2_BLOCK3_CONV3 := $(RESNET_50_PATH)/stage2_block3_conv3.cfg
+STAGE2_BLOCK4_CONV1 := $(RESNET_50_PATH)/stage2_block4_conv1.cfg
+STAGE2_BLOCK4_CONV2 := $(RESNET_50_PATH)/stage2_block4_conv2.cfg
+STAGE2_BLOCK4_CONV3 := $(RESNET_50_PATH)/stage2_block4_conv3.cfg
+
+#STAGE3
+STAGE3_BLOCK1_CONV1 := $(RESNET_50_PATH)/stage3_block1_conv1.cfg
+STAGE3_BLOCK1_CONV2 := $(RESNET_50_PATH)/stage3_block1_conv2.cfg
+STAGE3_BLOCK1_CONV3 := $(RESNET_50_PATH)/stage3_block1_conv3.cfg
+STAGE3_SHORTCUT := $(RESNET_50_PATH)/stage3_block1_shortcut.cfg
+STAGE3_BLOCK2_CONV1 := $(RESNET_50_PATH)/stage3_block2_conv1.cfg
+STAGE3_BLOCK2_CONV2 := $(RESNET_50_PATH)/stage3_block2_conv2.cfg
+STAGE3_BLOCK2_CONV3 := $(RESNET_50_PATH)/stage3_block2_conv3.cfg
+STAGE3_BLOCK3_CONV1 := $(RESNET_50_PATH)/stage3_block3_conv1.cfg
+STAGE3_BLOCK3_CONV2 := $(RESNET_50_PATH)/stage3_block3_conv2.cfg
+STAGE3_BLOCK3_CONV3 := $(RESNET_50_PATH)/stage3_block3_conv3.cfg
+STAGE3_BLOCK4_CONV1 := $(RESNET_50_PATH)/stage3_block4_conv1.cfg
+STAGE3_BLOCK4_CONV2 := $(RESNET_50_PATH)/stage3_block4_conv2.cfg
+STAGE3_BLOCK4_CONV3 := $(RESNET_50_PATH)/stage3_block4_conv3.cfg
+STAGE3_BLOCK5_CONV1 := $(RESNET_50_PATH)/stage3_block5_conv1.cfg
+STAGE3_BLOCK5_CONV2 := $(RESNET_50_PATH)/stage3_block5_conv2.cfg
+STAGE3_BLOCK5_CONV3 := $(RESNET_50_PATH)/stage3_block5_conv3.cfg
+STAGE3_BLOCK6_CONV1 := $(RESNET_50_PATH)/stage3_block6_conv1.cfg
+STAGE3_BLOCK6_CONV2 := $(RESNET_50_PATH)/stage3_block6_conv2.cfg
+STAGE3_BLOCK6_CONV3 := $(RESNET_50_PATH)/stage3_block6_conv3.cfg
+
+#STAGE4
+STAGE4_BLOCK1_CONV1 := $(RESNET_50_PATH)/stage4_block1_conv1.cfg
+STAGE4_BLOCK1_CONV2 := $(RESNET_50_PATH)/stage4_block1_conv2.cfg
+STAGE4_BLOCK1_CONV3 := $(RESNET_50_PATH)/stage4_block1_conv3.cfg
+STAGE4_SHORTCUT := $(RESNET_50_PATH)/stage4_block1_shortcut.cfg
+STAGE4_BLOCK2_CONV1 := $(RESNET_50_PATH)/stage4_block2_conv1.cfg
+STAGE4_BLOCK2_CONV2 := $(RESNET_50_PATH)/stage4_block2_conv2.cfg
+STAGE4_BLOCK2_CONV3 := $(RESNET_50_PATH)/stage4_block2_conv3.cfg
+STAGE4_BLOCK3_CONV1 := $(RESNET_50_PATH)/stage4_block3_conv1.cfg
+STAGE4_BLOCK3_CONV2 := $(RESNET_50_PATH)/stage4_block3_conv2.cfg
+STAGE4_BLOCK3_CONV3 := $(RESNET_50_PATH)/stage4_block3_conv3.cfg
+
+#FC
+RESNET_50_FC := $(RESNET_50_PATH)/fc.cfg
 
 #mobile net v2 path
 MOBILENET_V2_PATH := $(LAYER_DIR)/mobilenet/v2
@@ -142,56 +302,11 @@ MOBILENET_V2_STAGE7_BLOCK1_CONV3 := $(MOBILENET_V2_PATH)/stage7_block1_conv3.cfg
 MOBILENET_V2_FINAL_CONV := $(MOBILENET_V2_PATH)/final_conv.cfg
 MOBILENET_V2_FC := $(MOBILENET_V2_PATH)/fc.cfg
 
-# vit
-VIT_BASE_PATH := $(LAYER_DIR)/vit/base
-VIT_BASE_EMBEDDING := $(VIT_BASE_PATH)/embedding.cfg
-VIT_BASE_QKV := $(VIT_BASE_PATH)/projection.cfg
-VIT_BASE_QKT := $(VIT_BASE_PATH)/qkt.cfg
-VIT_BASE_QKTV := $(VIT_BASE_PATH)/qktv.cfg
-VIT_BASE_FINAL := $(VIT_BASE_PATH)/representation_projection.cfg
-
-# swin
-SWIN_BASE_PATH := $(LAYER_DIR)/swin/base
-#embedding
-SWIN_BASE_EMBEDDING := $(SWIN_BASE_PATH)/embedding.cfg
-
-#stage1
-SWIN_STAGE1_PROJECTION := $(SWIN_BASE_PATH)/stage1_projection.cfg
-SWIN_STAGE1_QKT := $(SWIN_BASE_PATH)/stage1_qkt.cfg
-SWIN_STAGE1_QKTV := $(SWIN_BASE_PATH)/stage1_qktv.cfg
-SWIN_STAGE1_OUTPUT_PROJECTION := $(SWIN_BASE_PATH)/stage1_representation_projection.cfg
-SWIN_STAGE1_FC1 := $(SWIN_BASE_PATH)/stage1_weight1.cfg
-SWIN_STAGE1_FC2 := $(SWIN_BASE_PATH)/stage1_weight2.cfg
-
-#stage2
-SWIN_STAGE2_PROJECTION := $(SWIN_BASE_PATH)/stage2_projection.cfg
-SWIN_STAGE2_QKT := $(SWIN_BASE_PATH)/stage2_qkt.cfg
-SWIN_STAGE2_QKTV := $(SWIN_BASE_PATH)/stage2_qktv.cfg
-SWIN_STAGE2_OUTPUT_PROJECTION := $(SWIN_BASE_PATH)/stage2_representation_projection.cfg
-SWIN_STAGE2_FC1 := $(SWIN_BASE_PATH)/stage2_weight1.cfg
-SWIN_STAGE2_FC2 := $(SWIN_BASE_PATH)/stage2_weight2.cfg
-
-#stage3
-SWIN_STAGE3_PROJECTION := $(SWIN_BASE_PATH)/stage3_projection.cfg
-SWIN_STAGE3_QKT := $(SWIN_BASE_PATH)/stage3_qkt.cfg
-SWIN_STAGE3_QKTV := $(SWIN_BASE_PATH)/stage3_qktv.cfg
-SWIN_STAGE3_OUTPUT_PROJECTION := $(SWIN_BASE_PATH)/stage3_representation_projection.cfg
-SWIN_STAGE3_FC1 := $(SWIN_BASE_PATH)/stage3_weight1.cfg
-SWIN_STAGE3_FC2 := $(SWIN_BASE_PATH)/stage3_weight2.cfg
-
-#stage4
-SWIN_STAGE4_PROJECTION := $(SWIN_BASE_PATH)/stage4_projection.cfg
-SWIN_STAGE4_QKT := $(SWIN_BASE_PATH)/stage4_qkt.cfg
-SWIN_STAGE4_QKTV := $(SWIN_BASE_PATH)/stage4_qktv.cfg
-SWIN_STAGE4_OUTPUT_PROJECTION := $(SWIN_BASE_PATH)/stage4_representation_projection.cfg
-SWIN_STAGE4_FC1 := $(SWIN_BASE_PATH)/stage4_weight1.cfg
-SWIN_STAGE4_FC2 := $(SWIN_BASE_PATH)/stage4_weight2.cfg
-
 # Define targets for specific layers
-.PHONY: all  mobilenet_v2 vit_base swin_base
+.PHONY: all bert_base bloom_1b falcon_1b llama_7b mistral_7b phi_2 vit_base swin_base resnet_50 mobilenet_v2
 
 # Default target runs all configurations for the specified model/variant
-all: mobilenet_v2 vit_base swin_base
+all: bert_base bloom_1b falcon_1b llama_7b mistral_7b phi_2 vit_base swin_base resnet_50 mobilenet_v2
 
 # Target to run a specific layer model
 
@@ -259,6 +374,67 @@ mobilenet_v2:
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_FC) $(COMMON_ARGS_TILING_128)"
 
 
+resnet_50:
+	sbt "runMain simulation.AnalyzerMain $(RESNET_50_CONV1) $(COMMON_ARGS_TILING_147)"
+
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK1_CONV1) $(COMMON_ARGS_TILING_64)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK1_CONV2) $(COMMON_ARGS_TILING_576)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK1_CONV3) $(COMMON_ARGS_TILING_64)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_SHORTCUT) $(COMMON_ARGS_TILING_64)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK2_CONV1) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK2_CONV2) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK2_CONV3) $(COMMON_ARGS_TILING_576)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK3_CONV1) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK3_CONV2) $(COMMON_ARGS_TILING_576)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_BLOCK3_CONV3) $(COMMON_ARGS_TILING_64)"
+
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK1_CONV1) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK1_CONV2) $(COMMON_ARGS_TILING_576)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK1_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_SHORTCUT) $(COMMON_ARGS_TILING_256)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK2_CONV1) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK2_CONV2) $(COMMON_ARGS_TILING_576)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK2_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK3_CONV1) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK3_CONV2) $(COMMON_ARGS_TILING_576)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK3_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK4_CONV1) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK4_CONV2) $(COMMON_ARGS_TILING_576)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_BLOCK4_CONV3) $(COMMON_ARGS_TILING_128)"
+
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK1_CONV1) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK1_CONV2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK1_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_SHORTCUT) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK2_CONV1) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK2_CONV2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK2_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK3_CONV1) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK3_CONV2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK3_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK4_CONV1) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK4_CONV2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK4_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK5_CONV1) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK5_CONV2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK5_CONV3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK6_CONV1) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK6_CONV2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_BLOCK6_CONV3) $(COMMON_ARGS_TILING_128)"
+
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK1_CONV1) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK1_CONV2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK1_CONV3) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_SHORTCUT) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK2_CONV1) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK2_CONV2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK2_CONV3) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK3_CONV1) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK3_CONV2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_BLOCK3_CONV3) $(COMMON_ARGS_TILING_512)"
+
+	sbt "runMain simulation.AnalyzerMain $(RESNET_50_FC) $(COMMON_ARGS_TILING_128)"
+
 vit_base:
 	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_EMBEDDING) $(COMMON_ARGS_TILING_768)"
 	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_QKV) $(COMMON_ARGS_TILING_768)"
@@ -296,3 +472,40 @@ swin_base:
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_OUTPUT_PROJECTION) $(COMMON_ARGS_TILING_1024)"
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_FC1) $(COMMON_ARGS_TILING_1024)"
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_FC2) $(COMMON_ARGS_TILING_1024)"
+
+bert_base:
+	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKV) $(COMMON_ARGS_TILING_768)"
+	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKT) $(COMMON_ARGS_TILING_768)"
+	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_QKTV) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(BERT_BASE_FINAL) $(COMMON_ARGS_TILING_768)"
+
+bloom_1b:
+	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKV) $(COMMON_ARGS_TILING_768)"
+	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKT) $(COMMON_ARGS_TILING_768)"
+	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_QKTV) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(BLOOM_1B_FINAL) $(COMMON_ARGS_TILING_768)"
+
+falcon_1b:
+	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKV) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKT) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_QKTV) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(FALCON_1B_FINAL) $(COMMON_ARGS_TILING_1024)"
+
+llama_7b:
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKV) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKT) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_QKTV) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(LLAMA_7B_FINAL) $(COMMON_ARGS_TILING_1024)"
+
+mistral_7b:
+	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKV) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKT) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_QKTV) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(MISTRAL_7B_FINAL) $(COMMON_ARGS_TILING_1024)"
+
+phi_2:
+	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKV) $(COMMON_ARGS_TILING_640)"
+	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKT) $(COMMON_ARGS_TILING_640)"
+	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKTV) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(PHI_2_FINAL) $(COMMON_ARGS_TILING_640)"
+
