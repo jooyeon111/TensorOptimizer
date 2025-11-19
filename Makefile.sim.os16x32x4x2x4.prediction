@@ -332,11 +332,11 @@ phi_2:
 	sbt "runMain simulation.AnalyzerMain $(PHI_2_FINAL) $(COMMON_ARGS_TILING_128)"
 
 vit_base:
-	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_EMBEDDING) $(COMMON_ARGS_TILING_768)"
-	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_QKV) $(COMMON_ARGS_TILING_768)"
+	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_EMBEDDING) $(COMMON_ARGS_TILING_384)"
+	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_QKV) $(COMMON_ARGS_TILING_384)"
 	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_QKT) $(COMMON_ARGS_TILING_64)"
 	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_QKTV) $(COMMON_ARGS_TILING_197)"
-	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_FINAL) $(COMMON_ARGS_TILING_768)"
+	sbt "runMain simulation.AnalyzerMain $(VIT_BASE_FINAL) $(COMMON_ARGS_TILING_384)"
 
 swin_base:
 	sbt "runMain simulation.AnalyzerMain $(SWIN_BASE_EMBEDDING) $(COMMON_ARGS_TILING_48)"
@@ -353,21 +353,21 @@ swin_base:
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_QKTV) $(COMMON_ARGS_TILING_128)"
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_OUTPUT_PROJECTION) $(COMMON_ARGS_TILING_256)"
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_FC1) $(COMMON_ARGS_TILING_256)"
-	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_FC2) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE2_FC2) $(COMMON_ARGS_TILING_512)"
 
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE3_PROJECTION) $(COMMON_ARGS_TILING_512)"
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE3_QKT) $(COMMON_ARGS_TILING_32)"
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE3_QKTV) $(COMMON_ARGS_TILING_128)"
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE3_OUTPUT_PROJECTION) $(COMMON_ARGS_TILING_512)"
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE3_FC1) $(COMMON_ARGS_TILING_512)"
-	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE3_FC2) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE3_FC2) $(COMMON_ARGS_TILING_512)"
 
-	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_PROJECTION) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_PROJECTION) $(COMMON_ARGS_TILING_512)"
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_QKT) $(COMMON_ARGS_TILING_32)"
 	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_QKTV) $(COMMON_ARGS_TILING_128)"
-	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_OUTPUT_PROJECTION) $(COMMON_ARGS_TILING_1024)"
-	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_FC1) $(COMMON_ARGS_TILING_1024)"
-	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_FC2) $(COMMON_ARGS_TILING_1024)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_OUTPUT_PROJECTION) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_FC1) $(COMMON_ARGS_TILING_512)"
+	sbt "runMain simulation.AnalyzerMain $(SWIN_STAGE4_FC2) $(COMMON_ARGS_TILING_512)"
 
 resnet_50:
 	sbt "runMain simulation.AnalyzerMain $(RESNET_50_CONV1) $(COMMON_ARGS_TILING_128)"
