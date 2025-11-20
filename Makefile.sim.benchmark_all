@@ -20,9 +20,9 @@ all:
 	#make -f Makefile.sim.optimizer.swin all
 
 	#Edge Network
-	make -f Makefile.sim.optimizer.fomo_base
+	#make -f Makefile.sim.optimizer.fomo_base
 	make -f Makefile.sim.optimizer.nanodet_base
-	make -f Makefile.sim.optimizer.yolo_fatest
+	make -f Makefile.sim.optimizer.yolo_fastest
 
 # Contracting Dimension
 #	make -f Makefile.sim.conv_analysis

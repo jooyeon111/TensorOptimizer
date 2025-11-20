@@ -81,6 +81,14 @@ class ArchitectureOptimizer(
     log("")
   }
 
+  def logTopEasyResultsCsv(): Unit = {
+    log(s"[Show Top Results CSV Format (" +
+      s"Dataflow, " +
+      s"STA Config)] ")
+    rankedSingleSramOptimizedResults.foreach(logEasyCsv)
+    log("")
+  }
+
   private def validateCandidates(archBuffer: ArrayBuffer[Architecture]): ArrayBuffer[Architecture] = {
     log("\t[Check Initial Streaming Dimension]")
     println("Check Initial Streaming Dimension")
@@ -415,6 +423,18 @@ class ArchitectureOptimizer(
         s"${architecture.singleBufferLimitKbB}, " +
         s"${architecture.singleBufferLimitKbC}," +
         s"${String.format("%.2f", simulationResult.averageMemoryUtilization)}"
+      )
+    }
+  }
+
+  private def logEasyCsv(ArchitectureResult: ArchitectureResult): Unit = {
+
+    val simulationResult = ArchitectureResult.simulationResult
+    val architecture = ArchitectureResult.architecture
+
+    if(simulationResult.isEnergyReportValid && simulationResult.isAreaReportValid) {
+      log(s"\t${architecture.arrayConfig.dataflow} " +
+        s"${architecture.arrayConfig.asArrayDimension.arrayDimensionString}, " +
       )
     }
   }
