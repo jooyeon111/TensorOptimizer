@@ -1,0 +1,97 @@
+# Common paths
+INPUT_SIM := input/simulation
+CONFIG_DIR := $(INPUT_SIM)/configs/architecture_explorer
+HARDWARE_REF := $(INPUT_SIM)/hardware_reference
+SYNTHESIS := $(INPUT_SIM)/synthesis
+LAYER_DIR := $(INPUT_SIM)/layer
+
+# Test options
+TEST_OPTION_MULT := $(CONFIG_DIR)/hbm2_total_multiplier_16384.cfg
+TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
+TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
+
+# Define layer model
+MODEL := FOMO
+
+# Layer configuration paths
+LAYER_PATH := $(LAYER_DIR)/$(MODEL)
+
+# ==============================================================================
+# Layer Definitions (Explicit)
+# ==============================================================================
+STEM_CONV := $(LAYER_PATH)/stem.conv.cfg
+FEATURES_0_CONV_0 := $(LAYER_PATH)/features.0.conv.0.cfg
+FEATURES_0_CONV_3 := $(LAYER_PATH)/features.0.conv.3.cfg
+FEATURES_1_CONV_0_CONV := $(LAYER_PATH)/features.1.conv.0.conv.cfg
+FEATURES_1_CONV_1 := $(LAYER_PATH)/features.1.conv.1.cfg
+FEATURES_1_CONV_4 := $(LAYER_PATH)/features.1.conv.4.cfg
+FEATURES_2_CONV_0_CONV := $(LAYER_PATH)/features.2.conv.0.conv.cfg
+FEATURES_2_CONV_1 := $(LAYER_PATH)/features.2.conv.1.cfg
+FEATURES_2_CONV_4 := $(LAYER_PATH)/features.2.conv.4.cfg
+FEATURES_3_CONV_0_CONV := $(LAYER_PATH)/features.3.conv.0.conv.cfg
+FEATURES_3_CONV_1 := $(LAYER_PATH)/features.3.conv.1.cfg
+FEATURES_3_CONV_4 := $(LAYER_PATH)/features.3.conv.4.cfg
+FEATURES_4_CONV_0_CONV := $(LAYER_PATH)/features.4.conv.0.conv.cfg
+FEATURES_4_CONV_1 := $(LAYER_PATH)/features.4.conv.1.cfg
+FEATURES_4_CONV_4 := $(LAYER_PATH)/features.4.conv.4.cfg
+FEATURES_5_CONV_0_CONV := $(LAYER_PATH)/features.5.conv.0.conv.cfg
+FEATURES_5_CONV_1 := $(LAYER_PATH)/features.5.conv.1.cfg
+FEATURES_5_CONV_4 := $(LAYER_PATH)/features.5.conv.4.cfg
+FEATURES_6_CONV_0_CONV := $(LAYER_PATH)/features.6.conv.0.conv.cfg
+FEATURES_6_CONV_1 := $(LAYER_PATH)/features.6.conv.1.cfg
+FEATURES_6_CONV_4 := $(LAYER_PATH)/features.6.conv.4.cfg
+FEATURES_7_CONV_0_CONV := $(LAYER_PATH)/features.7.conv.0.conv.cfg
+FEATURES_7_CONV_1 := $(LAYER_PATH)/features.7.conv.1.cfg
+FEATURES_7_CONV_4 := $(LAYER_PATH)/features.7.conv.4.cfg
+FEATURES_8_CONV_0_CONV := $(LAYER_PATH)/features.8.conv.0.conv.cfg
+FEATURES_8_CONV_1 := $(LAYER_PATH)/features.8.conv.1.cfg
+FEATURES_8_CONV_4 := $(LAYER_PATH)/features.8.conv.4.cfg
+FEATURES_9_CONV_0_CONV := $(LAYER_PATH)/features.9.conv.0.conv.cfg
+FEATURES_9_CONV_1 := $(LAYER_PATH)/features.9.conv.1.cfg
+FEATURES_9_CONV_4 := $(LAYER_PATH)/features.9.conv.4.cfg
+HEAD_0 := $(LAYER_PATH)/head.0.cfg
+HEAD_3 := $(LAYER_PATH)/head.3.cfg
+
+# Common arguments for all SBT runs
+COMMON_ARGS := $(TEST_OPTION_MULT) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+
+# Define targets for specific layers
+.PHONY: all run-layer
+
+# Default target runs all configurations for the specified model/variant
+all: run-layer
+
+# Target to run a specific layer model
+run-layer:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STEM_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_0_CONV_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_0_CONV_3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_1_CONV_0_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_1_CONV_1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_1_CONV_4) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_2_CONV_0_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_2_CONV_1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_2_CONV_4) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_3_CONV_0_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_3_CONV_1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_3_CONV_4) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_4_CONV_0_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_4_CONV_1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_4_CONV_4) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_5_CONV_0_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_5_CONV_1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_5_CONV_4) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_6_CONV_0_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_6_CONV_1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_6_CONV_4) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_7_CONV_0_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_7_CONV_1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_7_CONV_4) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_8_CONV_0_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_8_CONV_1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_8_CONV_4) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_9_CONV_0_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_9_CONV_1) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(FEATURES_9_CONV_4) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(HEAD_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(HEAD_3) $(COMMON_ARGS)"

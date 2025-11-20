@@ -2,40 +2,45 @@
 all:
 # Optimizer
 	#Transformer
-#	make -f Makefile.sim.optimizer.bert_base all
-#	make -f Makefile.sim.optimizer.bloom_1b all
-#	make -f Makefile.sim.optimizer.falcon_1b all
-#	make -f Makefile.sim.optimizer.phi_2 all
-#	make -f Makefile.sim.optimizer.llama_7b all
-#	make -f Makefile.sim.optimizer.mistral_7b all
-#	make -f Makefile.sim.optimizer.baichuan2_13b all
-#	make -f Makefile.sim.optimizer.wizardcoder_33b all
+	#make -f Makefile.sim.optimizer.bert_base all
+	#make -f Makefile.sim.optimizer.bloom_1b all
+	#make -f Makefile.sim.optimizer.falcon_1b all
+	#make -f Makefile.sim.optimizer.phi_2 all
+	#make -f Makefile.sim.optimizer.llama_7b all
+	#make -f Makefile.sim.optimizer.mistral_7b all
+	#make -f Makefile.sim.optimizer.baichuan2_13b all
+	#make -f Makefile.sim.optimizer.wizardcoder_33b all
 
 	#CNN
-#	make -f Makefile.sim.optimizer.resnet_50 all
-#	make -f Makefile.sim.optimizer.mobilenet_v2 all
+	#make -f Makefile.sim.optimizer.resnet_50 all
+	#make -f Makefile.sim.optimizer.mobilenet_v2 all
 
 	#Vision Transformer
-#	make -f Makefile.sim.optimizer.vit all
-#	make -f Makefile.sim.optimizer.swin all
+	#make -f Makefile.sim.optimizer.vit all
+	#make -f Makefile.sim.optimizer.swin all
+
+	#Edge Network
+	make -f Makefile.sim.optimizer.fomo_base
+	make -f Makefile.sim.optimizer.nanodet_base
+	make -f Makefile.sim.optimizer.yolo_fatest
 
 # Contracting Dimension
-	#make -f Makefile.sim.conv_analysis
-	#make -f Makefile.sim.falcon_analysis
+#	make -f Makefile.sim.conv_analysis
+#	make -f Makefile.sim.falcon_analysis
 
 # Baseline
-	make -f Makefile.sim.ws128x128x1x1x1.design_compiler
-	make -f Makefile.sim.ws128x128x1x1x1.prediction
+	#make -f Makefile.sim.ws128x128x1x1x1.design_compiler
+	#make -f Makefile.sim.ws128x128x1x1x1.prediction
 
 # Best configs
-	make -f Makefile.sim.ws16x16x2x4x8.design_compiler
-	make -f Makefile.sim.ws16x16x2x4x8.prediction
+	#make -f Makefile.sim.ws16x16x2x4x8.design_compiler
+	#make -f Makefile.sim.ws16x16x2x4x8.prediction
 
-	make -f Makefile.sim.os16x16x4x2x8.design_compiler
-	make -f Makefile.sim.os16x16x4x2x8.prediction
+	#make -f Makefile.sim.os16x16x4x2x8.design_compiler
+	#make -f Makefile.sim.os16x16x4x2x8.prediction
 
-	make -f Makefile.sim.os16x32x4x2x4.design_compiler
-	make -f Makefile.sim.os16x32x4x2x4.prediction
+	#make -f Makefile.sim.os16x32x4x2x4.design_compiler
+	#make -f Makefile.sim.os16x32x4x2x4.prediction
 
-	make -f Makefile.sim.fused2.os
-	make -f Makefile.sim.fused2.ws
+	#make -f Makefile.sim.fused2.os
+	#make -f Makefile.sim.fused2.ws
