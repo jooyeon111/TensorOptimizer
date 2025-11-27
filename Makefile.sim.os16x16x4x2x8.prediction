@@ -280,7 +280,6 @@ MOBILENET_V2_STAGE7_BLOCK1_CONV3 := $(MOBILENET_V2_PATH)/stage7_block1_conv3.cfg
 MOBILENET_V2_FINAL_CONV := $(MOBILENET_V2_PATH)/final_conv.cfg
 MOBILENET_V2_FC := $(MOBILENET_V2_PATH)/fc.cfg
 
-#NanoDet
 NANO_DET_PATH := $(LAYER_DIR)/nanodet/base
 
 STEM_CONV := $(NANO_DET_PATH)/stem.conv.cfg
