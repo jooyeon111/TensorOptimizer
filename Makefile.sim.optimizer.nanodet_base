@@ -18,10 +18,6 @@ MODEL_VARIANT := base
 LAYER_PATH := $(LAYER_DIR)/$(MODEL)
 VARIANT_PATH := $(LAYER_PATH)/$(MODEL_VARIANT)
 
-
-# ==============================================================================
-# Layer Definitions (Explicit)
-# ==============================================================================
 STEM_CONV := $(VARIANT_PATH)/stem.conv.cfg
 STAGE1_0_GHOST1_PRIMARY_CONV_CONV := $(VARIANT_PATH)/stage1.0.ghost1.primary_conv.conv.cfg
 STAGE1_0_GHOST1_CHEAP_OPERATION_CONV := $(VARIANT_PATH)/stage1.0.ghost1.cheap_operation.conv.cfg

@@ -6,10 +6,10 @@ HARDWARE_REF := $(INPUT_SIM)/hardware_reference
 LAYER_DIR := $(INPUT_SIM)/layer
 
 # Test options
-TEST_OPTION_MULT := $(CONFIG_DIR)/os_16x16x4x2x8.cfg
+TEST_OPTION_MULT := $(CONFIG_DIR)/os_16x16x16x1x4_sim.cfg
 TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
 TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
-TEST_OPTION_DESIGN_COMPILER = $(HARDWARE_REF)/design_compiler/os_16x16x4x2x8.cfg
+TEST_OPTION_DESIGN_COMPILER_SIM = $(HARDWARE_REF)/design_compiler/os_16x16x16x1x4_sim.cfg
 
 TEST_OPTION_TILING_9 := $(TILING_DIR)/tiling9.cfg
 TEST_OPTION_TILING_16 := $(TILING_DIR)/tiling16.cfg
@@ -27,21 +27,21 @@ TEST_OPTION_TILING_384 := $(TILING_DIR)/tiling384.cfg
 TEST_OPTION_TILING_576 := $(TILING_DIR)/tiling576.cfg
 TEST_OPTION_TILING_960 := $(TILING_DIR)/tiling960.cfg
 
-COMMON_ARGS_TILING_9 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_9) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
-COMMON_ARGS_TILING_16 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_16) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
-COMMON_ARGS_TILING_24 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_24) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
-COMMON_ARGS_TILING_32 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_32) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
-COMMON_ARGS_TILING_37 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_37) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
-COMMON_ARGS_TILING_64 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_64) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
-COMMON_ARGS_TILING_96 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_96) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
-COMMON_ARGS_TILING_128 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_128) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
-COMMON_ARGS_TILING_144 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_144) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
-COMMON_ARGS_TILING_160 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_160) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
-COMMON_ARGS_TILING_192 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_192) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
-COMMON_ARGS_TILING_320 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_320) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
-COMMON_ARGS_TILING_384 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_384) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
-COMMON_ARGS_TILING_576 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_576) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
-COMMON_ARGS_TILING_960 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_960) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER)
+COMMON_ARGS_TILING_9 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_9) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER_SIM)
+COMMON_ARGS_TILING_16 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_16) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER_SIM)
+COMMON_ARGS_TILING_24 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_24) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER_SIM)
+COMMON_ARGS_TILING_32 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_32) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER_SIM)
+COMMON_ARGS_TILING_37 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_37) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER_SIM)
+COMMON_ARGS_TILING_64 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_64) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER_SIM)
+COMMON_ARGS_TILING_96 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_96) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER_SIM)
+COMMON_ARGS_TILING_128 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_128) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER_SIM)
+COMMON_ARGS_TILING_144 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_144) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER_SIM)
+COMMON_ARGS_TILING_160 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_160) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER_SIM)
+COMMON_ARGS_TILING_192 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_192) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER_SIM)
+COMMON_ARGS_TILING_320 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_320) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER_SIM)
+COMMON_ARGS_TILING_384 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_384) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER_SIM)
+COMMON_ARGS_TILING_576 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_576) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER_SIM)
+COMMON_ARGS_TILING_960 := $(TEST_OPTION_MULT) $(TEST_OPTION_TILING_960) $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF) $(TEST_OPTION_DESIGN_COMPILER_SIM)
 
 # bert
 BERT_BASE_PATH := $(LAYER_DIR)/bert/base
@@ -380,10 +380,10 @@ HEAD2_0 := $(YOLO_FASTEST_PATH)/head2.0.cfg
 HEAD2_3 := $(YOLO_FASTEST_PATH)/head2.3.cfg
 
 # Define targets for specific layers
-.PHONY: all bert_base bloom_1b falcon_1b llama_7b mistral_7b phi_2 vit_base swin_base resnet_50 mobilenet_v2
+.PHONY: all bert_base bloom_1b falcon_1b llama_7b mistral_7b phi_2 vit_base swin_base resnet_50 mobilenet_v2 nanodet yolo
 
 # Default target runs all configurations for the specified model/variant
-all: bert_base bloom_1b falcon_1b llama_7b mistral_7b phi_2 vit_base swin_base resnet_50 mobilenet_v2
+all: bert_base bloom_1b falcon_1b llama_7b mistral_7b phi_2 vit_base swin_base resnet_50 mobilenet_v2 nanodet yolo
 
 # Target to run a specific layer model
 bert_base:
@@ -583,3 +583,99 @@ mobilenet_v2:
 
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_FINAL_CONV) $(COMMON_ARGS_TILING_320)"
 	sbt "runMain simulation.AnalyzerMain $(MOBILENET_V2_FC) $(COMMON_ARGS_TILING_128)"
+
+nanodet:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STEM_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_0_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_0_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_0_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_0_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_1_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_1_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_1_CONV_DW_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_1_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_1_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_1_SHORTCUT_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_1_SHORTCUT_2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_0_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_0_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_0_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_0_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_1_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_1_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_1_CONV_DW_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_1_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_1_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_1_SHORTCUT_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_1_SHORTCUT_2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_0_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_0_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_0_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_0_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_1_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_1_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_1_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_1_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_2_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_2_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_2_CONV_DW_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_2_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_2_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_2_SHORTCUT_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_2_SHORTCUT_2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_0_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_0_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_0_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_0_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_1_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_1_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_1_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_1_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_1_SHORTCUT_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_1_SHORTCUT_2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_2_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_2_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_2_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_2_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_2_SHORTCUT_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE4_2_SHORTCUT_2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(HEAD_LARGE) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(HEAD_MEDIUM) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(HEAD_SMALL) $(COMMON_ARGS)"
+
+yolo:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STEM_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_0_BRANCH1_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_0_BRANCH1_2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_0_BRANCH2_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_0_BRANCH2_3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_0_BRANCH2_5) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_1_BRANCH2_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_1_BRANCH2_3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE1_1_BRANCH2_5) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_0_BRANCH1_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_0_BRANCH1_2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_0_BRANCH2_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_0_BRANCH2_3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_0_BRANCH2_5) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_1_BRANCH2_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_1_BRANCH2_3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_1_BRANCH2_5) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_2_BRANCH2_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_2_BRANCH2_3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE2_2_BRANCH2_5) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_0_BRANCH1_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_0_BRANCH1_2) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_0_BRANCH2_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_0_BRANCH2_3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_0_BRANCH2_5) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_1_BRANCH2_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_1_BRANCH2_3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_1_BRANCH2_5) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_2_BRANCH2_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_2_BRANCH2_3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(STAGE3_2_BRANCH2_5) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(HEAD1_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(HEAD1_3) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(HEAD2_0) $(COMMON_ARGS)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(HEAD2_3) $(COMMON_ARGS)"

@@ -434,7 +434,7 @@ class ArchitectureOptimizer(
 
     if(simulationResult.isEnergyReportValid && simulationResult.isAreaReportValid) {
       log(s"\t${architecture.arrayConfig.dataflow} " +
-        s"${architecture.arrayConfig.asArrayDimension.arrayDimensionString}, " +
+        s"${architecture.arrayConfig.asArrayDimension.arrayDimensionString}"
       )
     }
   }
