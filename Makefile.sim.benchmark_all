@@ -35,13 +35,13 @@ all:
 	#make -f Makefile.sim.ws16x16x2x4x8.design_compiler
 	#make -f Makefile.sim.ws16x16x2x4x8.prediction
 
-	#make -f Makefile.sim.os16x16x4x2x8.design_compiler
-	make -f Makefile.sim.os16x16x4x2x8.prediction
+	make -f Makefile.sim.os16x16x4x2x8.design_compiler
+	#make -f Makefile.sim.os16x16x4x2x8.prediction
 
-	#make -f Makefile.sim.os16x32x4x2x4.design_compiler
-	make -f Makefile.sim.os16x32x4x2x4.prediction
+	make -f Makefile.sim.os16x32x4x2x4.design_compiler
+	#make -f Makefile.sim.os16x32x4x2x4.prediction
 
-	#make -f Makefile.sim.os16x16x16x1x4.design_compiler
+	make -f Makefile.sim.os16x16x16x1x4.design_compiler
 	#make -f Makefile.sim.os16x16x16x1x4.prediction
 
 	#make -f Makefile.sim.fused2.os
