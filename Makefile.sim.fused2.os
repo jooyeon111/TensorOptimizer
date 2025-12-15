@@ -221,7 +221,6 @@ RESNET_50_FC := $(RESNET_50_PATH)/fc.cfg
 
 #mobile net v2 path
 MOBILENET_V2_PATH := $(LAYER_DIR)/mobilenet/v2
-
 MOBILENET_V2_CONV1 := $(MOBILENET_V2_PATH)/conv1.cfg
 
 #STAGE1
@@ -302,11 +301,109 @@ MOBILENET_V2_STAGE7_BLOCK1_CONV3 := $(MOBILENET_V2_PATH)/stage7_block1_conv3.cfg
 MOBILENET_V2_FINAL_CONV := $(MOBILENET_V2_PATH)/final_conv.cfg
 MOBILENET_V2_FC := $(MOBILENET_V2_PATH)/fc.cfg
 
+NANO_DET_PATH := $(LAYER_DIR)/nanodet/base
+
+STEM_CONV := $(NANO_DET_PATH)/stem.conv.cfg
+STAGE1_0_GHOST1_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage1.0.ghost1.primary_conv.conv.cfg
+STAGE1_0_GHOST1_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage1.0.ghost1.cheap_operation.conv.cfg
+STAGE1_0_GHOST2_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage1.0.ghost2.primary_conv.conv.cfg
+STAGE1_0_GHOST2_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage1.0.ghost2.cheap_operation.conv.cfg
+STAGE1_1_GHOST1_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage1.1.ghost1.primary_conv.conv.cfg
+STAGE1_1_GHOST1_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage1.1.ghost1.cheap_operation.conv.cfg
+STAGE1_1_CONV_DW_0 := $(NANO_DET_PATH)/stage1.1.conv_dw.0.cfg
+STAGE1_1_GHOST2_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage1.1.ghost2.primary_conv.conv.cfg
+STAGE1_1_GHOST2_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage1.1.ghost2.cheap_operation.conv.cfg
+STAGE1_1_SHORTCUT_0 := $(NANO_DET_PATH)/stage1.1.shortcut.0.cfg
+STAGE1_1_SHORTCUT_2 := $(NANO_DET_PATH)/stage1.1.shortcut.2.cfg
+STAGE2_0_GHOST1_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage2.0.ghost1.primary_conv.conv.cfg
+STAGE2_0_GHOST1_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage2.0.ghost1.cheap_operation.conv.cfg
+STAGE2_0_GHOST2_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage2.0.ghost2.primary_conv.conv.cfg
+STAGE2_0_GHOST2_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage2.0.ghost2.cheap_operation.conv.cfg
+STAGE2_1_GHOST1_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage2.1.ghost1.primary_conv.conv.cfg
+STAGE2_1_GHOST1_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage2.1.ghost1.cheap_operation.conv.cfg
+STAGE2_1_CONV_DW_0 := $(NANO_DET_PATH)/stage2.1.conv_dw.0.cfg
+STAGE2_1_GHOST2_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage2.1.ghost2.primary_conv.conv.cfg
+STAGE2_1_GHOST2_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage2.1.ghost2.cheap_operation.conv.cfg
+STAGE2_1_SHORTCUT_0 := $(NANO_DET_PATH)/stage2.1.shortcut.0.cfg
+STAGE2_1_SHORTCUT_2 := $(NANO_DET_PATH)/stage2.1.shortcut.2.cfg
+STAGE3_0_GHOST1_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage3.0.ghost1.primary_conv.conv.cfg
+STAGE3_0_GHOST1_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage3.0.ghost1.cheap_operation.conv.cfg
+STAGE3_0_GHOST2_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage3.0.ghost2.primary_conv.conv.cfg
+STAGE3_0_GHOST2_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage3.0.ghost2.cheap_operation.conv.cfg
+STAGE3_1_GHOST1_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage3.1.ghost1.primary_conv.conv.cfg
+STAGE3_1_GHOST1_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage3.1.ghost1.cheap_operation.conv.cfg
+STAGE3_1_GHOST2_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage3.1.ghost2.primary_conv.conv.cfg
+STAGE3_1_GHOST2_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage3.1.ghost2.cheap_operation.conv.cfg
+STAGE3_2_GHOST1_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage3.2.ghost1.primary_conv.conv.cfg
+STAGE3_2_GHOST1_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage3.2.ghost1.cheap_operation.conv.cfg
+STAGE3_2_CONV_DW_0 := $(NANO_DET_PATH)/stage3.2.conv_dw.0.cfg
+STAGE3_2_GHOST2_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage3.2.ghost2.primary_conv.conv.cfg
+STAGE3_2_GHOST2_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage3.2.ghost2.cheap_operation.conv.cfg
+STAGE3_2_SHORTCUT_0 := $(NANO_DET_PATH)/stage3.2.shortcut.0.cfg
+STAGE3_2_SHORTCUT_2 := $(NANO_DET_PATH)/stage3.2.shortcut.2.cfg
+STAGE4_0_GHOST1_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage4.0.ghost1.primary_conv.conv.cfg
+STAGE4_0_GHOST1_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage4.0.ghost1.cheap_operation.conv.cfg
+STAGE4_0_GHOST2_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage4.0.ghost2.primary_conv.conv.cfg
+STAGE4_0_GHOST2_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage4.0.ghost2.cheap_operation.conv.cfg
+STAGE4_1_GHOST1_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage4.1.ghost1.primary_conv.conv.cfg
+STAGE4_1_GHOST1_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage4.1.ghost1.cheap_operation.conv.cfg
+STAGE4_1_GHOST2_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage4.1.ghost2.primary_conv.conv.cfg
+STAGE4_1_GHOST2_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage4.1.ghost2.cheap_operation.conv.cfg
+STAGE4_1_SHORTCUT_0 := $(NANO_DET_PATH)/stage4.1.shortcut.0.cfg
+STAGE4_1_SHORTCUT_2 := $(NANO_DET_PATH)/stage4.1.shortcut.2.cfg
+STAGE4_2_GHOST1_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage4.2.ghost1.primary_conv.conv.cfg
+STAGE4_2_GHOST1_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage4.2.ghost1.cheap_operation.conv.cfg
+STAGE4_2_GHOST2_PRIMARY_CONV_CONV := $(NANO_DET_PATH)/stage4.2.ghost2.primary_conv.conv.cfg
+STAGE4_2_GHOST2_CHEAP_OPERATION_CONV := $(NANO_DET_PATH)/stage4.2.ghost2.cheap_operation.conv.cfg
+STAGE4_2_SHORTCUT_0 := $(NANO_DET_PATH)/stage4.2.shortcut.0.cfg
+STAGE4_2_SHORTCUT_2 := $(NANO_DET_PATH)/stage4.2.shortcut.2.cfg
+HEAD_LARGE := $(NANO_DET_PATH)/head_large.cfg
+HEAD_MEDIUM := $(NANO_DET_PATH)/head_medium.cfg
+HEAD_SMALL := $(NANO_DET_PATH)/head_small.cfg
+
+YOLO_FASTEST_PATH := $(LAYER_DIR)/yolo/fastest
+
+STEM_0 := $(YOLO_FASTEST_PATH)/stem.0.cfg
+STAGE1_0_BRANCH1_0 := $(YOLO_FASTEST_PATH)/stage1.0.branch1.0.cfg
+STAGE1_0_BRANCH1_2 := $(YOLO_FASTEST_PATH)/stage1.0.branch1.2.cfg
+STAGE1_0_BRANCH2_0 := $(YOLO_FASTEST_PATH)/stage1.0.branch2.0.cfg
+STAGE1_0_BRANCH2_3 := $(YOLO_FASTEST_PATH)/stage1.0.branch2.3.cfg
+STAGE1_0_BRANCH2_5 := $(YOLO_FASTEST_PATH)/stage1.0.branch2.5.cfg
+STAGE1_1_BRANCH2_0 := $(YOLO_FASTEST_PATH)/stage1.1.branch2.0.cfg
+STAGE1_1_BRANCH2_3 := $(YOLO_FASTEST_PATH)/stage1.1.branch2.3.cfg
+STAGE1_1_BRANCH2_5 := $(YOLO_FASTEST_PATH)/stage1.1.branch2.5.cfg
+STAGE2_0_BRANCH1_0 := $(YOLO_FASTEST_PATH)/stage2.0.branch1.0.cfg
+STAGE2_0_BRANCH1_2 := $(YOLO_FASTEST_PATH)/stage2.0.branch1.2.cfg
+STAGE2_0_BRANCH2_0 := $(YOLO_FASTEST_PATH)/stage2.0.branch2.0.cfg
+STAGE2_0_BRANCH2_3 := $(YOLO_FASTEST_PATH)/stage2.0.branch2.3.cfg
+STAGE2_0_BRANCH2_5 := $(YOLO_FASTEST_PATH)/stage2.0.branch2.5.cfg
+STAGE2_1_BRANCH2_0 := $(YOLO_FASTEST_PATH)/stage2.1.branch2.0.cfg
+STAGE2_1_BRANCH2_3 := $(YOLO_FASTEST_PATH)/stage2.1.branch2.3.cfg
+STAGE2_1_BRANCH2_5 := $(YOLO_FASTEST_PATH)/stage2.1.branch2.5.cfg
+STAGE2_2_BRANCH2_0 := $(YOLO_FASTEST_PATH)/stage2.2.branch2.0.cfg
+STAGE2_2_BRANCH2_3 := $(YOLO_FASTEST_PATH)/stage2.2.branch2.3.cfg
+STAGE2_2_BRANCH2_5 := $(YOLO_FASTEST_PATH)/stage2.2.branch2.5.cfg
+STAGE3_0_BRANCH1_0 := $(YOLO_FASTEST_PATH)/stage3.0.branch1.0.cfg
+STAGE3_0_BRANCH1_2 := $(YOLO_FASTEST_PATH)/stage3.0.branch1.2.cfg
+STAGE3_0_BRANCH2_0 := $(YOLO_FASTEST_PATH)/stage3.0.branch2.0.cfg
+STAGE3_0_BRANCH2_3 := $(YOLO_FASTEST_PATH)/stage3.0.branch2.3.cfg
+STAGE3_0_BRANCH2_5 := $(YOLO_FASTEST_PATH)/stage3.0.branch2.5.cfg
+STAGE3_1_BRANCH2_0 := $(YOLO_FASTEST_PATH)/stage3.1.branch2.0.cfg
+STAGE3_1_BRANCH2_3 := $(YOLO_FASTEST_PATH)/stage3.1.branch2.3.cfg
+STAGE3_1_BRANCH2_5 := $(YOLO_FASTEST_PATH)/stage3.1.branch2.5.cfg
+STAGE3_2_BRANCH2_0 := $(YOLO_FASTEST_PATH)/stage3.2.branch2.0.cfg
+STAGE3_2_BRANCH2_3 := $(YOLO_FASTEST_PATH)/stage3.2.branch2.3.cfg
+STAGE3_2_BRANCH2_5 := $(YOLO_FASTEST_PATH)/stage3.2.branch2.5.cfg
+HEAD1_0 := $(YOLO_FASTEST_PATH)/head1.0.cfg
+HEAD1_3 := $(YOLO_FASTEST_PATH)/head1.3.cfg
+HEAD2_0 := $(YOLO_FASTEST_PATH)/head2.0.cfg
+HEAD2_3 := $(YOLO_FASTEST_PATH)/head2.3.cfg
+
 # Define targets for specific layers
-.PHONY: all bert_base bloom_1b falcon_1b llama_7b mistral_7b phi_2 vit_base swin_base resnet_50 mobilenet_v2
+.PHONY: all bert_base bloom_1b falcon_1b llama_7b mistral_7b phi_2 vit_base swin_base resnet_50 mobilenet_v2 nanodet yolo
 
 # Default target runs all configurations for the specified model/variant
-all: bert_base bloom_1b falcon_1b llama_7b mistral_7b phi_2 vit_base swin_base resnet_50 mobilenet_v2
+all: bert_base bloom_1b falcon_1b llama_7b mistral_7b phi_2 vit_base swin_base resnet_50 mobilenet_v2 nanodet yolo
 
 # Target to run a specific layer model
 
@@ -509,3 +606,98 @@ phi_2:
 	sbt "runMain simulation.AnalyzerMain $(PHI_2_QKTV) $(COMMON_ARGS_TILING_512)"
 	sbt "runMain simulation.AnalyzerMain $(PHI_2_FINAL) $(COMMON_ARGS_TILING_640)"
 
+nanodet:
+	sbt "runMain simulation.AnalyzerMain $(STEM_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_0_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_0_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_0_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_0_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_1_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_1_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_1_CONV_DW_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_1_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_1_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_1_SHORTCUT_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_1_SHORTCUT_2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_0_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_0_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_0_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_0_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_1_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_1_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_1_CONV_DW_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_1_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_1_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_1_SHORTCUT_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_1_SHORTCUT_2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_0_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_0_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_0_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_0_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_1_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_1_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_1_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_1_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_2_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_2_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_2_CONV_DW_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_2_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_2_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_2_SHORTCUT_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_2_SHORTCUT_2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_0_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_0_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_0_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_0_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_1_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_1_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_1_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_1_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_1_SHORTCUT_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_1_SHORTCUT_2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_2_GHOST1_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_2_GHOST1_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_2_GHOST2_PRIMARY_CONV_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_2_GHOST2_CHEAP_OPERATION_CONV) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_2_SHORTCUT_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE4_2_SHORTCUT_2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(HEAD_LARGE) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(HEAD_MEDIUM) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(HEAD_SMALL) $(COMMON_ARGS_TILING_128)"
+
+yolo:
+	sbt "runMain simulation.AnalyzerMain $(STEM_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_0_BRANCH1_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_0_BRANCH1_2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_0_BRANCH2_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_0_BRANCH2_3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_0_BRANCH2_5) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_1_BRANCH2_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_1_BRANCH2_3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE1_1_BRANCH2_5) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_0_BRANCH1_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_0_BRANCH1_2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_0_BRANCH2_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_0_BRANCH2_3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_0_BRANCH2_5) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_1_BRANCH2_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_1_BRANCH2_3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_1_BRANCH2_5) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_2_BRANCH2_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_2_BRANCH2_3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE2_2_BRANCH2_5) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_0_BRANCH1_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_0_BRANCH1_2) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_0_BRANCH2_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_0_BRANCH2_3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_0_BRANCH2_5) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_1_BRANCH2_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_1_BRANCH2_3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_1_BRANCH2_5) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_2_BRANCH2_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_2_BRANCH2_3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(STAGE3_2_BRANCH2_5) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(HEAD1_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(HEAD1_3) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(HEAD2_0) $(COMMON_ARGS_TILING_128)"
+	sbt "runMain simulation.AnalyzerMain $(HEAD2_3) $(COMMON_ARGS_TILING_128)"
