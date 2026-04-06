@@ -46,3 +46,6 @@ all:
 
 	make -f Makefile.sim.fused2.os
 	make -f Makefile.sim.fused2.ws
+
+	make -f Makefile.sim.ReSA_os.design_compiler
+	make -f Makefile.sim.ReSA_ws.design_compiler
