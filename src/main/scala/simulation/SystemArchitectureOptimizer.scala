@@ -26,6 +26,10 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
     totalNumberOfMultipliers: Int,
     offChipMemoryReferenceData: Option[OffChipMemoryReferenceData],
     sramReferenceDataVector: Option[Vector[SramReferenceData]],
+    retentionRatio1: Option[Double],
+    retentionRatio2: Option[Double],
+    retentionRatio3: Option[Double],
+
   ) {
 
     def validate: Boolean = {
@@ -263,6 +267,10 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
       throw ParseError("Total number of multiplier not found")
     )
 
+    val retentionRatio1 = testConfig.getDouble("Retention Ratio1")
+    val retentionRatio2 = testConfig.getDouble("Retention Ratio2")
+    val retentionRatio3 = testConfig.getDouble("Retention Ratio3")
+
     SimulationConfig(
       layerName = layerName,
       layerGemmDimension = gemmDimension,
@@ -274,6 +282,9 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
       totalNumberOfMultipliers = totalNumberOfMultipliers,
       offChipMemoryReferenceData = offChipMemoryReferenceData,
       sramReferenceDataVector = sramReferenceData,
+      retentionRatio1 = retentionRatio1,
+      retentionRatio2 = retentionRatio2,
+      retentionRatio3 = retentionRatio3,
     )
 
   }

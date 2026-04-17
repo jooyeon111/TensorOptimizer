@@ -21,9 +21,25 @@ class ArchitectureOptimizer(
   private val singleSramOptimizedResults = ArrayBuffer.empty[ArchitectureResult]
   private val rankedSingleSramOptimizedResults = ArrayBuffer.empty[ArchitectureResult]
 
-  private val processOneMargin: Double = 30.0
-  private val processTwoMargin: Double = 80.0
-  private val processThreeMargin: Double = 30.0
+
+  private val processOneMargin = if(simConfig.retentionRatio1.isDefined)
+    simConfig.retentionRatio1.get
+  else
+    30.0
+
+  private val processTwoMargin = if(simConfig.retentionRatio2.isDefined)
+    simConfig.retentionRatio2.get
+  else
+    80.0
+
+  private val processThreeMargin = if(simConfig.retentionRatio3.isDefined)
+    simConfig.retentionRatio3.get
+  else
+    30.0
+
+//  private val processOneMargin: Double = 30.0
+//  private val processTwoMargin: Double = 80.0
+//  private val processThreeMargin: Double = 30.0
 
   def run(): Unit = {
 
