@@ -337,9 +337,9 @@ object SystemArchitectureOptimizer extends App with Logger with StreamingDimensi
   private def generateLogFileName(config: SimulationConfig): String = {
     if(config.retentionRatio1.isDefined && config.retentionRatio2.isDefined && config.retentionRatio3.isDefined)
       s"/result_${config.layerName}_mult:${config.totalNumberOfMultipliers}" +
-        s"_${config.retentionRatio1}" +
-        s"_${config.retentionRatio2}" +
-        s"_${config.retentionRatio3}"
+        s"_${config.retentionRatio1.get}" +
+        s"_${config.retentionRatio2.get}" +
+        s"_${config.retentionRatio3.get}"
     else
       s"/result_${config.layerName}_mult:${config.totalNumberOfMultipliers}"
   }
