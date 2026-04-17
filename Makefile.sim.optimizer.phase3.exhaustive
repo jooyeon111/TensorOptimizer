@@ -1,0 +1,126 @@
+# Common paths
+INPUT_SIM := input/simulation
+CONFIG_DIR := $(INPUT_SIM)/configs/architecture_explorer
+HARDWARE_REF := $(INPUT_SIM)/hardware_reference
+SYNTHESIS := $(INPUT_SIM)/synthesis
+LAYER_DIR := $(INPUT_SIM)/layer
+
+# Test options
+TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
+TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
+
+TEST_OPTION_MULT_30_30_90  := $(CONFIG_DIR)/hbm2_total_multiplier_1024_30_30_90.cfg
+TEST_OPTION_MULT_30_30_80  := $(CONFIG_DIR)/hbm2_total_multiplier_1024_30_30_80.cfg
+TEST_OPTION_MULT_30_30_70  := $(CONFIG_DIR)/hbm2_total_multiplier_1024_30_30_70.cfg
+TEST_OPTION_MULT_30_30_60  := $(CONFIG_DIR)/hbm2_total_multiplier_1024_30_30_60.cfg
+TEST_OPTION_MULT_30_30_50  := $(CONFIG_DIR)/hbm2_total_multiplier_1024_30_30_50.cfg
+TEST_OPTION_MULT_30_30_40  := $(CONFIG_DIR)/hbm2_total_multiplier_1024_30_30_40.cfg
+TEST_OPTION_MULT_30_30_30  := $(CONFIG_DIR)/hbm2_total_multiplier_1024_30_30_30.cfg
+TEST_OPTION_MULT_30_30_20  := $(CONFIG_DIR)/hbm2_total_multiplier_1024_30_30_20.cfg
+TEST_OPTION_MULT_30_30_10  := $(CONFIG_DIR)/hbm2_total_multiplier_1024_30_30_10.cfg
+TEST_OPTION_MULT_30_30_5   := $(CONFIG_DIR)/hbm2_total_multiplier_1024_30_30_5.cfg
+TEST_OPTION_MULT_30_30_3   := $(CONFIG_DIR)/hbm2_total_multiplier_1024_30_30_3.cfg
+TEST_OPTION_MULT_30_30_1   := $(CONFIG_DIR)/hbm2_total_multiplier_1024_30_30_1.cfg
+
+# Layer configs
+YOLO   := $(LAYER_DIR)/yolo/fastest/stage3.0.branch2.5.cfg
+MOBILE := $(LAYER_DIR)/mobilenet/v2/stage6_block3_conv3.cfg
+RESNET := $(LAYER_DIR)/resnet/50/stage3_block1_conv3.cfg
+BERT   := $(LAYER_DIR)/bert/base/qktv.cfg
+
+# Common args per multiplier config
+COMMON_ARGS_30_30_90  := $(TEST_OPTION_MULT_30_30_90)  $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+COMMON_ARGS_30_30_80  := $(TEST_OPTION_MULT_30_30_80)  $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+COMMON_ARGS_30_30_70  := $(TEST_OPTION_MULT_30_30_70)  $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+COMMON_ARGS_30_30_60  := $(TEST_OPTION_MULT_30_30_60)  $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+COMMON_ARGS_30_30_50  := $(TEST_OPTION_MULT_30_30_50)  $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+COMMON_ARGS_30_30_40  := $(TEST_OPTION_MULT_30_30_40)  $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+COMMON_ARGS_30_30_30  := $(TEST_OPTION_MULT_30_30_30)  $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+COMMON_ARGS_30_30_20  := $(TEST_OPTION_MULT_30_30_20)  $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+COMMON_ARGS_30_30_10  := $(TEST_OPTION_MULT_30_30_10)  $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+COMMON_ARGS_30_30_5   := $(TEST_OPTION_MULT_30_30_5)   $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+COMMON_ARGS_30_30_3   := $(TEST_OPTION_MULT_30_30_3)   $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+COMMON_ARGS_30_30_1   := $(TEST_OPTION_MULT_30_30_1)   $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+
+.PHONY: all phase1_sweep_30_30_90 phase1_sweep_30_30_80 phase1_sweep_30_30_70 \
+        phase1_sweep_30_30_60 phase1_sweep_30_30_50 phase1_sweep_30_30_40 \
+        phase1_sweep_30_30_30 phase1_sweep_30_30_20 phase1_sweep_30_30_10 \
+        phase1_sweep_30_30_5 phase1_sweep_30_30_3 phase1_sweep_30_30_1
+
+all: phase1_sweep_30_30_90 phase1_sweep_30_30_80 phase1_sweep_30_30_70 \
+     phase1_sweep_30_30_60 phase1_sweep_30_30_50 phase1_sweep_30_30_40 \
+     phase1_sweep_30_30_30 phase1_sweep_30_30_20 phase1_sweep_30_30_10 \
+     phase1_sweep_30_30_5 phase1_sweep_30_30_3 phase1_sweep_30_30_1
+
+
+phase1_sweep_30_30_90:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(YOLO) $(COMMON_ARGS_30_30_90)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_30_30_90)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(RESNET) $(COMMON_ARGS_30_30_90)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(BERT) $(COMMON_ARGS_30_30_90)"
+
+phase1_sweep_30_30_80:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(YOLO) $(COMMON_ARGS_30_30_80)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_30_30_80)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(RESNET) $(COMMON_ARGS_30_30_80)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(BERT) $(COMMON_ARGS_30_30_80)"
+
+phase1_sweep_30_30_70:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(YOLO) $(COMMON_ARGS_30_30_70)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_30_30_70)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(RESNET) $(COMMON_ARGS_30_30_70)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(BERT) $(COMMON_ARGS_30_30_70)"
+
+phase1_sweep_30_30_60:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(YOLO) $(COMMON_ARGS_30_30_60)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_30_30_60)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(RESNET) $(COMMON_ARGS_30_30_60)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(BERT) $(COMMON_ARGS_30_30_60)"
+
+phase1_sweep_30_30_50:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(YOLO) $(COMMON_ARGS_30_30_50)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_30_30_50)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(RESNET) $(COMMON_ARGS_30_30_50)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(BERT) $(COMMON_ARGS_30_30_50)"
+
+phase1_sweep_30_30_40:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(YOLO) $(COMMON_ARGS_30_30_40)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_30_30_40)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(RESNET) $(COMMON_ARGS_30_30_40)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(BERT) $(COMMON_ARGS_30_30_40)"
+
+phase1_sweep_30_30_30:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(YOLO) $(COMMON_ARGS_30_30_30)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_30_30_30)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(RESNET) $(COMMON_ARGS_30_30_30)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(BERT) $(COMMON_ARGS_30_30_30)"
+
+phase1_sweep_30_30_20:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(YOLO) $(COMMON_ARGS_30_30_20)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_30_30_20)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(RESNET) $(COMMON_ARGS_30_30_20)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(BERT) $(COMMON_ARGS_30_30_20)"
+
+phase1_sweep_30_30_10:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(YOLO) $(COMMON_ARGS_30_30_10)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_30_30_10)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(RESNET) $(COMMON_ARGS_30_30_10)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(BERT) $(COMMON_ARGS_30_30_10)"
+
+phase1_sweep_30_30_5:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(YOLO) $(COMMON_ARGS_30_30_5)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_30_30_5)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(RESNET) $(COMMON_ARGS_30_30_5)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(BERT) $(COMMON_ARGS_30_30_5)"
+
+phase1_sweep_30_30_3:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(YOLO) $(COMMON_ARGS_30_30_3)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_30_30_3)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(RESNET) $(COMMON_ARGS_30_30_3)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(BERT) $(COMMON_ARGS_30_30_3)"
+
+phase1_sweep_30_30_1:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(YOLO) $(COMMON_ARGS_30_30_1)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_30_30_1)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(RESNET) $(COMMON_ARGS_30_30_1)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(BERT) $(COMMON_ARGS_30_30_1)"
