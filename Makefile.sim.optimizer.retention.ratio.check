@@ -1,0 +1,33 @@
+# Common paths
+INPUT_SIM := input/simulation
+CONFIG_DIR := $(INPUT_SIM)/configs/architecture_explorer
+HARDWARE_REF := $(INPUT_SIM)/hardware_reference
+SYNTHESIS := $(INPUT_SIM)/synthesis
+LAYER_DIR := $(INPUT_SIM)/layer
+
+# Test options
+TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
+TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
+
+TEST_OPTION_MULT_20_40_10   := $(CONFIG_DIR)/hbm2_total_multiplier_16384_20_40_10.cfg
+TEST_OPTION_MULT_100_100_100   := $(CONFIG_DIR)/hbm2_total_multiplier_16384_100_100_100.cfg
+
+# Layer configs
+MOBILE := $(LAYER_DIR)/mobilenet/v2/stage6_block3_conv2.cfg
+BLOOM   := $(LAYER_DIR)/bloom/1b/qkt.cfg
+
+# Common args per multiplier config
+COMMON_ARGS_20_40_10  := $(TEST_OPTION_MULT_20_40_10)  $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+COMMON_ARGS_100_100_100  := $(TEST_OPTION_MULT_100_100_100)  $(TEST_OPTION_OFF_CHIP_MEM_REF) $(TEST_OPTION_SRAM_REF)
+
+.PHONY: retention_20_40_10 retention_100_100_100
+
+all: retention_20_40_10 retention_100_100_100
+
+retention_20_40_10:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_30_40_90)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(BLOOM) $(COMMON_ARGS_30_40_90)"
+
+retention_100_100_100:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_100_100_100)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(BLOOM) $(COMMON_ARGS_100_100_100)"
