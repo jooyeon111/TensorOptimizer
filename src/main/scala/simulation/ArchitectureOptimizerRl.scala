@@ -22,20 +22,22 @@ import scala.util.Random
  * @param penaltyScale        multiplier for negative improvements (regression) in reward
  * @param invalidPenalty      penalty for infeasible configurations
  * @param stepCost            small penalty per step to encourage efficiency
+ * @param earlyStopPatience   stop training if no improvement for this many consecutive episodes
  */
 case class RlConfig(
                      learningRate: Double = 0.3,
                      discountFactor: Double = 0.95,
                      initialEpsilon: Double = 0.8,
-                     epsilonDecay: Double = 0.92,
+                     epsilonDecay: Double = 0.85,
                      minEpsilon: Double = 0.05,
                      initialQValue: Double = 0.1,
-                     numTrainingEpisodes: Int = 15,
-                     maxStepsPerEpisode: Int = 20,
+                     numTrainingEpisodes: Int = 8,
+                     maxStepsPerEpisode: Int = 10,
                      rewardScale: Double = 5.0,
                      penaltyScale: Double = 2.0,
                      invalidPenalty: Double = -1.0,
-                     stepCost: Double = -0.01
+                     stepCost: Double = -0.01,
+                     earlyStopPatience: Int = 3
                    )
 
 class ArchitectureOptimizerRl(
@@ -329,18 +331,26 @@ class ArchitectureOptimizerRl(
                                               ): ArrayBuffer[ArchitectureResult] = {
 
     val previousResults = archResultBuffer.clone()
-    val qTable = new QTable(rlConfig)
     val maximize = isMaximizing
 
     val numTrainingEpisodes = rlConfig.numTrainingEpisodes
 
-    // Phase 1: Training — build environments and run episodes sequentially
-    // (Q-table is shared, so parallel training would need synchronization)
+    // Phase 1: Training — independent Q-tables per architecture, fully parallelizable
+    // Each architecture has its own Q-table since base configs differ and
+    // state semantics (log2 offsets) are relative to each architecture's bounds.
     log(s"\t\t[RL Training Phase]")
     log(s"\t\t\tHyperparameters: lr=${rlConfig.learningRate}, gamma=${rlConfig.discountFactor}, " +
-      s"eps=${rlConfig.initialEpsilon}->${rlConfig.minEpsilon}, episodes=$numTrainingEpisodes")
+      s"eps=${rlConfig.initialEpsilon}->${rlConfig.minEpsilon}, episodes=$numTrainingEpisodes, " +
+      s"earlyStop=${rlConfig.earlyStopPatience}")
 
-    val environments = archResultBuffer.map { initialResult =>
+    case class TrainingUnit(
+                             env: ArchitectureEnvironment,
+                             qTable: QTable,
+                             initState: RlState,
+                             initialResult: ArchitectureResult
+                           )
+
+    val trainingUnits = archResultBuffer.map { initialResult =>
       val baseArch = initialResult.architecture
       val maxSramLog2 = log2Floor(baseArch.singleBufferLimitKbA)
       val minSramLog2 = log2Ceil(math.max(minSramSize, 1))
@@ -351,40 +361,46 @@ class ArchitectureOptimizerRl(
         baseArch, minSramLog2, maxSramLog2, minStreamDimLog2, maxStreamDimLog2, maximize
       )
       val initState = RlState(maxSramLog2, maxStreamDimLog2)
-      (env, initState, initialResult)
+      val qTable = new QTable(rlConfig)
+      TrainingUnit(env, qTable, initState, initialResult)
     }
 
-    // Training loop: cycle through architectures for each episode
-    for (episode <- 0 until numTrainingEpisodes) {
-      var totalEpisodeReward = 0.0
-      var totalSteps = 0
+    // Training loop: each architecture trains independently in parallel
+    // with early stopping when no improvement is observed
+    val trainingResults = trainingUnits.par.map { unit =>
+      var bestReward = Double.MinValue
+      var noImprovementCount = 0
+      var actualEpisodes = 0
 
-      environments.foreach { case (env, initState, initialResult) =>
-        val (episodeReward, steps) = runEpisode(qTable, env, initState, initialResult, training = true)
-        totalEpisodeReward += episodeReward
-        totalSteps += steps
+      for (episode <- 0 until numTrainingEpisodes if noImprovementCount < rlConfig.earlyStopPatience) {
+        val (episodeReward, _) = runEpisode(unit.qTable, unit.env, unit.initState, unit.initialResult, training = true)
+        unit.qTable.decayEpsilon()
+        actualEpisodes = episode + 1
+
+        if (episodeReward > bestReward + 1e-6) {
+          bestReward = episodeReward
+          noImprovementCount = 0
+        } else {
+          noImprovementCount += 1
+        }
       }
 
-      qTable.decayEpsilon()
+      (unit, actualEpisodes)
+    }.seq
 
-      if ((episode + 1) % 3 == 0 || episode == numTrainingEpisodes - 1) {
-        log(s"\t\t\tEpisode ${episode + 1}/$numTrainingEpisodes: " +
-          s"avg reward=${String.format("%.3f", totalEpisodeReward / environments.size)}, " +
-          s"epsilon=${String.format("%.3f", qTable.currentEpsilon)}, " +
-          s"Q-table size=${qTable.tableSize}, " +
-          s"total steps=$totalSteps")
-      }
-    }
+    val totalEpisodes = trainingResults.map(_._2).sum
+    val totalQUpdates = trainingResults.map(_._1.qTable.getTotalUpdates).sum
+    val totalTableSize = trainingResults.map(_._1.qTable.tableSize).sum
 
-    log(s"\t\t\tTraining complete: ${qTable.getTotalUpdates} Q-value updates, " +
-      s"${qTable.tableSize} state-action pairs explored")
+    log(s"\t\t\tTraining complete: $totalQUpdates Q-value updates, " +
+      s"$totalTableSize state-action pairs explored, " +
+      s"$totalEpisodes total episodes (avg ${totalEpisodes / math.max(trainingResults.size, 1)} per arch)")
 
     // Phase 2: Exploitation — use greedy policy to optimize each architecture
-    // (independent per architecture, safe to parallelize)
     log(s"\t\t[RL Exploitation Phase]")
 
-    val optimizedResults = environments.par.map { case (env, initState, initialResult) =>
-      exploitPolicy(qTable, env, initState, initialResult)
+    val optimizedResults = trainingResults.par.map { case (unit, _) =>
+      exploitPolicy(unit.qTable, unit.env, unit.initState, unit.initialResult)
     }.seq
 
     val resultBuffer = ArrayBuffer.empty[ArchitectureResult]

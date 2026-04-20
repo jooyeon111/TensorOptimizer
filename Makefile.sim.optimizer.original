@@ -25,7 +25,7 @@ COMMON_ARGS_20_40_10  := $(TEST_OPTION_MULT_20_40_10)  $(TEST_OPTION_OFF_CHIP_ME
 all: retention_20_40_10
 
 retention_20_40_10:
-	sbt "runMain simulation.SystemArchitectureOptimizerRl $(NANO_DET) $(COMMON_ARGS_20_40_10)"
-	sbt "runMain simulation.SystemArchitectureOptimizerRl $(MOBILE) $(COMMON_ARGS_20_40_10)"
-	sbt "runMain simulation.SystemArchitectureOptimizerRl $(VIT) $(COMMON_ARGS_20_40_10)"
-	sbt "runMain simulation.SystemArchitectureOptimizerRl $(BLOOM) $(COMMON_ARGS_20_40_10)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(NANO_DET) $(COMMON_ARGS_20_40_10)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_20_40_10)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(VIT) $(COMMON_ARGS_20_40_10)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(BLOOM) $(COMMON_ARGS_20_40_10)"

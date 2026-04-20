@@ -9,7 +9,7 @@ LAYER_DIR := $(INPUT_SIM)/layer
 TEST_OPTION_OFF_CHIP_MEM_REF := $(HARDWARE_REF)/DRAMsim3/hbm2.cfg
 TEST_OPTION_SRAM_REF := $(HARDWARE_REF)/nvsim/sram.cfg
 
-TEST_OPTION_MULT_20_40_10   := $(CONFIG_DIR)/hbm2_total_multiplier_16384_20_40_10.cfg
+TEST_OPTION_MULT_20_40_10   := $(CONFIG_DIR)/hbm2_total_multiplier_1024_20_40_10.cfg
 
 # Layer configs
 NANO_DET := $(LAYER_DIR)/nanodet/base/stage3.2.shortcut.2.cfg
@@ -26,6 +26,6 @@ all: retention_20_40_10
 
 retention_20_40_10:
 	sbt "runMain simulation.SystemArchitectureOptimizerBo $(NANO_DET) $(COMMON_ARGS_20_40_10)"
-	#sbt "runMain simulation.SystemArchitectureOptimizerBo $(MOBILE) $(COMMON_ARGS_20_40_10)"
-	#sbt "runMain simulation.SystemArchitectureOptimizerBo $(VIT) $(COMMON_ARGS_20_40_10)"
-	#sbt "runMain simulation.SystemArchitectureOptimizerBo $(BLOOM) $(COMMON_ARGS_20_40_10)"
+	sbt "runMain simulation.SystemArchitectureOptimizerBo $(MOBILE) $(COMMON_ARGS_20_40_10)"
+	sbt "runMain simulation.SystemArchitectureOptimizerBo $(VIT) $(COMMON_ARGS_20_40_10)"
+	sbt "runMain simulation.SystemArchitectureOptimizerBo $(BLOOM) $(COMMON_ARGS_20_40_10)"

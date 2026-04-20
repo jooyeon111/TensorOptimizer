@@ -1024,6 +1024,16 @@ class ArchitectureOptimizerBo(
       bayesianOptimizeSingleArchitecture(initialResult, maxBayesianIterations)
     }
 
+//    val optimizedResults = archResultBuffer.par.map { initialResult =>
+//      try {
+//        bayesianOptimizeSingleArchitecture(initialResult, maxBayesianIterations)
+//      } catch {
+//        case e: Exception =>
+//          log(s"\t\t\tBayesian optimization failed: ${e.getMessage}")
+//          initialResult // fall back to the unoptimized result
+//      }
+//    }
+
     val resultBuffer = ArrayBuffer.empty[ArchitectureResult]
     resultBuffer ++= optimizedResults.seq
 
