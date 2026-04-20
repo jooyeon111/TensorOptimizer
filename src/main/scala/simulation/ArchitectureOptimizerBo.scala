@@ -621,7 +621,9 @@ class ArchitectureOptimizerBo(
       observedY += y
       invalidateCache()
       updateNormalization()
-      if (observedX.size >= 4) optimizeHyperparameters()
+      // Optimize hyperparameters every 5 observations to reduce overhead
+      // (grid search over 324 combinations × O(N³) Cholesky per combo)
+      if (observedX.size >= 4 && observedX.size % 5 == 0) optimizeHyperparameters()
     }
 
     def addObservations(xs: Seq[scala.Array[Double]], ys: Seq[Double]): Unit = {
@@ -845,7 +847,7 @@ class ArchitectureOptimizerBo(
     private def optimizeHyperparameters(): Unit = {
       if (observedX.size < 4) return
 
-      val lsCandidates = scala.Array(0.5, 1.0, 1.5, 2.0, 3.0, 5.0)
+      val lsCandidates = scala.Array(0.8, 1.0, 1.5, 2.0, 3.0, 5.0)
       val svCandidates = scala.Array(0.5, 1.0, 2.0)
       val nvCandidates = scala.Array(0.01, 0.1, 0.5)
 
@@ -956,6 +958,30 @@ class ArchitectureOptimizerBo(
     simConfig.metric == SystemArchitectureOptimizerBo.OptimizationMetric.TOPS
   }
 
+  /**
+   * Compute a dynamic infeasible penalty based on observed valid objective values.
+   * The penalty is set to be clearly worse than the worst observed valid result,
+   * with a margin that scales with the observed range. This is robust to any
+   * objective scale, including near-zero and negative values.
+   */
+  private def computeInfeasiblePenalty(validObjectives: Seq[Double], maximize: Boolean): Double = {
+    if (validObjectives.isEmpty) return if (maximize) -1e12 else 1e12
+
+    if (maximize) {
+      // For maximization (TOPS): penalty should be much lower than worst observed
+      val worst = validObjectives.min
+      val range = validObjectives.max - worst
+      val margin = math.max(math.abs(worst) * 0.5, range * 0.5) + 1.0
+      worst - margin
+    } else {
+      // For minimization (cycle/energy/area): penalty should be much higher than worst observed
+      val worst = validObjectives.max
+      val range = worst - validObjectives.min
+      val margin = math.max(math.abs(worst) * 0.5, range * 0.5) + 1.0
+      worst + margin
+    }
+  }
+
   private def buildArchitectureFromParams(
                                            baseArch: Architecture,
                                            sramSizeLog2: Int,
@@ -1046,18 +1072,11 @@ class ArchitectureOptimizerBo(
     val evaluatedPoints = scala.collection.mutable.Set.empty[(Int, Int)]
     val maximize = isMaximizing
 
-    // Compute penalty value for infeasible points:
-    // Use a value that is clearly worse than any feasible result but finite,
-    // so the GP learns to avoid infeasible regions without distorting the surrogate.
-    val initObjective = extractObjective(initialResult.simulationResult)
-    val infeasiblePenalty = if (maximize) initObjective * 0.1 - math.abs(initObjective)
-    else initObjective * 10.0 + math.abs(initObjective)
-
     // Seed the GP with the initial point
     val initSramLog2 = maxSramLog2
     val initStreamLog2 = maxStreamDimLog2
+    val initObjective = extractObjective(initialResult.simulationResult)
 
-    gp.addObservation(scala.Array(initSramLog2.toDouble, initStreamLog2.toDouble), initObjective)
     allObserved += ObservedPoint(initSramLog2, initStreamLog2, initObjective, initialResult, isValid = true)
     evaluatedPoints += ((initSramLog2, initStreamLog2))
 
@@ -1078,19 +1097,38 @@ class ArchitectureOptimizerBo(
         !evaluatedPoints.contains((s, d))
     }.distinct
 
-    for ((sLog2, dLog2) <- seedPoints) {
+    // Evaluate all seed points and collect results before registering with GP
+    val seedEvaluations = seedPoints.map { case (sLog2, dLog2) =>
       val candidate = buildArchitectureFromParams(baseArch, sLog2, dLog2)
       val result = buildAndRunSimulation(candidate)
       val isValid = result.simulationResult.cycle != Long.MaxValue
+      (sLog2, dLog2, result, isValid)
+    }
 
-      // Key improvement: add ALL points to GP, using penalty for infeasible ones
-      val objective = if (isValid) extractObjective(result.simulationResult)
-      else infeasiblePenalty
+    // Collect all seed observations (initial + evaluated seeds)
+    val allSeedXs = ArrayBuffer(scala.Array(initSramLog2.toDouble, initStreamLog2.toDouble))
+    val allSeedYs = ArrayBuffer(initObjective)
+    val seedObservedPoints = ArrayBuffer.empty[ObservedPoint]
 
-      gp.addObservation(scala.Array(sLog2.toDouble, dLog2.toDouble), objective)
+    // Compute dynamic infeasible penalty from all valid seed results
+    val validSeedObjectives = ArrayBuffer(initObjective)
+    seedEvaluations.foreach { case (_, _, result, isValid) =>
+      if (isValid) validSeedObjectives += extractObjective(result.simulationResult)
+    }
+
+    // Dynamic penalty: based on observed worst-case with margin, robust to any scale
+    val infeasiblePenalty = computeInfeasiblePenalty(validSeedObjectives.toSeq, maximize)
+
+    seedEvaluations.foreach { case (sLog2, dLog2, result, isValid) =>
+      val objective = if (isValid) extractObjective(result.simulationResult) else infeasiblePenalty
+      allSeedXs += scala.Array(sLog2.toDouble, dLog2.toDouble)
+      allSeedYs += objective
       allObserved += ObservedPoint(sLog2, dLog2, objective, result, isValid)
       evaluatedPoints += ((sLog2, dLog2))
     }
+
+    // Register all seed points with GP in one batch (single hyperparameter optimization)
+    gp.addObservations(allSeedXs.toSeq, allSeedYs.toSeq)
 
     // Generate all discrete candidate points
     val allCandidates = generateCandidatePoints(maxSramLog2, minSramLog2, maxStreamDimLog2, minStreamDimLog2)
@@ -1098,7 +1136,9 @@ class ArchitectureOptimizerBo(
     // Bayesian optimization loop with adaptive xi
     var iteration = 0
     var noImprovementCount = 0
-    val maxNoImprovement = 5  // increased patience
+    // Adaptive early stopping: scale patience with search space size
+    val totalCandidates = allCandidates.size
+    val maxNoImprovement = math.max(3, math.min(totalCandidates / 3, 10))
     val baseXi = 0.01
 
     while (iteration < maxIterations && noImprovementCount < maxNoImprovement) {
@@ -1111,6 +1151,9 @@ class ArchitectureOptimizerBo(
 
       val bestObjective = if (maximize) validObserved.map(_.objectiveValue).max
       else validObserved.map(_.objectiveValue).min
+
+      // Recompute infeasible penalty dynamically as more valid points are observed
+      val currentPenalty = computeInfeasiblePenalty(validObserved.map(_.objectiveValue).toSeq, maximize)
 
       // Adaptive xi: increase exploration when stuck
       val xi = baseXi * (1.0 + noImprovementCount * 0.5)
@@ -1137,9 +1180,9 @@ class ArchitectureOptimizerBo(
       val candidateResult = buildAndRunSimulation(candidateArch)
       val isValid = candidateResult.simulationResult.cycle != Long.MaxValue
 
-      // Add ALL points to GP (including infeasible with penalty)
+      // Add ALL points to GP (including infeasible with dynamic penalty)
       val objective = if (isValid) extractObjective(candidateResult.simulationResult)
-      else infeasiblePenalty
+      else currentPenalty
 
       gp.addObservation(scala.Array(nextSramLog2.toDouble, nextStreamLog2.toDouble), objective)
 
