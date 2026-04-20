@@ -13,7 +13,9 @@ TEST_OPTION_MULT_20_40_10   := $(CONFIG_DIR)/hbm2_total_multiplier_16384_20_40_1
 TEST_OPTION_MULT_100_100_100   := $(CONFIG_DIR)/hbm2_total_multiplier_16384_100_100_100.cfg
 
 # Layer configs
+NANO_DET := $(LAYER_DIR)/nanodet/base/stage3.2.shortcut.2.cfg
 MOBILE := $(LAYER_DIR)/mobilenet/v2/stage6_block3_conv2.cfg
+VIT := $(LAYER_DIR)/vit/base/embeddin.cfg
 BLOOM   := $(LAYER_DIR)/bloom/1b/qkt.cfg
 
 # Common args per multiplier config
@@ -25,9 +27,13 @@ COMMON_ARGS_100_100_100  := $(TEST_OPTION_MULT_100_100_100)  $(TEST_OPTION_OFF_C
 all: retention_20_40_10 retention_100_100_100
 
 retention_20_40_10:
-	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_30_40_90)"
-	sbt "runMain simulation.SystemArchitectureOptimizer $(BLOOM) $(COMMON_ARGS_30_40_90)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(NANO_DET) $(COMMON_ARGS_20_40_10)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_20_40_10)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(VIT) $(COMMON_ARGS_20_40_10)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(BLOOM) $(COMMON_ARGS_20_40_10)"
 
 retention_100_100_100:
+	sbt "runMain simulation.SystemArchitectureOptimizer $(NANO_DET) $(COMMON_ARGS_100_100_100)"
 	sbt "runMain simulation.SystemArchitectureOptimizer $(MOBILE) $(COMMON_ARGS_100_100_100)"
+	sbt "runMain simulation.SystemArchitectureOptimizer $(VIT) $(COMMON_ARGS_100_100_100)"
 	sbt "runMain simulation.SystemArchitectureOptimizer $(BLOOM) $(COMMON_ARGS_100_100_100)"
