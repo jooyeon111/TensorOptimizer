@@ -1,10 +1,35 @@
-[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/JaeJoo/src/main/scala/simulation/SingleLayerSimulation.scala:337:44: value switchPowerMw in class ArraySynthesisData cannot be accessed as a member of simulation.ArraySynthesisData from trait SingleLayerSimulation in package simulation[0m
-[0m[[0m[31merror[0m] [0m[0m          println(s"Switch Power: ${result.switchPowerMw}")[0m
-[0m[[0m[31merror[0m] [0m[0m                                           ^[0m
-[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/JaeJoo/src/main/scala/simulation/SingleLayerSimulation.scala:338:46: value internalPowerMw in class ArraySynthesisData cannot be accessed as a member of simulation.ArraySynthesisData from trait SingleLayerSimulation in package simulation[0m
-[0m[[0m[31merror[0m] [0m[0m          println(s"internal Power: ${result.internalPowerMw}")[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/JaeJoo/src/main/scala/simulation/ArchitectureOptimizerBo.scala:756:21: not found: value L[0m
+[0m[[0m[31merror[0m] [0m[0mIdentifiers that begin with uppercase are not pattern variables but match the value in scope.[0m
+[0m[[0m[31merror[0m] [0m[0m          case Some(L) =>[0m
+[0m[[0m[31merror[0m] [0m[0m                    ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/JaeJoo/src/main/scala/simulation/ArchitectureOptimizerBo.scala:757:46: not found: value L[0m
+[0m[[0m[31merror[0m] [0m[0m            cachedAlpha = Some(choleskySolve(L, normalizedY))[0m
 [0m[[0m[31merror[0m] [0m[0m                                             ^[0m
-[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/JaeJoo/src/main/scala/simulation/SingleLayerSimulation.scala:339:45: value leakagePowerMw in class ArraySynthesisData cannot be accessed as a member of simulation.ArraySynthesisData from trait SingleLayerSimulation in package simulation[0m
-[0m[[0m[31merror[0m] [0m[0m          println(s"leakage Power: ${result.leakagePowerMw}")[0m
-[0m[[0m[31merror[0m] [0m[0m                                            ^[0m
-[0m[[0m[31merror[0m] [0m[0mthree errors found[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/JaeJoo/src/main/scala/simulation/ArchitectureOptimizerBo.scala:769:25: not found: value L[0m
+[0m[[0m[31merror[0m] [0m[0mIdentifiers that begin with uppercase are not pattern variables but match the value in scope.[0m
+[0m[[0m[31merror[0m] [0m[0m              case Some(L) => cachedAlpha = Some(choleskySolve(L, normalizedY))[0m
+[0m[[0m[31merror[0m] [0m[0m                        ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/JaeJoo/src/main/scala/simulation/ArchitectureOptimizerBo.scala:769:64: not found: value L[0m
+[0m[[0m[31merror[0m] [0m[0m              case Some(L) => cachedAlpha = Some(choleskySolve(L, normalizedY))[0m
+[0m[[0m[31merror[0m] [0m[0m                                                               ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/JaeJoo/src/main/scala/simulation/ArchitectureOptimizerBo.scala:786:20: not found: value L[0m
+[0m[[0m[31merror[0m] [0m[0mIdentifiers that begin with uppercase are not pattern variables but match the value in scope.[0m
+[0m[[0m[31merror[0m] [0m[0m        case (Some(L), Some(alpha)) =>[0m
+[0m[[0m[31merror[0m] [0m[0m                   ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/JaeJoo/src/main/scala/simulation/ArchitectureOptimizerBo.scala:792:42: not found: value L[0m
+[0m[[0m[31merror[0m] [0m[0m          val v = solveForwardTriangular(L, kStar)[0m
+[0m[[0m[31merror[0m] [0m[0m                                         ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/JaeJoo/src/main/scala/simulation/ArchitectureOptimizerBo.scala:822:19: not found: value L[0m
+[0m[[0m[31merror[0m] [0m[0mIdentifiers that begin with uppercase are not pattern variables but match the value in scope.[0m
+[0m[[0m[31merror[0m] [0m[0m        case Some(L) =>[0m
+[0m[[0m[31merror[0m] [0m[0m                  ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/JaeJoo/src/main/scala/simulation/ArchitectureOptimizerBo.scala:823:37: not found: value L[0m
+[0m[[0m[31merror[0m] [0m[0m          val alpha = choleskySolve(L, yNorm)[0m
+[0m[[0m[31merror[0m] [0m[0m                                    ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/JaeJoo/src/main/scala/simulation/ArchitectureOptimizerBo.scala:829:24: not found: value L[0m
+[0m[[0m[31merror[0m] [0m[0m          val logDet = L.indices.map(i => math.log(L(i)(i))).sum  // this is 0.5 * log|K|[0m
+[0m[[0m[31merror[0m] [0m[0m                       ^[0m
+[0m[[0m[31merror[0m] [0m[0m/home/jooyeon/JaeJoo/src/main/scala/simulation/ArchitectureOptimizerBo.scala:829:52: not found: value L[0m
+[0m[[0m[31merror[0m] [0m[0m          val logDet = L.indices.map(i => math.log(L(i)(i))).sum  // this is 0.5 * log|K|[0m
+[0m[[0m[31merror[0m] [0m[0m                                                   ^[0m
+[0m[[0m[31merror[0m] [0m[0m10 errors found[0m

@@ -6,11 +6,11 @@ import common.Dataflow
 import scala.collection.parallel.CollectionConverters._
 
 class ArchitectureOptimizerBo(
-                             val simConfig: SystemArchitectureOptimizerBo.SimulationConfig,
-                             val architectureCandidates: ArrayBuffer[Architecture],
-                             val minSramSize: Int,
-                             val loggerOption: LoggerOption,
-                           ) extends Logger {
+                               val simConfig: SystemArchitectureOptimizerBo.SimulationConfig,
+                               val architectureCandidates: ArrayBuffer[Architecture],
+                               val minSramSize: Int,
+                               val loggerOption: LoggerOption,
+                             ) extends Logger {
 
   setMode(loggerOption)
 
@@ -595,30 +595,46 @@ class ArchitectureOptimizerBo(
                                   )
 
   /**
-   * Simple Gaussian Process surrogate model for Bayesian optimization.
-   * Uses an RBF (squared exponential) kernel over the 2D log-space of
-   * (sramSize, streamingDimension).
+   * Gaussian Process surrogate model for Bayesian optimization.
+   * Improvements over naive implementation:
+   *   - ARD (Automatic Relevance Determination) kernel: separate length scale per dimension
+   *   - Higher noise variance for numerical stability on discrete spaces
+   *   - Log marginal likelihood based hyperparameter optimization
+   *   - Cholesky decomposition for numerically stable solves
    */
   private class GaussianProcessSurrogate(
-                                          val lengthScale: Double = 1.5,
-                                          val signalVariance: Double = 1.0,
-                                          val noiseVariance: Double = 1e-6
+                                          private var lengthScales: scala.Array[Double] = scala.Array(1.5, 1.5),
+                                          private var signalVariance: Double = 1.0,
+                                          private var noiseVariance: Double = 0.1
                                         ) {
     private var observedX: ArrayBuffer[scala.Array[Double]] = ArrayBuffer.empty
     private var observedY: ArrayBuffer[Double] = ArrayBuffer.empty
     private var yMean: Double = 0.0
     private var yStd: Double = 1.0
 
+    // Cached Cholesky factor and alpha vector, invalidated on new observations
+    private var cachedL: Option[scala.Array[scala.Array[Double]]] = None
+    private var cachedAlpha: Option[scala.Array[Double]] = None
+
     def addObservation(x: scala.Array[Double], y: Double): Unit = {
       observedX += x
       observedY += y
+      invalidateCache()
       updateNormalization()
+      if (observedX.size >= 4) optimizeHyperparameters()
     }
 
     def addObservations(xs: Seq[scala.Array[Double]], ys: Seq[Double]): Unit = {
       observedX ++= xs
       observedY ++= ys
+      invalidateCache()
       updateNormalization()
+      if (observedX.size >= 4) optimizeHyperparameters()
+    }
+
+    private def invalidateCache(): Unit = {
+      cachedL = None
+      cachedAlpha = None
     }
 
     private def updateNormalization(): Unit = {
@@ -631,12 +647,130 @@ class ArchitectureOptimizerBo(
 
     private def normalizedY: scala.Array[Double] = observedY.map(y => (y - yMean) / yStd).toArray
 
+    /** ARD RBF kernel: separate length scale per dimension */
+    private def ardRbfKernel(
+                              x1: scala.Array[Double],
+                              x2: scala.Array[Double],
+                              ls: scala.Array[Double],
+                              sv: Double
+                            ): Double = {
+      var squaredDist = 0.0
+      var i = 0
+      while (i < x1.length) {
+        val diff = (x1(i) - x2(i)) / ls(i)
+        squaredDist += diff * diff
+        i += 1
+      }
+      sv * math.exp(-0.5 * squaredDist)
+    }
+
     private def rbfKernel(x1: scala.Array[Double], x2: scala.Array[Double]): Double = {
-      val squaredDist = x1.zip(x2).map { case (a, b) =>
-        val diff = a - b
-        diff * diff
-      }.sum
-      signalVariance * math.exp(-squaredDist / (2.0 * lengthScale * lengthScale))
+      ardRbfKernel(x1, x2, lengthScales, signalVariance)
+    }
+
+    /** Build kernel matrix K(X,X) + noise*I */
+    private def buildKernelMatrix(
+                                   ls: scala.Array[Double],
+                                   sv: Double,
+                                   nv: Double
+                                 ): scala.Array[scala.Array[Double]] = {
+      val n = observedX.size
+      val K = scala.Array.ofDim[Double](n, n)
+      for (i <- 0 until n) {
+        for (j <- i until n) {
+          val kij = ardRbfKernel(observedX(i), observedX(j), ls, sv)
+          K(i)(j) = kij
+          K(j)(i) = kij
+        }
+        K(i)(i) += nv
+      }
+      K
+    }
+
+    /**
+     * Cholesky decomposition: returns lower triangular L such that A = L * L^T.
+     * Returns None if matrix is not positive definite.
+     */
+    private def choleskyDecomposition(A: scala.Array[scala.Array[Double]]): Option[scala.Array[scala.Array[Double]]] = {
+      val n = A.length
+      val L = scala.Array.ofDim[Double](n, n)
+
+      for (i <- 0 until n) {
+        for (j <- 0 to i) {
+          var sum = 0.0
+          for (k <- 0 until j) {
+            sum += L(i)(k) * L(j)(k)
+          }
+          if (i == j) {
+            val diag = A(i)(i) - sum
+            if (diag <= 0.0) return None
+            L(i)(j) = math.sqrt(diag)
+          } else {
+            L(i)(j) = (A(i)(j) - sum) / L(j)(j)
+          }
+        }
+      }
+      Some(L)
+    }
+
+    /** Solve L * x = b where L is lower triangular (forward substitution) */
+    private def solveForwardTriangular(L: scala.Array[scala.Array[Double]], b: scala.Array[Double]): scala.Array[Double] = {
+      val n = b.length
+      val x = scala.Array.fill(n)(0.0)
+      for (i <- 0 until n) {
+        var sum = b(i)
+        for (j <- 0 until i) {
+          sum -= L(i)(j) * x(j)
+        }
+        x(i) = sum / L(i)(i)
+      }
+      x
+    }
+
+    /** Solve L^T * x = b where L is lower triangular (back substitution) */
+    private def solveBackwardTriangular(L: scala.Array[scala.Array[Double]], b: scala.Array[Double]): scala.Array[Double] = {
+      val n = b.length
+      val x = scala.Array.fill(n)(0.0)
+      for (i <- (n - 1) to 0 by -1) {
+        var sum = b(i)
+        for (j <- i + 1 until n) {
+          sum -= L(j)(i) * x(j)
+        }
+        x(i) = sum / L(i)(i)
+      }
+      x
+    }
+
+    /** Solve (L * L^T) * x = b using Cholesky factor */
+    private def choleskySolve(L: scala.Array[scala.Array[Double]], b: scala.Array[Double]): scala.Array[Double] = {
+      val z = solveForwardTriangular(L, b)
+      solveBackwardTriangular(L, z)
+    }
+
+    /** Ensure cached L and alpha are up to date */
+    private def ensureCache(): Unit = {
+      if (cachedL.isEmpty) {
+        val K = buildKernelMatrix(lengthScales, signalVariance, noiseVariance)
+        cachedL = choleskyDecomposition(K)
+        cachedL match {
+          case Some(choleskyL) =>
+            cachedAlpha = Some(choleskySolve(choleskyL, normalizedY))
+          case None =>
+            // Fallback: increase noise until decomposition succeeds
+            var nv = noiseVariance * 10.0
+            var attempt = 0
+            while (cachedL.isEmpty && attempt < 5) {
+              val Kretry = buildKernelMatrix(lengthScales, signalVariance, nv)
+              cachedL = choleskyDecomposition(Kretry)
+              nv *= 10.0
+              attempt += 1
+            }
+            cachedL match {
+              case Some(choleskyL) => cachedAlpha = Some(choleskySolve(choleskyL, normalizedY))
+              case None => cachedAlpha = None
+            }
+        }
+      }
     }
 
     /**
@@ -646,103 +780,125 @@ class ArchitectureOptimizerBo(
     def predict(xQuery: scala.Array[Double]): (Double, Double) = {
       if (observedX.isEmpty) return (0.0, signalVariance)
 
-      val n = observedX.size
-      val yNorm = normalizedY
+      ensureCache()
 
-      // K(X, X) + noise * I
-      val K = scala.Array.ofDim[Double](n, n)
-      for (i <- 0 until n; j <- 0 until n) {
-        K(i)(j) = rbfKernel(observedX(i), observedX(j))
-        if (i == j) K(i)(j) += noiseVariance
+      (cachedL, cachedAlpha) match {
+        case (Some(choleskyL), Some(alpha)) =>
+          val kStar = observedX.map(x => rbfKernel(x, xQuery)).toArray
+          val kStarStar = rbfKernel(xQuery, xQuery) + noiseVariance
+
+          val predictedMeanNorm = kStar.zip(alpha).map { case (k, a) => k * a }.sum
+
+          val v = solveForwardTriangular(choleskyL, kStar)
+          val predictedVariance = math.max(0.0, kStarStar - v.map(vi => vi * vi).sum)
+
+          val predictedMean = predictedMeanNorm * yStd + yMean
+          val scaledVariance = predictedVariance * yStd * yStd
+
+          (predictedMean, scaledVariance)
+
+        case _ =>
+          // Fallback: return prior with high uncertainty
+          (yMean, signalVariance * yStd * yStd)
       }
-
-      // k(X, x*)
-      val kStar = observedX.map(x => rbfKernel(x, xQuery)).toArray
-
-      // k(x*, x*)
-      val kStarStar = rbfKernel(xQuery, xQuery) + noiseVariance
-
-      // Solve K * alpha = yNorm using Cholesky-like approach (simplified for small n)
-      val alpha = solveLinearSystem(K, yNorm)
-      val v = solveLinearSystem(K, kStar)
-
-      val predictedMeanNorm = kStar.zip(alpha).map { case (k, a) => k * a }.sum
-      val predictedVariance = math.max(0.0, kStarStar - kStar.zip(v).map { case (k, vi) => k * vi }.sum)
-
-      // Un-normalize
-      val predictedMean = predictedMeanNorm * yStd + yMean
-      val predictedStd = math.sqrt(predictedVariance) * yStd
-
-      (predictedMean, predictedStd * predictedStd)
     }
 
     /**
-     * Solve Ax = b using Gaussian elimination (sufficient for small observation sets).
+     * Compute negative log marginal likelihood for hyperparameter optimization.
+     * NLML = 0.5 * y^T K^{-1} y + 0.5 * log|K| + n/2 * log(2*pi)
      */
-    private def solveLinearSystem(A: scala.Array[scala.Array[Double]], b: scala.Array[Double]): scala.Array[Double] = {
-      val n = b.length
-      val augmented = scala.Array.tabulate(n)(i => A(i).clone() :+ b(i))
+    private def negativeLogMarginalLikelihood(
+                                               ls: scala.Array[Double],
+                                               sv: Double,
+                                               nv: Double
+                                             ): Double = {
+      val n = observedX.size
+      if (n == 0) return Double.MaxValue
 
-      // Forward elimination
-      for (col <- 0 until n) {
-        // Partial pivoting
-        var maxRow = col
-        var maxVal = math.abs(augmented(col)(col))
-        for (row <- col + 1 until n) {
-          if (math.abs(augmented(row)(col)) > maxVal) {
-            maxVal = math.abs(augmented(row)(col))
-            maxRow = row
-          }
-        }
-        val temp = augmented(col)
-        augmented(col) = augmented(maxRow)
-        augmented(maxRow) = temp
+      val K = buildKernelMatrix(ls, sv, nv)
+      val yNorm = normalizedY
 
-        val pivot = augmented(col)(col)
-        if (math.abs(pivot) < 1e-12) {
-          // Near-singular: return zero vector
-          return scala.Array.fill(n)(0.0)
-        }
+      choleskyDecomposition(K) match {
+        case Some(choleskyL) =>
+          val alpha = choleskySolve(choleskyL, yNorm)
 
-        for (row <- col + 1 until n) {
-          val factor = augmented(row)(col) / pivot
-          for (j <- col until n + 1) {
-            augmented(row)(j) -= factor * augmented(col)(j)
-          }
+          // data fit term: 0.5 * y^T * alpha
+          val dataFit = 0.5 * yNorm.zip(alpha).map { case (y, a) => y * a }.sum
+
+          // complexity term: sum of log of diagonal of L = 0.5 * log|K|
+          val logDet = choleskyL.indices.map(i => math.log(choleskyL(i)(i))).sum  // this is 0.5 * log|K|
+
+          // constant term
+          val constant = 0.5 * n * math.log(2.0 * math.Pi)
+
+          dataFit + logDet + constant
+
+        case None =>
+          Double.MaxValue // not positive definite, reject this hyperparameter setting
+      }
+    }
+
+    /**
+     * Optimize GP hyperparameters by grid search over discrete candidates
+     * in log space. Simple but robust for 2D problems with few hyperparameters.
+     */
+    private def optimizeHyperparameters(): Unit = {
+      if (observedX.size < 4) return
+
+      val lsCandidates = scala.Array(0.5, 1.0, 1.5, 2.0, 3.0, 5.0)
+      val svCandidates = scala.Array(0.5, 1.0, 2.0)
+      val nvCandidates = scala.Array(0.01, 0.1, 0.5)
+
+      var bestNlml = Double.MaxValue
+      var bestLs = lengthScales.clone()
+      var bestSv = signalVariance
+      var bestNv = noiseVariance
+
+      for {
+        ls0 <- lsCandidates
+        ls1 <- lsCandidates
+        sv <- svCandidates
+        nv <- nvCandidates
+      } {
+        val ls = scala.Array(ls0, ls1)
+        val nlml = negativeLogMarginalLikelihood(ls, sv, nv)
+        if (nlml < bestNlml) {
+          bestNlml = nlml
+          bestLs = ls
+          bestSv = sv
+          bestNv = nv
         }
       }
 
-      // Back substitution
-      val x = scala.Array.fill(n)(0.0)
-      for (row <- (n - 1) to 0 by -1) {
-        var sum = augmented(row)(n)
-        for (j <- row + 1 until n) {
-          sum -= augmented(row)(j) * x(j)
-        }
-        x(row) = sum / augmented(row)(row)
-      }
-      x
+      lengthScales = bestLs
+      signalVariance = bestSv
+      noiseVariance = bestNv
+      invalidateCache()
     }
 
     def observationCount: Int = observedX.size
   }
 
   /**
-   * Expected Improvement acquisition function.
-   * For minimization: EI(x) = (bestY - mu) * Phi(z) + sigma * phi(z)
-   * For maximization (TOPS): EI(x) = (mu - bestY) * Phi(z) + sigma * phi(z)
+   * Expected Improvement acquisition function with exploration jitter (xi).
+   * xi > 0 encourages exploration by requiring improvement beyond the current best
+   * by at least xi, preventing premature convergence.
+   *
+   * For minimization: EI(x) = (bestY - mu - xi) * Phi(z) + sigma * phi(z)
+   * For maximization (TOPS): EI(x) = (mu - bestY - xi) * Phi(z) + sigma * phi(z)
    */
   private def expectedImprovement(
                                    mu: Double,
                                    variance: Double,
                                    bestObjective: Double,
-                                   maximize: Boolean
+                                   maximize: Boolean,
+                                   xi: Double = 0.01
                                  ): Double = {
     val sigma = math.sqrt(math.max(variance, 1e-12))
     if (sigma < 1e-10) return 0.0
 
-    val z = if (maximize) (mu - bestObjective) / sigma
-    else (bestObjective - mu) / sigma
+    val z = if (maximize) (mu - bestObjective - xi) / sigma
+    else (bestObjective - mu - xi) / sigma
 
     val phiZ = standardNormalPdf(z)
     val cdfZ = standardNormalCdf(z)
@@ -800,9 +956,6 @@ class ArchitectureOptimizerBo(
     simConfig.metric == SystemArchitectureOptimizerBo.OptimizationMetric.TOPS
   }
 
-  /**
-   * Build an architecture candidate from log2-encoded parameters.
-   */
   private def buildArchitectureFromParams(
                                            baseArch: Architecture,
                                            sramSizeLog2: Int,
@@ -832,15 +985,6 @@ class ArchitectureOptimizerBo(
       .copy(arrayConfig = updatedArrayConfig)
   }
 
-  /**
-   * Process 2: Bayesian Optimization for SRAM-Streaming dimension trade-offs.
-   *
-   * Instead of iterative halving, this uses a Gaussian Process surrogate model
-   * to intelligently explore the 2D search space of (SRAM size, streaming dimension).
-   * At each step, it evaluates the point with the highest Expected Improvement (EI),
-   * allowing it to balance exploration of unknown regions with exploitation of
-   * promising areas.
-   */
   private def optimizeSramStreamingTradeOffs(
                                               archResultBuffer: ArrayBuffer[ArchitectureResult],
                                               processMargin: Double
@@ -873,6 +1017,12 @@ class ArchitectureOptimizerBo(
   /**
    * Bayesian optimization loop for a single architecture.
    * Explores SRAM size and streaming dimension trade-offs using GP + EI.
+   *
+   * Improvements:
+   *   - Infeasible points are added to GP with penalty values (not skipped)
+   *   - Better initial seeding with more diverse points
+   *   - Adaptive xi (jitter) that increases when stuck to encourage exploration
+   *   - Higher early stopping patience
    */
   private def bayesianOptimizeSingleArchitecture(
                                                   initialResult: ArchitectureResult,
@@ -891,41 +1041,53 @@ class ArchitectureOptimizerBo(
       return initialResult
     }
 
-    val gp = new GaussianProcessSurrogate(lengthScale = 1.5, signalVariance = 1.0, noiseVariance = 1e-4)
+    val gp = new GaussianProcessSurrogate()
     val allObserved = ArrayBuffer.empty[ObservedPoint]
     val evaluatedPoints = scala.collection.mutable.Set.empty[(Int, Int)]
     val maximize = isMaximizing
 
+    // Compute penalty value for infeasible points:
+    // Use a value that is clearly worse than any feasible result but finite,
+    // so the GP learns to avoid infeasible regions without distorting the surrogate.
+    val initObjective = extractObjective(initialResult.simulationResult)
+    val infeasiblePenalty = if (maximize) initObjective * 0.1 - math.abs(initObjective)
+    else initObjective * 10.0 + math.abs(initObjective)
+
     // Seed the GP with the initial point
     val initSramLog2 = maxSramLog2
     val initStreamLog2 = maxStreamDimLog2
-    val initObjective = extractObjective(initialResult.simulationResult)
 
     gp.addObservation(scala.Array(initSramLog2.toDouble, initStreamLog2.toDouble), initObjective)
     allObserved += ObservedPoint(initSramLog2, initStreamLog2, initObjective, initialResult, isValid = true)
     evaluatedPoints += ((initSramLog2, initStreamLog2))
 
-    // Seed with a few corner/boundary points for diversity
+    // Better seed strategy: corners + midpoints along each axis + center
+    val sramMid = (maxSramLog2 + minSramLog2) / 2
+    val streamMid = (maxStreamDimLog2 + minStreamDimLog2) / 2
+
     val seedPoints = Seq(
-      (minSramLog2, maxStreamDimLog2),
-      (maxSramLog2, minStreamDimLog2),
-      ((maxSramLog2 + minSramLog2) / 2, (maxStreamDimLog2 + minStreamDimLog2) / 2)
+      (minSramLog2, maxStreamDimLog2),       // corner: min SRAM, max stream
+      (maxSramLog2, minStreamDimLog2),       // corner: max SRAM, min stream
+      (minSramLog2, minStreamDimLog2),       // corner: min SRAM, min stream
+      (sramMid, streamMid),                  // center
+      (sramMid, maxStreamDimLog2),           // midpoint along SRAM axis
+      (maxSramLog2, streamMid),             // midpoint along stream axis
     ).filter { case (s, d) =>
       s >= minSramLog2 && s <= maxSramLog2 &&
         d >= minStreamDimLog2 && d <= maxStreamDimLog2 &&
         !evaluatedPoints.contains((s, d))
-    }
+    }.distinct
 
     for ((sLog2, dLog2) <- seedPoints) {
       val candidate = buildArchitectureFromParams(baseArch, sLog2, dLog2)
       val result = buildAndRunSimulation(candidate)
       val isValid = result.simulationResult.cycle != Long.MaxValue
-      val objective = if (isValid) extractObjective(result.simulationResult)
-      else if (maximize) 0.0 else Double.MaxValue
 
-      if (isValid) {
-        gp.addObservation(scala.Array(sLog2.toDouble, dLog2.toDouble), objective)
-      }
+      // Key improvement: add ALL points to GP, using penalty for infeasible ones
+      val objective = if (isValid) extractObjective(result.simulationResult)
+      else infeasiblePenalty
+
+      gp.addObservation(scala.Array(sLog2.toDouble, dLog2.toDouble), objective)
       allObserved += ObservedPoint(sLog2, dLog2, objective, result, isValid)
       evaluatedPoints += ((sLog2, dLog2))
     }
@@ -933,14 +1095,15 @@ class ArchitectureOptimizerBo(
     // Generate all discrete candidate points
     val allCandidates = generateCandidatePoints(maxSramLog2, minSramLog2, maxStreamDimLog2, minStreamDimLog2)
 
-    // Bayesian optimization loop
+    // Bayesian optimization loop with adaptive xi
     var iteration = 0
     var noImprovementCount = 0
-    val maxNoImprovement = 3
+    val maxNoImprovement = 5  // increased patience
+    val baseXi = 0.01
 
     while (iteration < maxIterations && noImprovementCount < maxNoImprovement) {
 
-      // Find the best observed objective so far
+      // Find the best observed objective so far (among valid points only)
       val validObserved = allObserved.filter(_.isValid)
       if (validObserved.isEmpty) {
         return initialResult
@@ -949,11 +1112,13 @@ class ArchitectureOptimizerBo(
       val bestObjective = if (maximize) validObserved.map(_.objectiveValue).max
       else validObserved.map(_.objectiveValue).min
 
+      // Adaptive xi: increase exploration when stuck
+      val xi = baseXi * (1.0 + noImprovementCount * 0.5)
+
       // Evaluate EI for all unevaluated candidate points
       val unevaluatedCandidates = allCandidates.filterNot(p => evaluatedPoints.contains(p))
 
       if (unevaluatedCandidates.isEmpty) {
-        // All points have been evaluated
         log(s"\t\t\tBayesian optimization: exhausted search space after ${evaluatedPoints.size} evaluations")
         val bestPoint = validObserved.minBy(p => if (maximize) -p.objectiveValue else p.objectiveValue)
         return bestPoint.archResult
@@ -962,7 +1127,7 @@ class ArchitectureOptimizerBo(
       // Select the point with the highest EI
       val bestCandidate = unevaluatedCandidates.maxBy { case (sLog2, dLog2) =>
         val (mu, variance) = gp.predict(scala.Array(sLog2.toDouble, dLog2.toDouble))
-        expectedImprovement(mu, variance, bestObjective, maximize)
+        expectedImprovement(mu, variance, bestObjective, maximize, xi)
       }
 
       val (nextSramLog2, nextStreamLog2) = bestCandidate
@@ -972,12 +1137,13 @@ class ArchitectureOptimizerBo(
       val candidateResult = buildAndRunSimulation(candidateArch)
       val isValid = candidateResult.simulationResult.cycle != Long.MaxValue
 
+      // Add ALL points to GP (including infeasible with penalty)
       val objective = if (isValid) extractObjective(candidateResult.simulationResult)
-      else if (maximize) 0.0 else Double.MaxValue
+      else infeasiblePenalty
+
+      gp.addObservation(scala.Array(nextSramLog2.toDouble, nextStreamLog2.toDouble), objective)
 
       if (isValid) {
-        gp.addObservation(scala.Array(nextSramLog2.toDouble, nextStreamLog2.toDouble), objective)
-
         val improved = if (maximize) objective > bestObjective else objective < bestObjective
         if (improved) {
           noImprovementCount = 0
@@ -1193,14 +1359,9 @@ class ArchitectureOptimizerBo(
       }
     }
 
-    //    if(sramReferenceDataA.isEmpty || sramReferenceDataB.isEmpty || sramReferenceDataC.isEmpty){
-    //      throw ParseError("Cannot find SRAM data from external reports ...")
-    //    }
 
     if(!(capacityA > 0 && capacityB > 0 && capacityC > 0 )) {
-      //        log(s"\t\tBuilding SRAM is failed: ${arrayConfig.arrayConfigString}\n" +
-      //          s"\t\t\tSRAM A Capacity: $capacityA, SRAM B Capacity: $capacityB, SRAM C Capacity: $capacityC\n" +
-      //          s"\t\t\tTile Size A: $tileSizeA, Tile Size B: $tileSizeB, Tile Size C: $tileSizeC")
+
 
       Left(SramBuildError("SRAM Cannot contain even 1 tile"))
     } else if (sramReferenceDataA.isEmpty || sramReferenceDataB.isEmpty || sramReferenceDataC.isEmpty){
@@ -1209,27 +1370,6 @@ class ArchitectureOptimizerBo(
 
     } else {
 
-      //      val sramReferenceDataA: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
-      //        vector.find{ data =>
-      //          data.capacityKb == singleBufferLimitKbA && data.bandwidthBits >= arrayConfig.bandwidthOfInputA
-      //        }
-      //      }
-      //
-      //      val sramReferenceDataB: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
-      //        vector.find{ data =>
-      //          data.capacityKb == singleBufferLimitKbB && data.bandwidthBits >= arrayConfig.bandwidthOfInputB
-      //        }
-      //      }
-      //
-      //      val sramReferenceDataC: Option[SramReferenceData] = simConfig.sramReferenceDataVector.flatMap{ vector =>
-      //        vector.find{ data =>
-      //          data.capacityKb == singleBufferLimitKbC && data.bandwidthBits >= arrayConfig.outputBandwidth
-      //        }
-      //      }
-      //
-      //      if(sramReferenceDataA.isEmpty || sramReferenceDataB.isEmpty || sramReferenceDataC.isEmpty){
-      //        throw ParseError("Cannot find SRAM data from external reports ...")
-      //      }
 
       val sramA = new DoubleBufferSram(
         dataType = DataType.A,
