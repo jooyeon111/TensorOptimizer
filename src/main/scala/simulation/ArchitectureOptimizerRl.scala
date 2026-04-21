@@ -37,8 +37,7 @@ case class RlConfig(
                      penaltyScale: Double = 2.0,
                      invalidPenalty: Double = -1.0,
                      stepCost: Double = -0.01,
-                     earlyStopPatience: Int = 2,
-                     maxCandidatesForRl: Int = 80
+                     earlyStopPatience: Int = 2
                    )
 
 class ArchitectureOptimizerRl(
@@ -297,21 +296,13 @@ class ArchitectureOptimizerRl(
 
     val numTrainingEpisodes = rlConfig.numTrainingEpisodes
 
-    // Limit candidate count to avoid excessive simulation calls
-    val candidatesToOptimize = if (archResultBuffer.size > rlConfig.maxCandidatesForRl) {
-      log(s"\t\t[Candidate Pruning] ${archResultBuffer.size} -> ${rlConfig.maxCandidatesForRl} (top candidates only)")
-      archResultBuffer.take(rlConfig.maxCandidatesForRl)
-    } else {
-      archResultBuffer
-    }
-
     // Phase 1: Training — independent Q-tables per architecture, fully parallelizable
     // Each architecture has its own Q-table since base configs differ and
     // state semantics (log2 offsets) are relative to each architecture's bounds.
     log(s"\t\t[RL Training Phase]")
     log(s"\t\t\tHyperparameters: lr=${rlConfig.learningRate}, gamma=${rlConfig.discountFactor}, " +
       s"eps=${rlConfig.initialEpsilon}->${rlConfig.minEpsilon}, episodes=$numTrainingEpisodes, " +
-      s"earlyStop=${rlConfig.earlyStopPatience}, candidates=${candidatesToOptimize.size}")
+      s"earlyStop=${rlConfig.earlyStopPatience}")
 
     case class TrainingUnit(
                              env: ArchitectureEnvironment,
@@ -321,7 +312,7 @@ class ArchitectureOptimizerRl(
                              effectiveMaxSteps: Int
                            )
 
-    val trainingUnits = candidatesToOptimize.map { initialResult =>
+    val trainingUnits = archResultBuffer.map { initialResult =>
       val baseArch = initialResult.architecture
       val maxSramLog2 = log2Floor(baseArch.singleBufferLimitKbA)
       val minSramLog2 = log2Ceil(math.max(minSramSize, 1))

@@ -1021,17 +1021,8 @@ class ArchitectureOptimizerBo(
     val maxBayesianIterations = 4
     val previousResults = archResultBuffer.clone()
 
-    // Limit candidate count to avoid excessive simulation calls
-    val maxCandidatesForBo = 80
-    val candidatesToOptimize = if (archResultBuffer.size > maxCandidatesForBo) {
-      log(s"\t\t[Candidate Pruning] ${archResultBuffer.size} -> $maxCandidatesForBo (top candidates only)")
-      archResultBuffer.take(maxCandidatesForBo)
-    } else {
-      archResultBuffer
-    }
-
     // Run Bayesian optimization independently for each architecture candidate
-    val optimizedResults = candidatesToOptimize.par.map { initialResult =>
+    val optimizedResults = archResultBuffer.par.map { initialResult =>
       bayesianOptimizeSingleArchitecture(initialResult, maxBayesianIterations)
     }
 
