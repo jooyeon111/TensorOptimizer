@@ -103,14 +103,6 @@ class ArchitectureOptimizerRl(
    */
   private case class RlState(sramSizeLog2: Int, streamingDimLog2: Int)
 
-  /**
-   * RL Actions available to the agent.
-   *
-   * ReduceSram:       halve the uniform SRAM size
-   * ReduceStreamDim:  halve the streaming dimension
-   * ReduceBoth:       halve both SRAM size and streaming dimension simultaneously
-   * Stop:             terminate the episode, accept current configuration
-   */
   private sealed trait RlAction
   private case object ReduceSram extends RlAction
   private case object ReduceStreamDim extends RlAction
@@ -119,13 +111,6 @@ class ArchitectureOptimizerRl(
 
   private val allActions: Seq[RlAction] = Seq(ReduceSram, ReduceStreamDim, ReduceBoth, Stop)
 
-  /**
-   * Q-Table with epsilon-greedy policy.
-   *
-   * Uses a HashMap for sparse state-action storage, which is efficient for
-   * the discrete power-of-2 search space. The Q-table is shared across all
-   * architecture candidates so that knowledge transfers between them.
-   */
   private class QTable(config: RlConfig) {
     private val table = mutable.HashMap.empty[(RlState, RlAction), Double]
     private var epsilon: Double = config.initialEpsilon
@@ -263,15 +248,6 @@ class ArchitectureOptimizerRl(
         .copy(arrayConfig = updatedArrayConfig)
     }
 
-    /**
-     * Compute the reward for transitioning from currentResult to newResult.
-     *
-     * Reward structure:
-     *   - Positive reward proportional to metric improvement (scaled by rewardScale)
-     *   - Negative penalty for regression (scaled by penaltyScale)
-     *   - Fixed penalty for simulation failure (infeasible configuration)
-     *   - Small negative step cost to encourage shorter episodes
-     */
     def computeReward(
                        currentResult: ArchitectureResult,
                        newResult: ArchitectureResult
@@ -310,21 +286,6 @@ class ArchitectureOptimizerRl(
     def getCacheSize: Int = simulationCache.size
   }
 
-  /**
-   * Run RL-based optimization for Process 2.
-   *
-   * Strategy:
-   *   1. Training phase: run multiple episodes across all architecture candidates,
-   *      sharing a single Q-table so the agent learns general patterns about
-   *      SRAM/streaming dimension trade-offs.
-   *   2. Exploitation phase: use the learned Q-table (greedy policy) to optimize
-   *      each architecture candidate.
-   *
-   * This is more sample-efficient than independent optimization because:
-   *   - Different architectures share similar SRAM/streaming trade-off patterns
-   *   - Early episodes explore aggressively, later ones exploit learned knowledge
-   *   - Simulation results are cached to avoid redundant evaluations
-   */
   private def optimizeSramStreamingTradeOffsRl(
                                                 archResultBuffer: ArrayBuffer[ArchitectureResult],
                                                 processMargin: Double

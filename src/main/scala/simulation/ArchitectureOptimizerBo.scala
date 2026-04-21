@@ -631,7 +631,8 @@ class ArchitectureOptimizerBo(
       observedY ++= ys
       invalidateCache()
       updateNormalization()
-      if (observedX.size >= 4) optimizeHyperparameters()
+      // Skip hyperparameter optimization during seed registration;
+      // it will run naturally via addObservation every 5 steps in the BO loop
     }
 
     private def invalidateCache(): Unit = {
@@ -847,7 +848,7 @@ class ArchitectureOptimizerBo(
     private def optimizeHyperparameters(): Unit = {
       if (observedX.size < 4) return
 
-      val lsCandidates = scala.Array(0.8, 1.0, 1.5, 2.0, 3.0, 5.0)
+      val lsCandidates = scala.Array(0.8, 1.5, 3.0, 5.0)
       val svCandidates = scala.Array(0.5, 1.0, 2.0)
       val nvCandidates = scala.Array(0.01, 0.1, 0.5)
 
@@ -1024,15 +1025,15 @@ class ArchitectureOptimizerBo(
       bayesianOptimizeSingleArchitecture(initialResult, maxBayesianIterations)
     }
 
-//    val optimizedResults = archResultBuffer.par.map { initialResult =>
-//      try {
-//        bayesianOptimizeSingleArchitecture(initialResult, maxBayesianIterations)
-//      } catch {
-//        case e: Exception =>
-//          log(s"\t\t\tBayesian optimization failed: ${e.getMessage}")
-//          initialResult // fall back to the unoptimized result
-//      }
-//    }
+    //    val optimizedResults = archResultBuffer.par.map { initialResult =>
+    //      try {
+    //        bayesianOptimizeSingleArchitecture(initialResult, maxBayesianIterations)
+    //      } catch {
+    //        case e: Exception =>
+    //          log(s"\t\t\tBayesian optimization failed: ${e.getMessage}")
+    //          initialResult // fall back to the unoptimized result
+    //      }
+    //    }
 
     val resultBuffer = ArrayBuffer.empty[ArchitectureResult]
     resultBuffer ++= optimizedResults.seq
