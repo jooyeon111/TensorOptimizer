@@ -31,13 +31,14 @@ case class RlConfig(
                      epsilonDecay: Double = 0.85,
                      minEpsilon: Double = 0.05,
                      initialQValue: Double = 0.1,
-                     numTrainingEpisodes: Int = 8,
+                     numTrainingEpisodes: Int = 5,
                      maxStepsPerEpisode: Int = 10,
                      rewardScale: Double = 5.0,
                      penaltyScale: Double = 2.0,
                      invalidPenalty: Double = -1.0,
                      stepCost: Double = -0.01,
-                     earlyStopPatience: Int = 3
+                     earlyStopPatience: Int = 2,
+                     maxCandidatesForRl: Int = 80
                    )
 
 class ArchitectureOptimizerRl(
@@ -296,22 +297,31 @@ class ArchitectureOptimizerRl(
 
     val numTrainingEpisodes = rlConfig.numTrainingEpisodes
 
+    // Limit candidate count to avoid excessive simulation calls
+    val candidatesToOptimize = if (archResultBuffer.size > rlConfig.maxCandidatesForRl) {
+      log(s"\t\t[Candidate Pruning] ${archResultBuffer.size} -> ${rlConfig.maxCandidatesForRl} (top candidates only)")
+      archResultBuffer.take(rlConfig.maxCandidatesForRl)
+    } else {
+      archResultBuffer
+    }
+
     // Phase 1: Training — independent Q-tables per architecture, fully parallelizable
     // Each architecture has its own Q-table since base configs differ and
     // state semantics (log2 offsets) are relative to each architecture's bounds.
     log(s"\t\t[RL Training Phase]")
     log(s"\t\t\tHyperparameters: lr=${rlConfig.learningRate}, gamma=${rlConfig.discountFactor}, " +
       s"eps=${rlConfig.initialEpsilon}->${rlConfig.minEpsilon}, episodes=$numTrainingEpisodes, " +
-      s"earlyStop=${rlConfig.earlyStopPatience}")
+      s"earlyStop=${rlConfig.earlyStopPatience}, candidates=${candidatesToOptimize.size}")
 
     case class TrainingUnit(
                              env: ArchitectureEnvironment,
                              qTable: QTable,
                              initState: RlState,
-                             initialResult: ArchitectureResult
+                             initialResult: ArchitectureResult,
+                             effectiveMaxSteps: Int
                            )
 
-    val trainingUnits = archResultBuffer.map { initialResult =>
+    val trainingUnits = candidatesToOptimize.map { initialResult =>
       val baseArch = initialResult.architecture
       val maxSramLog2 = log2Floor(baseArch.singleBufferLimitKbA)
       val minSramLog2 = log2Ceil(math.max(minSramSize, 1))
@@ -323,7 +333,12 @@ class ArchitectureOptimizerRl(
       )
       val initState = RlState(maxSramLog2, maxStreamDimLog2)
       val qTable = new QTable(rlConfig)
-      TrainingUnit(env, qTable, initState, initialResult)
+
+      // Dynamic max steps: actual search depth = sum of reducible dimensions
+      val searchDepth = (maxSramLog2 - minSramLog2) + (maxStreamDimLog2 - minStreamDimLog2)
+      val effectiveMaxSteps = math.min(math.max(searchDepth, 2), rlConfig.maxStepsPerEpisode)
+
+      TrainingUnit(env, qTable, initState, initialResult, effectiveMaxSteps)
     }
 
     // Training loop: each architecture trains independently in parallel
@@ -334,7 +349,8 @@ class ArchitectureOptimizerRl(
       var actualEpisodes = 0
 
       for (episode <- 0 until numTrainingEpisodes if noImprovementCount < rlConfig.earlyStopPatience) {
-        val (episodeReward, _) = runEpisode(unit.qTable, unit.env, unit.initState, unit.initialResult, training = true)
+        val (episodeReward, _) = runEpisode(unit.qTable, unit.env, unit.initState, unit.initialResult,
+          training = true, maxSteps = unit.effectiveMaxSteps)
         unit.qTable.decayEpsilon()
         actualEpisodes = episode + 1
 
@@ -361,7 +377,7 @@ class ArchitectureOptimizerRl(
     log(s"\t\t[RL Exploitation Phase]")
 
     val optimizedResults = trainingResults.par.map { case (unit, _) =>
-      exploitPolicy(unit.qTable, unit.env, unit.initState, unit.initialResult)
+      exploitPolicy(unit.qTable, unit.env, unit.initState, unit.initialResult, unit.effectiveMaxSteps)
     }.seq
 
     val resultBuffer = ArrayBuffer.empty[ArchitectureResult]
@@ -458,7 +474,8 @@ class ArchitectureOptimizerRl(
                              qTable: QTable,
                              env: ArchitectureEnvironment,
                              initState: RlState,
-                             initialResult: ArchitectureResult
+                             initialResult: ArchitectureResult,
+                             effectiveMaxSteps: Int = -1
                            ): ArchitectureResult = {
 
     var currentState = initState
@@ -466,7 +483,7 @@ class ArchitectureOptimizerRl(
     var bestResult = initialResult
     var done = false
     var step = 0
-    val maxSteps = rlConfig.maxStepsPerEpisode
+    val maxSteps = if (effectiveMaxSteps > 0) effectiveMaxSteps else rlConfig.maxStepsPerEpisode
 
     while (!done && step < maxSteps) {
       val validActions = env.getValidActions(currentState)

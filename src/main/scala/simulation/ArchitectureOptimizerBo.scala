@@ -621,9 +621,9 @@ class ArchitectureOptimizerBo(
       observedY += y
       invalidateCache()
       updateNormalization()
-      // Optimize hyperparameters every 5 observations to reduce overhead
-      // (grid search over 324 combinations × O(N³) Cholesky per combo)
-      if (observedX.size >= 4 && observedX.size % 5 == 0) optimizeHyperparameters()
+      // Optimize hyperparameters every 8 observations to reduce overhead
+      // (grid search over 54 combinations × O(N³) Cholesky per combo)
+      if (observedX.size >= 4 && observedX.size % 8 == 0) optimizeHyperparameters()
     }
 
     def addObservations(xs: Seq[scala.Array[Double]], ys: Seq[Double]): Unit = {
@@ -844,13 +844,14 @@ class ArchitectureOptimizerBo(
     /**
      * Optimize GP hyperparameters by grid search over discrete candidates
      * in log space. Simple but robust for 2D problems with few hyperparameters.
+     * Grid reduced from 324 to 54 combinations for faster execution.
      */
     private def optimizeHyperparameters(): Unit = {
       if (observedX.size < 4) return
 
-      val lsCandidates = scala.Array(0.8, 1.5, 3.0, 5.0)
+      val lsCandidates = scala.Array(0.8, 1.5, 5.0)
       val svCandidates = scala.Array(0.5, 1.0, 2.0)
-      val nvCandidates = scala.Array(0.01, 0.1, 0.5)
+      val nvCandidates = scala.Array(0.01, 0.1)
 
       var bestNlml = Double.MaxValue
       var bestLs = lengthScales.clone()
@@ -1017,11 +1018,20 @@ class ArchitectureOptimizerBo(
                                               processMargin: Double
                                             ): ArrayBuffer[ArchitectureResult] = {
 
-    val maxBayesianIterations = 15
+    val maxBayesianIterations = 4
     val previousResults = archResultBuffer.clone()
 
+    // Limit candidate count to avoid excessive simulation calls
+    val maxCandidatesForBo = 80
+    val candidatesToOptimize = if (archResultBuffer.size > maxCandidatesForBo) {
+      log(s"\t\t[Candidate Pruning] ${archResultBuffer.size} -> $maxCandidatesForBo (top candidates only)")
+      archResultBuffer.take(maxCandidatesForBo)
+    } else {
+      archResultBuffer
+    }
+
     // Run Bayesian optimization independently for each architecture candidate
-    val optimizedResults = archResultBuffer.par.map { initialResult =>
+    val optimizedResults = candidatesToOptimize.par.map { initialResult =>
       bayesianOptimizeSingleArchitecture(initialResult, maxBayesianIterations)
     }
 
@@ -1091,17 +1101,14 @@ class ArchitectureOptimizerBo(
     allObserved += ObservedPoint(initSramLog2, initStreamLog2, initObjective, initialResult, isValid = true)
     evaluatedPoints += ((initSramLog2, initStreamLog2))
 
-    // Better seed strategy: corners + midpoints along each axis + center
+    // Minimal seed: center point only to minimize expensive simulations.
+    // Extreme corners (min SRAM, max stream) are avoided because they cause
+    // very long simulation times on large layers with minimal information gain.
     val sramMid = (maxSramLog2 + minSramLog2) / 2
     val streamMid = (maxStreamDimLog2 + minStreamDimLog2) / 2
 
     val seedPoints = Seq(
-      (minSramLog2, maxStreamDimLog2),       // corner: min SRAM, max stream
-      (maxSramLog2, minStreamDimLog2),       // corner: max SRAM, min stream
-      (minSramLog2, minStreamDimLog2),       // corner: min SRAM, min stream
-      (sramMid, streamMid),                  // center
-      (sramMid, maxStreamDimLog2),           // midpoint along SRAM axis
-      (maxSramLog2, streamMid),             // midpoint along stream axis
+      (sramMid, streamMid),                  // center only
     ).filter { case (s, d) =>
       s >= minSramLog2 && s <= maxSramLog2 &&
         d >= minStreamDimLog2 && d <= maxStreamDimLog2 &&
@@ -1147,9 +1154,9 @@ class ArchitectureOptimizerBo(
     // Bayesian optimization loop with adaptive xi
     var iteration = 0
     var noImprovementCount = 0
-    // Adaptive early stopping: scale patience with search space size
+    // Adaptive early stopping: reduced patience for faster convergence
     val totalCandidates = allCandidates.size
-    val maxNoImprovement = math.max(3, math.min(totalCandidates / 3, 10))
+    val maxNoImprovement = math.max(2, math.min(totalCandidates / 4, 3))
     val baseXi = 0.01
 
     while (iteration < maxIterations && noImprovementCount < maxNoImprovement) {
