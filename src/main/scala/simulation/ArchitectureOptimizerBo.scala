@@ -1100,9 +1100,9 @@ class ArchitectureOptimizerBo(
     // naturally prevents reaching extreme configurations.
     val maxSramLog2 = (math.log(baseArch.singleBufferLimitKbA.toDouble) / math.log(2.0)).toInt
     val absoluteMinSramLog2 = (math.log(math.max(minSramSize, 1).toDouble) / math.log(2.0)).ceil.toInt
-    val minSramLog2 = math.max(absoluteMinSramLog2, maxSramLog2 - 3)
+    val minSramLog2 = math.max(absoluteMinSramLog2, maxSramLog2 - 4)
     val maxStreamDimLog2 = (math.log(baseArch.streamingDimensionSize.toDouble) / math.log(2.0)).toInt
-    val minStreamDimLog2 = math.max(0, maxStreamDimLog2 - 3)
+    val minStreamDimLog2 = math.max(0, maxStreamDimLog2 - 4)
 
     if (maxSramLog2 <= minSramLog2 && maxStreamDimLog2 <= minStreamDimLog2) {
       return initialResult
@@ -1130,7 +1130,41 @@ class ArchitectureOptimizerBo(
     // Generate all discrete candidate points
     val allCandidates = generateCandidatePoints(maxSramLog2, minSramLog2, maxStreamDimLog2, minStreamDimLog2)
 
-    // Bayesian optimization loop with adaptive xi
+    // Neighbor-first exploration: when GP has only 1 observation, EI predictions
+    // are unreliable. Evaluate the best immediate neighbor first to give GP
+    // meaningful data before switching to EI-guided search.
+    val neighbors = Seq(
+      (initSramLog2 - 1, initStreamLog2),     // reduce SRAM only
+      (initSramLog2, initStreamLog2 - 1),     // reduce streaming dim only
+      (initSramLog2 - 1, initStreamLog2 - 1)  // reduce both
+    ).filter { case (s, d) =>
+      s >= minSramLog2 && d >= minStreamDimLog2 && !evaluatedPoints.contains((s, d))
+    }
+
+    var bestNeighborResult: Option[ObservedPoint] = None
+    neighbors.foreach { case (sLog2, dLog2) =>
+      val result = cachedBuildAndRunSimulation(baseArch, sLog2, dLog2)
+      val isValid = result.simulationResult.cycle != Long.MaxValue
+      val penalty = computeInfeasiblePenalty(allObserved.filter(_.isValid).map(_.objectiveValue).toSeq, maximize)
+      val objective = if (isValid) extractObjective(result.simulationResult) else penalty
+
+      val point = ObservedPoint(sLog2, dLog2, objective, result, isValid)
+      allObserved += point
+      evaluatedPoints += ((sLog2, dLog2))
+      gp.addObservation(scala.Array(sLog2.toDouble, dLog2.toDouble), objective)
+
+      if (isValid) {
+        bestNeighborResult = bestNeighborResult match {
+          case Some(prev) =>
+            if (maximize && objective > prev.objectiveValue) Some(point)
+            else if (!maximize && objective < prev.objectiveValue) Some(point)
+            else Some(prev)
+          case None => Some(point)
+        }
+      }
+    }
+
+    // Bayesian optimization loop with adaptive xi (GP now has meaningful data)
     var iteration = 0
     var noImprovementCount = 0
     // Adaptive early stopping: scale patience with search space size
