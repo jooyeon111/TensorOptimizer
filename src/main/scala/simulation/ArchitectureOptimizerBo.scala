@@ -21,6 +21,9 @@ class ArchitectureOptimizerBo(
   private val singleSramOptimizedResults = ArrayBuffer.empty[ArchitectureResult]
   private val rankedSingleSramOptimizedResults = ArrayBuffer.empty[ArchitectureResult]
 
+  // Cache simulation results to avoid redundant evaluations across BO candidates
+  private val simulationCache = new java.util.concurrent.ConcurrentHashMap[(String, Int, Int), ArchitectureResult]()
+
   private val processOneMargin: Double = 20.0
   private val processTwoMargin: Double = 40.0
   private val processThreeMargin: Double = 10.0
@@ -621,10 +624,9 @@ class ArchitectureOptimizerBo(
       observedY += y
       invalidateCache()
       updateNormalization()
-      // Hyperparameter optimization removed from per-observation calls.
-      // With only 5-6 total observations in a typical BO run, the 144-combination
-      // grid search (each requiring O(N³) Cholesky) adds significant overhead
-      // with negligible surrogate quality improvement on this small 2D discrete space.
+      // Optimize hyperparameters every 5 observations to reduce overhead
+      // (grid search over 324 combinations × O(N³) Cholesky per combo)
+      if (observedX.size >= 4 && observedX.size % 5 == 0) optimizeHyperparameters()
     }
 
     def addObservations(xs: Seq[scala.Array[Double]], ys: Seq[Double]): Unit = {
@@ -632,10 +634,8 @@ class ArchitectureOptimizerBo(
       observedY ++= ys
       invalidateCache()
       updateNormalization()
-      // Run lightweight hyperparameter optimization once after all seeds are registered.
-      // This is the only place hyperparameters are tuned — sufficient for 2D discrete spaces
-      // with few total observations.
-      if (observedX.size >= 4) optimizeHyperparameters()
+      // Skip hyperparameter optimization during seed registration;
+      // it will run naturally via addObservation every 5 steps in the BO loop
     }
 
     private def invalidateCache(): Unit = {
@@ -845,30 +845,27 @@ class ArchitectureOptimizerBo(
     }
 
     /**
-     * Lightweight GP hyperparameter selection.
-     * With only 5-6 observations in a 2D discrete space, a large grid search
-     * (previously 4×4×3×3 = 144 combos, each with O(N³) Cholesky) is wasteful.
-     * Reduced to 6 representative configurations that cover the practical range.
+     * Optimize GP hyperparameters by grid search over discrete candidates
+     * in log space. Simple but robust for 2D problems with few hyperparameters.
      */
     private def optimizeHyperparameters(): Unit = {
       if (observedX.size < 4) return
 
-      // 6 representative configurations: (lengthScale0, lengthScale1, signalVariance, noiseVariance)
-      val candidates = scala.Array(
-        (1.0, 1.0, 1.0, 0.1),   // isotropic, moderate smoothness
-        (2.0, 2.0, 1.0, 0.1),   // isotropic, smoother
-        (1.0, 2.0, 1.0, 0.1),   // anisotropic: SRAM varies faster than streaming dim
-        (2.0, 1.0, 1.0, 0.1),   // anisotropic: streaming dim varies faster
-        (1.5, 1.5, 2.0, 0.1),   // higher signal variance
-        (1.5, 1.5, 1.0, 0.5),   // higher noise (more robust to discrete jumps)
-      )
+      val lsCandidates = scala.Array(0.8, 1.5, 3.0, 5.0)
+      val svCandidates = scala.Array(0.5, 1.0, 2.0)
+      val nvCandidates = scala.Array(0.01, 0.1, 0.5)
 
       var bestNlml = Double.MaxValue
       var bestLs = lengthScales.clone()
       var bestSv = signalVariance
       var bestNv = noiseVariance
 
-      for ((ls0, ls1, sv, nv) <- candidates) {
+      for {
+        ls0 <- lsCandidates
+        ls1 <- lsCandidates
+        sv <- svCandidates
+        nv <- nvCandidates
+      } {
         val ls = scala.Array(ls0, ls1)
         val nlml = negativeLogMarginalLikelihood(ls, sv, nv)
         if (nlml < bestNlml) {
@@ -1018,6 +1015,28 @@ class ArchitectureOptimizerBo(
       .copy(arrayConfig = updatedArrayConfig)
   }
 
+  /**
+   * Cached version of buildAndRunSimulation for BO process.
+   * Uses (arrayConfigString, sramLog2, streamDimLog2) as cache key to avoid
+   * redundant expensive simulations across different BO candidates.
+   */
+  private def cachedBuildAndRunSimulation(
+                                           baseArch: Architecture,
+                                           sramSizeLog2: Int,
+                                           streamDimLog2: Int
+                                         ): ArchitectureResult = {
+    val key = (baseArch.arrayConfig.arrayConfigString, sramSizeLog2, streamDimLog2)
+    val cached = simulationCache.get(key)
+    if (cached != null) {
+      cached
+    } else {
+      val arch = buildArchitectureFromParams(baseArch, sramSizeLog2, streamDimLog2)
+      val result = buildAndRunSimulation(arch)
+      simulationCache.putIfAbsent(key, result)
+      result
+    }
+  }
+
   private def optimizeSramStreamingTradeOffs(
                                               archResultBuffer: ArrayBuffer[ArchitectureResult],
                                               processMargin: Double
@@ -1075,10 +1094,15 @@ class ArchitectureOptimizerBo(
     val baseArch = initialResult.architecture
 
     // Define search bounds in log2 space
+    // Limit search range to max 3 steps from initial point to avoid
+    // extreme SRAM/streaming combinations that cause very long simulations.
+    // This mirrors RL behavior where step-by-step reduction + early stopping
+    // naturally prevents reaching extreme configurations.
     val maxSramLog2 = (math.log(baseArch.singleBufferLimitKbA.toDouble) / math.log(2.0)).toInt
-    val minSramLog2 = (math.log(math.max(minSramSize, 1).toDouble) / math.log(2.0)).ceil.toInt
+    val absoluteMinSramLog2 = (math.log(math.max(minSramSize, 1).toDouble) / math.log(2.0)).ceil.toInt
+    val minSramLog2 = math.max(absoluteMinSramLog2, maxSramLog2 - 3)
     val maxStreamDimLog2 = (math.log(baseArch.streamingDimensionSize.toDouble) / math.log(2.0)).toInt
-    val minStreamDimLog2 = 0 // streaming dimension minimum is 1 (2^0)
+    val minStreamDimLog2 = math.max(0, maxStreamDimLog2 - 3)
 
     if (maxSramLog2 <= minSramLog2 && maxStreamDimLog2 <= minStreamDimLog2) {
       return initialResult
@@ -1089,7 +1113,7 @@ class ArchitectureOptimizerBo(
     val evaluatedPoints = scala.collection.mutable.Set.empty[(Int, Int)]
     val maximize = isMaximizing
 
-    // Seed the GP with the initial point
+    // Register only the initial point (no extra seed simulation needed)
     val initSramLog2 = maxSramLog2
     val initStreamLog2 = maxStreamDimLog2
     val initObjective = extractObjective(initialResult.simulationResult)
@@ -1097,52 +1121,11 @@ class ArchitectureOptimizerBo(
     allObserved += ObservedPoint(initSramLog2, initStreamLog2, initObjective, initialResult, isValid = true)
     evaluatedPoints += ((initSramLog2, initStreamLog2))
 
-    // Minimal seed: center point only to minimize expensive simulations.
-    // Extreme corners (min SRAM, max stream) are avoided because they cause
-    // very long simulation times on large layers with minimal information gain.
-    val sramMid = (maxSramLog2 + minSramLog2) / 2
-    val streamMid = (maxStreamDimLog2 + minStreamDimLog2) / 2
-
-    val seedPoints = Seq(
-      (sramMid, streamMid),                  // center only
-    ).filter { case (s, d) =>
-      s >= minSramLog2 && s <= maxSramLog2 &&
-        d >= minStreamDimLog2 && d <= maxStreamDimLog2 &&
-        !evaluatedPoints.contains((s, d))
-    }.distinct
-
-    // Evaluate all seed points and collect results before registering with GP
-    val seedEvaluations = seedPoints.map { case (sLog2, dLog2) =>
-      val candidate = buildArchitectureFromParams(baseArch, sLog2, dLog2)
-      val result = buildAndRunSimulation(candidate)
-      val isValid = result.simulationResult.cycle != Long.MaxValue
-      (sLog2, dLog2, result, isValid)
-    }
-
-    // Collect all seed observations (initial + evaluated seeds)
-    val allSeedXs = ArrayBuffer(scala.Array(initSramLog2.toDouble, initStreamLog2.toDouble))
-    val allSeedYs = ArrayBuffer(initObjective)
-    val seedObservedPoints = ArrayBuffer.empty[ObservedPoint]
-
-    // Compute dynamic infeasible penalty from all valid seed results
-    val validSeedObjectives = ArrayBuffer(initObjective)
-    seedEvaluations.foreach { case (_, _, result, isValid) =>
-      if (isValid) validSeedObjectives += extractObjective(result.simulationResult)
-    }
-
-    // Dynamic penalty: based on observed worst-case with margin, robust to any scale
-    val infeasiblePenalty = computeInfeasiblePenalty(validSeedObjectives.toSeq, maximize)
-
-    seedEvaluations.foreach { case (sLog2, dLog2, result, isValid) =>
-      val objective = if (isValid) extractObjective(result.simulationResult) else infeasiblePenalty
-      allSeedXs += scala.Array(sLog2.toDouble, dLog2.toDouble)
-      allSeedYs += objective
-      allObserved += ObservedPoint(sLog2, dLog2, objective, result, isValid)
-      evaluatedPoints += ((sLog2, dLog2))
-    }
-
-    // Register all seed points with GP in one batch (single hyperparameter optimization)
-    gp.addObservations(allSeedXs.toSeq, allSeedYs.toSeq)
+    // Register initial point with GP
+    gp.addObservations(
+      Seq(scala.Array(initSramLog2.toDouble, initStreamLog2.toDouble)),
+      Seq(initObjective)
+    )
 
     // Generate all discrete candidate points
     val allCandidates = generateCandidatePoints(maxSramLog2, minSramLog2, maxStreamDimLog2, minStreamDimLog2)
@@ -1189,9 +1172,8 @@ class ArchitectureOptimizerBo(
 
       val (nextSramLog2, nextStreamLog2) = bestCandidate
 
-      // Evaluate the selected point
-      val candidateArch = buildArchitectureFromParams(baseArch, nextSramLog2, nextStreamLog2)
-      val candidateResult = buildAndRunSimulation(candidateArch)
+      // Evaluate the selected point (with cache to avoid redundant simulations)
+      val candidateResult = cachedBuildAndRunSimulation(baseArch, nextSramLog2, nextStreamLog2)
       val isValid = candidateResult.simulationResult.cycle != Long.MaxValue
 
       // Add ALL points to GP (including infeasible with dynamic penalty)
