@@ -621,9 +621,10 @@ class ArchitectureOptimizerBo(
       observedY += y
       invalidateCache()
       updateNormalization()
-      // Optimize hyperparameters every 8 observations to reduce overhead
-      // (grid search over 54 combinations × O(N³) Cholesky per combo)
-      if (observedX.size >= 4 && observedX.size % 8 == 0) optimizeHyperparameters()
+      // Hyperparameter optimization removed from per-observation calls.
+      // With only 5-6 total observations in a typical BO run, the 144-combination
+      // grid search (each requiring O(N³) Cholesky) adds significant overhead
+      // with negligible surrogate quality improvement on this small 2D discrete space.
     }
 
     def addObservations(xs: Seq[scala.Array[Double]], ys: Seq[Double]): Unit = {
@@ -631,8 +632,10 @@ class ArchitectureOptimizerBo(
       observedY ++= ys
       invalidateCache()
       updateNormalization()
-      // Skip hyperparameter optimization during seed registration;
-      // it will run naturally via addObservation every 5 steps in the BO loop
+      // Run lightweight hyperparameter optimization once after all seeds are registered.
+      // This is the only place hyperparameters are tuned — sufficient for 2D discrete spaces
+      // with few total observations.
+      if (observedX.size >= 4) optimizeHyperparameters()
     }
 
     private def invalidateCache(): Unit = {
@@ -842,28 +845,30 @@ class ArchitectureOptimizerBo(
     }
 
     /**
-     * Optimize GP hyperparameters by grid search over discrete candidates
-     * in log space. Simple but robust for 2D problems with few hyperparameters.
-     * Grid reduced from 324 to 54 combinations for faster execution.
+     * Lightweight GP hyperparameter selection.
+     * With only 5-6 observations in a 2D discrete space, a large grid search
+     * (previously 4×4×3×3 = 144 combos, each with O(N³) Cholesky) is wasteful.
+     * Reduced to 6 representative configurations that cover the practical range.
      */
     private def optimizeHyperparameters(): Unit = {
       if (observedX.size < 4) return
 
-      val lsCandidates = scala.Array(0.8, 1.5, 5.0)
-      val svCandidates = scala.Array(0.5, 1.0, 2.0)
-      val nvCandidates = scala.Array(0.01, 0.1)
+      // 6 representative configurations: (lengthScale0, lengthScale1, signalVariance, noiseVariance)
+      val candidates = scala.Array(
+        (1.0, 1.0, 1.0, 0.1),   // isotropic, moderate smoothness
+        (2.0, 2.0, 1.0, 0.1),   // isotropic, smoother
+        (1.0, 2.0, 1.0, 0.1),   // anisotropic: SRAM varies faster than streaming dim
+        (2.0, 1.0, 1.0, 0.1),   // anisotropic: streaming dim varies faster
+        (1.5, 1.5, 2.0, 0.1),   // higher signal variance
+        (1.5, 1.5, 1.0, 0.5),   // higher noise (more robust to discrete jumps)
+      )
 
       var bestNlml = Double.MaxValue
       var bestLs = lengthScales.clone()
       var bestSv = signalVariance
       var bestNv = noiseVariance
 
-      for {
-        ls0 <- lsCandidates
-        ls1 <- lsCandidates
-        sv <- svCandidates
-        nv <- nvCandidates
-      } {
+      for ((ls0, ls1, sv, nv) <- candidates) {
         val ls = scala.Array(ls0, ls1)
         val nlml = negativeLogMarginalLikelihood(ls, sv, nv)
         if (nlml < bestNlml) {
@@ -1145,9 +1150,9 @@ class ArchitectureOptimizerBo(
     // Bayesian optimization loop with adaptive xi
     var iteration = 0
     var noImprovementCount = 0
-    // Adaptive early stopping: reduced patience for faster convergence
+    // Adaptive early stopping: scale patience with search space size
     val totalCandidates = allCandidates.size
-    val maxNoImprovement = math.max(2, math.min(totalCandidates / 4, 3))
+    val maxNoImprovement = math.max(2, math.min(totalCandidates / 4, 5))
     val baseXi = 0.01
 
     while (iteration < maxIterations && noImprovementCount < maxNoImprovement) {
