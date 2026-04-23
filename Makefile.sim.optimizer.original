@@ -14,7 +14,7 @@ TEST_OPTION_MULT_20_40_10   := $(CONFIG_DIR)/hbm2_total_multiplier_16384_20_40_1
 # Layer configs
 NANO_DET := $(LAYER_DIR)/nanodet/base/stage3.2.shortcut.2.cfg
 MOBILE := $(LAYER_DIR)/mobilenet/v2/stage6_block3_conv2.cfg
-VIT := $(LAYER_DIR)/vit/base/embedding.cfg
+VIT := $(LAYER_DIR)/vit/base/qkt.cfg
 BLOOM   := $(LAYER_DIR)/bloom/1b/qkt.cfg
 
 # Common args per multiplier config
